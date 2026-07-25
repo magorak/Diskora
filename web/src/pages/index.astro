@@ -1,0 +1,153 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pillars = [
+	{
+		title: 'Kontrola integrity',
+		description:
+			'Needestruktivní kontrola disku (dirty-bit + chkdsk /scan) se srozumitelným českým průběhem a grafickým progress barem — místo anglického syrového výstupu.',
+		screenshot: '/screenshots/integrity.png',
+		alt: 'Okno Kontrola integrity disku se zeleným stavem "V pořádku" a historií kontrol',
+	},
+	{
+		title: 'S.M.A.R.T. monitoring',
+		description:
+			'Čtení zdravotních dat disku s lidsky srozumitelným vysvětlením rizika u každého atributu — místo hexadecimálních tabulek. Lokální historie zdraví v čase.',
+		screenshot: '/screenshots/dashboard.png',
+		alt: 'Dashboard s přehledem fyzických disků a svazků, barevné odznaky typu disku',
+	},
+	{
+		title: 'Analýza zaplněnosti',
+		description:
+			'Rychlý rekurzivní scanner složek ve stylu TreeSize, s drill-down navigací a přehledným kompozičním grafem podílu na velikosti.',
+		screenshot: '/screenshots/disk-usage.png',
+		alt: 'Okno Analýza zaplněnosti s kompozičním pruhem a seznamem složek podle velikosti',
+	},
+	{
+		title: 'TRIM a defragmentace',
+		description:
+			'Diskora sama pozná, jestli je disk SSD nebo HDD, a nabídne jen tu akci, která dává smysl — TRIM na SSD, defragmentaci na HDD.',
+		screenshot: '/screenshots/optimization.png',
+		alt: 'Okno Optimalizace disku s rozpoznaným SSD a nabídkou TRIM',
+	},
+];
+
+const differentiators = [
+	['Bez telemetrie', 'Žádné sledování, žádné odesílání dat nikam. Vše zůstává na vašem disku.'],
+	['Plně open-source', 'Licence GNU GPLv3. Žádná placená verze, žádné reklamy, žádný upsell.'],
+	['Lokální historie', 'Trendy zdraví disku a výsledků kontrol se ukládají lokálně v SQLite — žádný cloud, žádný účet.'],
+	['Virtuální disky', 'Čtení a připojení VHD, VHDX i ISO obrazů přímo z aplikace, bez Hyper-V Manageru.'],
+];
+---
+
+<BaseLayout
+	title="Kontrola, oprava a analýza disků"
+	description="Diskora je open-source (GPLv3) nástroj pro Windows pro kontrolu, opravu a analýzu disků — bez telemetrie, bez reklam."
+>
+	<header class="border-b border-white/10">
+		<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+			<div class="flex items-center gap-3">
+				<img src="/logo.png" alt="Diskora" class="h-8 w-8 rounded-lg" />
+				<span class="text-lg font-semibold">Diskora</span>
+			</div>
+			<div class="flex items-center gap-6 text-sm text-neutral-400">
+				<a href="#funkce" class="hover:text-neutral-100">Funkce</a>
+				<a href="#bezpecnost" class="hover:text-neutral-100">Bezpečnost</a>
+				<a href="/docs/" class="hover:text-neutral-100">Nápověda</a>
+			</div>
+		</nav>
+	</header>
+
+	<main>
+		<section class="mx-auto max-w-6xl px-6 py-20 text-center">
+			<span class="inline-block rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-1 text-sm text-blue-300">
+				Verze 0.1.0 — rané vývojové stádium
+			</span>
+			<h1 class="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">
+				Kontrola, oprava a analýza disků.<br />
+				<span class="text-blue-400">V jednom nástroji, bez kompromisů.</span>
+			</h1>
+			<p class="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">
+				Diskora spojuje to, co dnes vyžaduje čtyři samostatné programy — kontrolu integrity,
+				S.M.A.R.T. monitoring, analýzu zaplněnosti a TRIM/defragmentaci — do jedné open-source
+				aplikace pro Windows. Bez telemetrie, bez reklam, bez placené verze.
+			</p>
+			<div class="mt-10 flex items-center justify-center gap-4">
+				<a
+					href="/docs/"
+					class="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-500"
+				>
+					Prohlédnout nápovědu
+				</a>
+				<span class="text-sm text-neutral-500">Instalátor bude k dispozici s prvním veřejným vydáním.</span>
+			</div>
+			<div class="mt-16 overflow-hidden rounded-xl border border-white/10 shadow-2xl shadow-blue-950/50">
+				<img src="/screenshots/dashboard.png" alt="Diskora — dashboard s přehledem disků" class="w-full" />
+			</div>
+		</section>
+
+		<section id="funkce" class="mx-auto max-w-6xl px-6 py-20">
+			<h2 class="text-center text-3xl font-bold">Čtyři pilíře, jedna aplikace</h2>
+			<p class="mx-auto mt-4 max-w-2xl text-center text-neutral-400">
+				Každá funkce je živě odzkoušená na reálných discích — žádné snímky obrazovky nejsou
+				vyrobené, jde o skutečný běžící software.
+			</p>
+			<div class="mt-14 grid gap-12">
+				{
+					pillars.map((pillar, index) => (
+						<div class={`grid items-center gap-8 md:grid-cols-2 ${index % 2 === 1 ? 'md:[direction:rtl]' : ''}`}>
+							<div class="md:[direction:ltr]">
+								<h3 class="text-2xl font-semibold">{pillar.title}</h3>
+								<p class="mt-3 text-neutral-400">{pillar.description}</p>
+							</div>
+							<div class="overflow-hidden rounded-xl border border-white/10 md:[direction:ltr]">
+								<img src={pillar.screenshot} alt={pillar.alt} class="w-full" />
+							</div>
+						</div>
+					))
+				}
+			</div>
+		</section>
+
+		<section class="border-t border-white/10 bg-white/[0.02]">
+			<div class="mx-auto max-w-6xl px-6 py-20">
+				<h2 class="text-center text-3xl font-bold">Co Diskoru odlišuje</h2>
+				<div class="mt-12 grid gap-8 sm:grid-cols-2">
+					{
+						differentiators.map(([title, description]) => (
+							<div class="rounded-xl border border-white/10 p-6">
+								<h3 class="font-semibold text-blue-300">{title}</h3>
+								<p class="mt-2 text-sm text-neutral-400">{description}</p>
+							</div>
+						))
+					}
+				</div>
+			</div>
+		</section>
+
+		<section id="bezpecnost" class="mx-auto max-w-6xl px-6 py-20">
+			<h2 class="text-center text-3xl font-bold">Bezpečnost je návrhové rozhodnutí, ne dodatek</h2>
+			<div class="mx-auto mt-10 max-w-3xl space-y-4 text-neutral-400">
+				<p>
+					Diskora opravuje disky přes ověřené mechanismy Windows (chkdsk, TRIM/defrag API) —
+					nikdy vlastním zápisem na syrové struktury souborového systému. Vlastní filesystem
+					engine od nuly by byl obrovské riziko ztráty dat; Diskora přidává hodnotu
+					v diagnostice, vizualizaci a srozumitelném reportování nad ověřenými nástroji.
+				</p>
+				<p>
+					Operace vyžadující zvýšená oprávnění (oprava, TRIM/defrag, S.M.A.R.T.) si o ně vždy
+					řeknou zvlášť a viditelně — aplikace neběží s administrátorskými právy natrvalo bez
+					důvodu. Žádné skládání příkazů ze stringů, žádná telemetrie, žádné síťové volání bez
+					výslovného souhlasu.
+				</p>
+			</div>
+		</section>
+	</main>
+
+	<footer class="border-t border-white/10">
+		<div class="mx-auto max-w-6xl px-6 py-10 text-center text-sm text-neutral-500">
+			<p>Diskora — licencováno pod <span class="text-neutral-300">GNU GPLv3</span>.</p>
+			<p class="mt-2">Žádná telemetrie. Žádný účet. Žádná reklama.</p>
+		</div>
+	</footer>
+</BaseLayout>

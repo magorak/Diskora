@@ -1,0 +1,44 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+	title="Analýza zaplněnosti"
+	description="Jak funguje analýza zaplněnosti disku v Diskoře — rekurzivní scanner složek, drill-down a kompoziční graf."
+>
+	<h1 class="text-3xl font-bold">Analýza zaplněnosti</h1>
+	<p class="mt-4 text-neutral-400">
+		Okno Analýza zaplněnosti odpovídá na otázku „co mi zabírá místo na disku" ve stylu TreeSize —
+		s drill-down navigací do podsložek a přehledovým grafem podílu na velikosti.
+	</p>
+
+	<div class="mt-8 overflow-hidden rounded-xl border border-white/10">
+		<img src="/screenshots/disk-usage.png" alt="Okno Analýza zaplněnosti s kompozičním pruhem a seznamem složek podle velikosti" class="w-full" />
+	</div>
+
+	<h2 class="mt-10 text-2xl font-semibold">Jak funguje sken</h2>
+	<p class="mt-4 text-neutral-400">
+		Scanner rekurzivně prochází vybranou složku a počítá velikost každé podsložky. Je odolný vůči
+		reparse pointům (nezacyklí se) a nedostupným složkám (např.
+		<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">System Volume Information</code> se
+		korektně nahlásí jako nedostupná místo pádu celého skenu). Během skenu se průběžně hlásí
+		postup, takže i sken velkého disku zůstává čitelný.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Kompoziční pruh místo koláčového grafu</h2>
+	<p class="mt-4 text-neutral-400">
+		Pro zobrazení podílu jednotlivých položek na celkové velikosti používá Diskora vodorovný
+		segmentovaný pruh místo klasického koláčového grafu — u složek s dlouhými nebo početnými
+		názvy se čte přesněji než výseče kruhu. Zobrazuje se top 5 největších položek v aktuální
+		složce (včetně syntetické položky „Soubory v této složce" pro soubory, které nejsou v žádné
+		podsložce) a souhrnná položka „Ostatní" pro zbytek. Legenda pod pruhem ukazuje barevné dlaždice
+		a přesnou velikost po najetí myší.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Drill-down navigace</h2>
+	<p class="mt-4 text-neutral-400">
+		Poklepáním na podsložku se do ní zanoříte a graf i seznam se přepočítají pro nový kontext;
+		tlačítkem zpět se vrátíte o úroveň výš. U každé položky je vidět i její podíl na velikosti
+		rodičovské složky, ne jen absolutní velikost.
+	</p>
+</DocsLayout>

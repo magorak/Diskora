@@ -1,0 +1,58 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+	title="Kontrola integrity"
+	description="Jak funguje kontrola integrity disku v Diskoře — dirty-bit, chkdsk /scan, český průběh a historie."
+>
+	<h1 class="text-3xl font-bold">Kontrola integrity</h1>
+	<p class="mt-4 text-neutral-400">
+		Okno Kontrola integrity kombinuje dvě needestruktivní kontroly a ukládá historii výsledků,
+		aby bylo vidět, jestli se stav svazku v čase zhoršuje.
+	</p>
+
+	<div class="mt-8 overflow-hidden rounded-xl border border-white/10">
+		<img src="/screenshots/integrity.png" alt="Okno Kontrola integrity se zeleným stavem a historií kontrol" class="w-full" />
+	</div>
+
+	<h2 class="mt-10 text-2xl font-semibold">Co se kontroluje</h2>
+	<div class="mt-4 space-y-4 text-neutral-400">
+		<p>
+			<strong class="text-neutral-200">Dirty bit</strong> (<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">FSCTL_IS_VOLUME_DIRTY</code>)
+			— rychlý dotaz na to, jestli má Windows svazek označený jako „špinavý" (typicky po
+			nekorektním vypnutí). Funguje bez administrátorských práv na běžných svazcích.
+		</p>
+		<p>
+			<strong class="text-neutral-200">chkdsk /scan</strong> — needestruktivní sken souborového
+			systému spuštěný jako podřízený proces (<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">chkdsk.exe /scan</code>),
+			jehož výstup se čte řádek po řádku v reálném čase. Chkdsk interně potřebuje VSS snapshot,
+			takže vždy vyžaduje administrátorská práva bez ohledu na to, který svazek se kontroluje —
+			to jsme ověřili živě, ne jen podle dokumentace.
+		</p>
+	</div>
+
+	<h2 class="mt-10 text-2xl font-semibold">Český průběh místo anglického logu</h2>
+	<p class="mt-4 text-neutral-400">
+		Chkdsk vypisuje svůj postup napevno v angličtině bez ohledu na jazyk Windows (např.
+		<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">"Stage 2: Examining file name linkage..."</code>).
+		Diskora tyto řádky rozpoznává a převádí na srozumitelný český popisek fáze plus grafický
+		progress bar — syrový anglický výstup zůstává k nahlédnutí jako doplňkový detail, pro ty,
+		kdo mu rozumí a chtějí víc kontextu.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Historie kontrol</h2>
+	<p class="mt-4 text-neutral-400">
+		Každý výsledek kontroly se ukládá lokálně (SQLite, žádný cloud) a zobrazuje se jako tabulka
+		posledních 20 záznamů se stavem obarveným podle výsledku — snadno tak uvidíte, jestli se
+		problém objevil opakovaně.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Co Diskora (zatím) nedělá</h2>
+	<p class="mt-4 text-neutral-400">
+		Skutečná oprava (<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">chkdsk /f</code>,
+		<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">/spotfix</code>) je vědomě zatím
+		nepropojená — přijde s vlastním potvrzovacím dialogem, protože jde o destruktivní operaci nad
+		souborovým systémem.
+	</p>
+</DocsLayout>

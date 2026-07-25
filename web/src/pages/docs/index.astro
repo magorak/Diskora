@@ -1,0 +1,59 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+	title="Nápověda"
+	description="Podrobná nápověda k Diskoře — kontrola integrity, S.M.A.R.T., analýza zaplněnosti, TRIM a defragmentace, virtuální disky."
+>
+	<h1 class="text-3xl font-bold">Nápověda</h1>
+	<p class="mt-4 text-neutral-400">
+		Diskora spojuje čtyři hlavní nástroje pro práci s disky do jedné aplikace. Tahle sekce
+		popisuje, co každá část dělá, co potřebuje za oprávnění a jak se ověřilo, že skutečně funguje
+		na reálném hardwaru — ne jen v teorii.
+	</p>
+
+	<div class="mt-10 grid gap-6 sm:grid-cols-2">
+		<a
+			href="/docs/integrity/"
+			class="rounded-xl border border-white/10 p-6 transition hover:border-blue-400/40 hover:bg-white/[0.03]"
+		>
+			<h2 class="font-semibold text-blue-300">Kontrola integrity</h2>
+			<p class="mt-2 text-sm text-neutral-400">
+				Dirty-bit kontrola a chkdsk /scan, český průběh, historie kontrol.
+			</p>
+		</a>
+		<a
+			href="/docs/disk-usage/"
+			class="rounded-xl border border-white/10 p-6 transition hover:border-blue-400/40 hover:bg-white/[0.03]"
+		>
+			<h2 class="font-semibold text-blue-300">Analýza zaplněnosti</h2>
+			<p class="mt-2 text-sm text-neutral-400">
+				Rekurzivní scanner složek ve stylu TreeSize s kompozičním grafem podílu.
+			</p>
+		</a>
+		<a
+			href="/docs/security/"
+			class="rounded-xl border border-white/10 p-6 transition hover:border-blue-400/40 hover:bg-white/[0.03]"
+		>
+			<h2 class="font-semibold text-blue-300">Bezpečnost a oprávnění</h2>
+			<p class="mt-2 text-sm text-neutral-400">
+				Co Diskora dělá se zvýšenými právy, co ne, a proč.
+			</p>
+		</a>
+	</div>
+
+	<h2 class="mt-14 text-2xl font-semibold">Rychlý start</h2>
+	<ol class="mt-4 list-decimal space-y-2 pl-6 text-neutral-400">
+		<li>Spusťte Diskoru — dashboard hned ukáže seznam fyzických disků a svazků.</li>
+		<li>
+			Poklepáním na svazek otevřete okno <strong class="text-neutral-200">Kontrola integrity</strong>{' '}
+			nebo <strong class="text-neutral-200">S.M.A.R.T.</strong> podle toho, co chcete zjistit.
+		</li>
+		<li>Pro rozbor zaplněnosti použijte tlačítko „Analýza zaplněnosti" u vybraného svazku.</li>
+		<li>
+			Operace, které vyžadují administrátorská práva (oprava, TRIM, defragmentace), o ně Diskora
+			požádá zvlášť v moment spuštění — aplikace neběží s právy administrátora natrvalo.
+		</li>
+	</ol>
+</DocsLayout>

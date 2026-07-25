@@ -1,0 +1,67 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+
+const nav = [
+	{ href: '/docs/', label: 'Přehled' },
+	{ href: '/docs/integrity/', label: 'Kontrola integrity' },
+	{ href: '/docs/disk-usage/', label: 'Analýza zaplněnosti' },
+	{ href: '/docs/security/', label: 'Bezpečnost a oprávnění' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={title} description={description}>
+	<header class="border-b border-white/10">
+		<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+			<a href="/" class="flex items-center gap-3">
+				<img src="/logo.png" alt="Diskora" class="h-8 w-8 rounded-lg" />
+				<span class="text-lg font-semibold">Diskora</span>
+			</a>
+			<div class="flex items-center gap-6 text-sm text-neutral-400">
+				<a href="/#funkce" class="hover:text-neutral-100">Funkce</a>
+				<a href="/#bezpecnost" class="hover:text-neutral-100">Bezpečnost</a>
+				<a href="/docs/" class="text-neutral-100">Nápověda</a>
+			</div>
+		</nav>
+	</header>
+
+	<div class="mx-auto grid max-w-6xl gap-10 px-6 py-12 md:grid-cols-[220px_1fr]">
+		<aside class="md:sticky md:top-12 md:h-fit">
+			<p class="mb-3 text-xs font-semibold tracking-wide text-neutral-500 uppercase">Nápověda</p>
+			<nav class="flex flex-col gap-1">
+				{
+					nav.map((item) => (
+						<a
+							href={item.href}
+							class={`rounded-lg px-3 py-2 text-sm transition ${
+								currentPath === item.href
+									? 'bg-blue-500/10 text-blue-300'
+									: 'text-neutral-400 hover:bg-white/5 hover:text-neutral-100'
+							}`}
+						>
+							{item.label}
+						</a>
+					))
+				}
+			</nav>
+		</aside>
+
+		<main class="min-w-0">
+			<slot />
+		</main>
+	</div>
+
+	<footer class="border-t border-white/10">
+		<div class="mx-auto max-w-6xl px-6 py-10 text-center text-sm text-neutral-500">
+			<p>Diskora — licencováno pod <span class="text-neutral-300">GNU GPLv3</span>.</p>
+		</div>
+	</footer>
+</BaseLayout>

@@ -1,0 +1,57 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+	title="Bezpečnost a oprávnění"
+	description="Jaká oprávnění Diskora vyžaduje, kdy a proč, a jak je navržená bezpečnost aplikace."
+>
+	<h1 class="text-3xl font-bold">Bezpečnost a oprávnění</h1>
+	<p class="mt-4 text-neutral-400">
+		Diskora pracuje s disky, což je citlivá oblast — proto je bezpečnost součástí návrhu, ne
+		dodatek. Tahle stránka shrnuje, co aplikace dělá se zvýšenými právy, co ne, a proč jsme se
+		rozhodli tak, jak jsme se rozhodli.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Žádný vlastní filesystem engine</h2>
+	<p class="mt-4 text-neutral-400">
+		Diskora nikdy nezapisuje přímo na syrové struktury souborového systému. Opravy a údržba
+		(kontrola integrity, TRIM, defragmentace) jdou přes ověřené nativní mechanismy Windows —
+		<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">chkdsk.exe</code>,
+		<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">defrag.exe</code>, IOCTL rozhraní
+		jádra. Vlastní low-level opravný engine od nuly by byl obrovské riziko ztráty dat bez úměrného
+		přínosu — Diskora přidává hodnotu v diagnostice, vizualizaci a srozumitelném reportování nad
+		těmito ověřenými nástroji, ne v jejich nahrazení.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Kdy Diskora potřebuje administrátorská práva</h2>
+	<ul class="mt-4 list-disc space-y-2 pl-6 text-neutral-400">
+		<li>Spuštění <code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">chkdsk /scan</code> (potřebuje VSS snapshot, vždy, bez ohledu na svazek).</li>
+		<li>TRIM a defragmentace přes <code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">defrag.exe</code>.</li>
+		<li>Připojení/odpojení VHD, VHDX a ISO obrazů.</li>
+		<li>Čtení S.M.A.R.T. dat na některých discích (záleží na řadiči/ovladači).</li>
+	</ul>
+	<p class="mt-4 text-neutral-400">
+		Dirty-bit kontrola, analýza zaplněnosti a čtení metadat virtuálních disků fungují bez
+		administrátorských práv — ověřeno živě na reálném hardwaru. Diskora si o zvýšená práva řekne
+		vždy jen v moment konkrétní akce, ne natrvalo při spuštění.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Bezpečné spouštění procesů</h2>
+	<p class="mt-4 text-neutral-400">
+		Všechny externí příkazy (<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">chkdsk</code>,
+		<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">defrag</code>, PowerShell cmdlety pro
+		práci s obrazy disků) se spouští výhradně přes
+		<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">ProcessStartInfo.ArgumentList</code>,
+		nikdy skládáním příkazu ze stringů — to eliminuje riziko command injection. Tam, kde je potřeba
+		předat cestu k souboru do PowerShell skriptu, jde hodnota přes proměnnou prostředí, ne jako
+		interpolovaný text příkazu.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Data a soukromí</h2>
+	<ul class="mt-4 list-disc space-y-2 pl-6 text-neutral-400">
+		<li>Žádná telemetrie, žádné síťové volání bez výslovného souhlasu.</li>
+		<li>Historie S.M.A.R.T. a kontrol integrity se ukládá lokálně v SQLite (<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">%LocalAppData%\Diskora\diskora.db</code>) — žádný cloud, žádný účet.</li>
+		<li>Zdrojový kód je celý veřejně dohledatelný a auditovatelný pod licencí GPLv3.</li>
+	</ul>
+</DocsLayout>

@@ -124,11 +124,22 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [ ] SBOM generování
 
 ## Fáze 10 — Produktový web (Diskora Web)
-- [ ] Scaffold Astro + Tailwind, GPLv3, bez trackerů
-- [ ] Landing page (hero, funkce, screenshoty, download CTA)
-- [ ] Dokumentace/nápověda (Starlight) — podrobně ke každé funkci, se screenshoty
+- [x] Scaffold Astro 7 + Tailwind v4 (`web/`), bez trackerů/analytiky, `noindex` dokud
+      není veřejné vydání - živě ověřeno (`npm run build`, 0 zranitelností při instalaci)
+- [x] Landing page (hero s verzí 0.1.0 a upřímným "rané vývojové stádium" místo
+      fake download tlačítka, 4 pilíře se skutečnými screenshoty ze živého testování,
+      4 odlišující prvky, sekce Bezpečnost)
+- [x] Nápověda (`web/src/pages/docs/`) — vlastní lehké Astro stránky se sdíleným
+      `DocsLayout` (sidebar navigace) místo plného Starlight frameworku (méně
+      komplexity pro tuto velikost obsahu, konzistentní vzhled s landing page);
+      3 reálné podstránky se screenshoty: Kontrola integrity, Analýza zaplněnosti,
+      Bezpečnost a oprávnění - živě ověřeno (`astro build` + `astro preview`,
+      všech 5 stránek vrací HTTP 200)
+- [x] Reuse ikony aplikace jako favicon/logo webu (stejný soubor jako `Diskora.App`)
 - [ ] Changelog page (synchronizace s `CHANGELOG.md`)
-- [ ] Stránky: bezpečnostní politika, ochrana soukromí, licence
+- [ ] Stránka ochrana soukromí (rozšíření sekce Bezpečnost v nápovědě)
+- [ ] Migrace nápovědy na Starlight, pokud obsah naroste natolik, že se vyplatí
+      full-text search a auto-generovaný sidebar
 - [ ] CI: build + deploy, kontrola bezpečnostních hlaviček/CSP
 
 ## Fáze 11 — Průběžná dokumentace a verzování

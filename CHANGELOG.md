@@ -6,6 +6,17 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Produktový web (Fáze 10, první řez): nový podprojekt `web/` (Astro 7 + Tailwind v4),
+  bez telemetrie/trackerů, `noindex` dokud nebude veřejné vydání. Landing page se
+  čtyřmi pilíři (skutečné screenshoty ze živého testování, ne makety), upřímným
+  hero (verze 0.1.0, žádné falešné tlačítko ke stažení) a sekcí o bezpečnostní
+  filozofii. Nápověda (`/docs/`) jako vlastní lehké Astro stránky se sdíleným
+  `DocsLayout` (sidebar navigace) místo plného Starlight - pro aktuální rozsah
+  obsahu jednodušší a vizuálně konzistentní s landing page; tři reálné podstránky
+  (Kontrola integrity, Analýza zaplněnosti, Bezpečnost a oprávnění), každá se
+  screenshotem a odkazem na živě ověřené chování z appky. Favicon/logo sdílené
+  s ikonou `Diskora.App`. Živě ověřeno: `npm run build` (5 stránek, bez chyb) a
+  `astro preview` (všech 5 cest vrací HTTP 200).
 - ISO podpora (Fáze 6): `Diskora.Repair.IsoMounter` orchestruje `Mount-DiskImage`/
   `Dismount-DiskImage` (cesta k souboru jde přes proměnnou prostředí, ne interpolaci
   do příkazu). Okno Virtuální disk teď rozpozná i `.iso` a nabídne Připojit/Odpojit
