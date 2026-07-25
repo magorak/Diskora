@@ -68,13 +68,29 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       integrity - dirty-bit i výsledky skenů) - živě ověřeno
 
 ## Fáze 4 — Analýza zaplněnosti (styl TreeSize)
-- [x] Rekurzivní scanner složek/souborů (`DiskUsageScanner`, zatím jednovláknový - viz níže) -
-      živě ověřeno na reálném naplněném svazku, výsledky (velikosti/počty souborů) sedí přesně
-      a `System Volume Information` je správně nahlášena jako nedostupná
-- [ ] Zrychlení: vícevláknový sken s omezenou paralelitou - živě potvrzeno jako reálná
-      potřeba: sken celého `C:\` (systémový svazek, statisíce souborů) v tomto prostředí
-      neskončil ani po 4 minutách, zatímco malý testovací svazek `E:\` (165 MB) je hotový
-      za sekundu - jednovláknový rekurzivní sken neškáluje na velké svazky
+- [x] Rekurzivní scanner složek/souborů (`DiskUsageScanner`) - živě ověřeno na reálném
+      naplněném svazku, výsledky (velikosti/počty souborů) sedí přesně a
+      `System Volume Information` je správně nahlášena jako nedostupná
+- [x] Zrychlení: vícevláknový sken s omezenou paralelitou (`SemaphoreSlim` přes
+      `Environment.ProcessorCount * 2`) - sken celého `C:\` (437 311 souborů, 150 579
+      složek, 101 GB) teď doběhne za ~48-76 s místo dřívějšího nedokončení ani po 4 minutách.
+      Cestou se živě odhalily a opravily dvě reálné chyby vlastní paralelizace:
+      1) první verze držela permit ze semaforu PO CELOU DOBU čekání na potomky - to je
+         prioritní inverze (rodič drží permit a čeká na potomka, který ale potřebuje
+         permit ze stejné fronty), hluboké větve se tak zasekávaly na minuty navíc, hůř
+         než bez paralelizace. Opraveno: permit se drží jen po dobu synchronního I/O
+         jedné složky a uvolní se PŘED rekurzí do potomků.
+      2) i po opravě (1) sken v GUI (na rozdíl od izolovaného konzolového testu přímo
+         nad `Diskora.Core`) trval přes 3 minuty i po dokončení skutečné I/O práce -
+         hlášení postupu pro KAŽDOU navštívenou složku (150 tisíc+) zaplavovalo UI vlákno,
+         protože každé volání skrz `SetField`/binding spouští drahé globální
+         `CommandManager.InvalidateRequerySuggested()`. Opraveno prahováním hlášení na
+         max. 10x/s (`ThrottledProgressReporter`) - a tahle oprava sama odhalila třetí
+         bug: throttler inicializovaný na `long.MinValue` přetekl při prvním odečtu
+         (`now - long.MinValue` > `long.MaxValue`) a tiše zahazoval úplně všechna
+         hlášení navždy - chyceno existujícím testem, který čekal aspoň jedno hlášení
+         a dostal prázdnou kolekci.
+      Všechny tři opravy živě ověřeny (izolovaný harness nad `Diskora.Core` i plné GUI).
 - [x] List view s drill-down navigací (řazeno dle velikosti, podíl v %, počet souborů)
 - [x] Grafický přehled podílu (vodorovný kompoziční pruh + legenda, ověřená paleta ze
       skillu dataviz - part-to-whole formou segmentovaného pruhu, ne koláčem, protože

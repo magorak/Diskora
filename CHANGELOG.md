@@ -6,6 +6,30 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Vícevláknový sken zaplněnosti disku (Fáze 4): `DiskUsageScanner` teď skenuje
+  sourozenecké podsložky souběžně přes `Task.Run` + `SemaphoreSlim`
+  (`Environment.ProcessorCount * 2` souběžných I/O operací). Sken celého `C:\`
+  (437 311 souborů, 150 579 složek, 101 GB) teď doběhne za ~48-76 s - dřív se
+  jednovláknová verze na tomto svazku nedokončila ani po 4 minutách.
+
+### Opraveno
+- `DiskUsageScanner`: první verze paralelizace držela permit ze semaforu i během
+  čekání na potomky, což je prioritní inverze (rodič čeká na potomka, který ale
+  potřebuje permit ze stejné fronty) - hluboké větve stromu se tak uměly zaseknout
+  na řádově minuty navíc, hůř než bez jakékoli paralelizace. Opraveno: permit se
+  drží jen po dobu synchronního I/O jedné složky, uvolní se PŘED rekurzí do potomků.
+- `DiskUsageScanner`: i po výše uvedené opravě GUI sken velkého svazku (na rozdíl
+  od izolovaného testu přímo nad Diskora.Core) trval přes 3 minuty navíc PO
+  dokončení skutečné I/O práce - hlášení postupu pro každou z 150 tisíc+ navštívených
+  složek zaplavovalo UI vlákno (každé volání skrz binding spouští drahé globální
+  `CommandManager.InvalidateRequerySuggested()`). Opraveno prahováním hlášení na
+  max. 10x/s (`ThrottledProgressReporter`).
+- `ThrottledProgressReporter`: throttler inicializovaný na `long.MinValue` přetékal
+  při prvním porovnání (`Environment.TickCount64 - long.MinValue` přesahuje
+  `long.MaxValue` a wrapne se na zápornou hodnotu), takže by tiše zahodil úplně
+  všechna hlášení postupu navždy - odhaleno existujícím regresním testem
+  (`ScanAsync_ReportsProgressForEachDirectoryVisited`), opraveno inicializací na
+  bezpečnou hodnotu odvozenou od aktuálního tick countu.
 - Hledač velkých a starých souborů (Fáze 4): `DiskUsageScanner` nyní během skenu
   zároveň sleduje 20 největších a 20 nejstarších souborů v celém stromu přes nový
   `BoundedTopTracker` (udržuje jen N položek seřazených podle komparátoru, žádná
