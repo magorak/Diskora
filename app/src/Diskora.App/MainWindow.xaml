@@ -23,7 +23,7 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Soubor">
                 <MenuItem Header="_Obnovit disky" Command="{Binding RefreshCommand}" InputGestureText="Ctrl+R" />
-                <MenuItem Header="_Otevřít virtuální disk (VHD/VHDX)..." Click="OpenVirtualDisk_Click" />
+                <MenuItem Header="_Otevřít virtuální disk / ISO (VHD/VHDX/ISO)..." Click="OpenVirtualDisk_Click" />
                 <Separator />
                 <MenuItem Header="_Konec" Command="{Binding ExitCommand}" />
             </MenuItem>

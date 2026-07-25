@@ -6,6 +6,13 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- ISO podpora (Fáze 6): `Diskora.Repair.IsoMounter` orchestruje `Mount-DiskImage`/
+  `Dismount-DiskImage` (cesta k souboru jde přes proměnnou prostředí, ne interpolaci
+  do příkazu). Okno Virtuální disk teď rozpozná i `.iso` a nabídne Připojit/Odpojit
+  obraz - live ověřeno, funguje bez admin práv (na rozdíl od VHD/VHDX). Přímé
+  `AttachVirtualDisk` s VIRTUAL_STORAGE_TYPE_DEVICE_ISO bylo živě otestováno a
+  zdokumentováno jako nefunkční (vrátí úspěch, ale bez souborového systému), proto
+  orchestrace přes ověřený cmdlet.
 - Dokončení Fáze 1: mapování svazek → fyzický disk (WMI asociátorový řetězec
   Win32_LogicalDisk → ... → Win32_DiskDrive, živě ověřeno) a barevné odznaky
   typu disku (SSD/HDD/vyměnitelný/virtuální) u fyzických disků i svazků
@@ -30,6 +37,11 @@ verzování dle [Semantic Versioning](https://semver.org/).
     s přesnou velikostí. Živě ověřeno na reálných datech.
 
 ### Opraveno
+- Tlačítka navázaná přes `RelayCommand` chvíli po dokončení async operace (mount,
+  scan, TRIM...) zůstávala zdánlivě needostupná - `CommandManager.RequerySuggested`
+  se spoléhá na běžné vstupní události, ne na změny vlastností z async pokračování.
+  Opraveno voláním `CommandManager.InvalidateRequerySuggested()` v `ViewModelBase.
+  SetField`, živě ověřeno (mount ISO → okamžité odpojení).
 - `Diskora.Data`: výchozí verze `Microsoft.Data.Sqlite` 9.0.0 táhla transitivní
   závislost `SQLitePCLRaw.lib.e_sqlite3` 2.1.10/2.1.11 se známou bezpečnostní
   chybou (GHSA-2m69-gcr7-jv3q, paměťová korupce v SQLite < 3.50.2) - opraveno

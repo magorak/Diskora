@@ -60,8 +60,8 @@ public partial class MainWindow : Window
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "Otevřít virtuální disk",
-            Filter = "Virtuální disky (*.vhd;*.vhdx)|*.vhd;*.vhdx|Všechny soubory (*.*)|*.*",
+            Title = "Otevřít virtuální disk nebo ISO obraz",
+            Filter = "Virtuální disky a obrazy (*.vhd;*.vhdx;*.iso)|*.vhd;*.vhdx;*.iso|Všechny soubory (*.*)|*.*",
         };
 
         if (dialog.ShowDialog(this) != true)

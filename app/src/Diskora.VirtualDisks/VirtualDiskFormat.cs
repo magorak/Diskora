@@ -5,4 +5,5 @@ public enum VirtualDiskFormat
     Unknown,
     Vhd,
     Vhdx,
+    Iso,
 }

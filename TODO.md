@@ -94,7 +94,11 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       funguje bez admin práv) - nový projekt `Diskora.VirtualDisks`
 - [x] VHD/VHDX: připojení/odpojení (`AttachVirtualDisk`/`DetachVirtualDisk`) - vyžaduje admin
       práva (ověřeno: Win32 chyba 1314 bez elevace, srozumitelně zobrazeno v UI)
-- [ ] ISO: nativní mount (IMAPI2 / `Mount-DiskImage` COM interop)
+- [x] ISO: mount/dismount přes orchestraci `Mount-DiskImage`/`Dismount-DiskImage`
+      (`Diskora.Repair.IsoMounter`) - živě ověřeno, funguje bez admin práv (na rozdíl od
+      VHD/VHDX). Přímé `AttachVirtualDisk` s VIRTUAL_STORAGE_TYPE_DEVICE_ISO sice vrátí
+      úspěch i bez elevace, ale výsledná jednotka zůstane bez souborového systému -
+      zdokumentováno v kódu, proto orchestrace přes ověřený cmdlet místo P/Invoke
 - [ ] IMG/raw: mount jako virtuální disk nebo read-only sektorová inspekce
 - [ ] Bezpečný unmount/cleanup (i při pádu aplikace)
 - [ ] Znovupoužití integrity/SMART/TreeSize logiky nad připojenými virtuálními disky

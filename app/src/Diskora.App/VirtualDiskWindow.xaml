@@ -12,6 +12,7 @@
     <Window.Resources>
         <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <conv:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
     </Window.Resources>
 
     <Grid Margin="20">
@@ -73,12 +74,23 @@
         </Border>
 
         <StackPanel Grid.Row="4" VerticalAlignment="Top">
-            <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
-                       Text="Připojení (mount) vyžaduje práva administrátora - Windows to vyžaduje stejně jako u Mount-VHD." />
-            <StackPanel Orientation="Horizontal">
-                <Button Content="Připojit (jen ke čtení)" Margin="0,0,8,0" Command="{Binding AttachReadOnlyCommand}" />
-                <Button Content="Připojit (zápis)" Margin="0,0,8,0" Command="{Binding AttachReadWriteCommand}" />
-                <Button Content="Odpojit" Command="{Binding DetachCommand}" />
+            <StackPanel Visibility="{Binding IsIso, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
+                           Text="Připojení (mount) vyžaduje práva administrátora - Windows to vyžaduje stejně jako u Mount-VHD." />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Připojit (jen ke čtení)" Margin="0,0,8,0" Command="{Binding AttachReadOnlyCommand}" />
+                    <Button Content="Připojit (zápis)" Margin="0,0,8,0" Command="{Binding AttachReadWriteCommand}" />
+                    <Button Content="Odpojit" Command="{Binding DetachCommand}" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding IsIso, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
+                           Text="ISO se připojuje jako virtuální CD/DVD - na rozdíl od VHD/VHDX nevyžaduje práva administrátora." />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Připojit obraz" Margin="0,0,8,0" Command="{Binding MountIsoCommand}" />
+                    <Button Content="Odpojit obraz" Command="{Binding DismountIsoCommand}" />
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </Grid>

@@ -8,11 +8,25 @@ namespace Diskora.VirtualDisks;
 /// GetInfoOnly=TRUE - to funguje i bez práv administrátora, protože se
 /// nejedná o připojení disku, jen o čtení hlavičky souboru. Připojení
 /// (mount) samotné vyžaduje elevaci - viz <see cref="VirtualDiskAttacher"/>.
+///
+/// ISO obrazy jsou zvláštní případ: `GetVirtualDiskInformation` s
+/// GetInfoOnly=TRUE pro ně empiricky vrací ERROR_INVALID_PARAMETER (87)
+/// bez ohledu na DeviceId (auto i explicitní ISO) - virtdisk.dll tuhle
+/// cestu pro ISO poskytovatele nepodporuje. Velikost se proto čte přímo
+/// ze souboru; sektor je pevně 2048 B (standard ISO 9660/CD-ROM), pojem
+/// "blok" u ISO nedává smysl (žádné dynamické růstové bloky jako u VHDX).
 /// </summary>
 public static class VirtualDiskReader
 {
+    private const uint IsoSectorSize = 2048;
+
     public static VirtualDiskReadResult GetInfo(string path)
     {
+        if (DetectFormat(path) == VirtualDiskFormat.Iso)
+        {
+            return GetIsoInfo(path);
+        }
+
         var storageType = default(VirtualStorageType); // DeviceId=0, VendorId=Guid.Empty => auto-detekce dle přípony
         var openParams = VirtDiskNativeMethods.BuildOpenParametersV2(getInfoOnly: true, readOnly: true);
         var openParamsHandle = GCHandle.Alloc(openParams, GCHandleType.Pinned);
@@ -44,6 +58,20 @@ public static class VirtualDiskReader
         finally
         {
             openParamsHandle.Free();
+        }
+    }
+
+    private static VirtualDiskReadResult GetIsoInfo(string path)
+    {
+        try
+        {
+            var size = (ulong)new FileInfo(path).Length;
+            var info = new VirtualDiskInfo(path, VirtualDiskFormat.Iso, size, size, IsoSectorSize, IsoSectorSize);
+            return new VirtualDiskReadResult(true, null, info);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return Failure($"Soubor se nepodařilo přečíst ({ex.Message}).");
         }
     }
 
@@ -81,6 +109,7 @@ public static class VirtualDiskReader
     {
         ".VHD" => VirtualDiskFormat.Vhd,
         ".VHDX" => VirtualDiskFormat.Vhdx,
+        ".ISO" => VirtualDiskFormat.Iso,
         _ => VirtualDiskFormat.Unknown,
     };
 

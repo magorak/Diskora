@@ -18,7 +18,8 @@ internal static class ProcessOutputRunner
         IEnumerable<string> arguments,
         IProgress<string>? onOutputLine,
         CancellationToken cancellationToken,
-        Encoding? outputEncoding = null)
+        Encoding? outputEncoding = null,
+        IReadOnlyDictionary<string, string>? environmentVariables = null)
     {
         var outputLines = new List<string>();
 
@@ -45,6 +46,13 @@ internal static class ProcessOutputRunner
         {
             startInfo.StandardOutputEncoding = outputEncoding;
             startInfo.StandardErrorEncoding = outputEncoding;
+        }
+        if (environmentVariables is not null)
+        {
+            foreach (var (key, value) in environmentVariables)
+            {
+                startInfo.EnvironmentVariables[key] = value;
+            }
         }
         foreach (var argument in arguments)
         {

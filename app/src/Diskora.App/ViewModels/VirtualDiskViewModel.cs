@@ -11,6 +11,7 @@ public sealed class VirtualDiskViewModel : ViewModelBase
     private readonly IVirtualDiskService _service;
     private bool _isBusy;
     private bool _hasInfo;
+    private VirtualDiskFormat _format = VirtualDiskFormat.Unknown;
     private string? _errorMessage;
     private string? _operationMessage;
     private string _formatDisplay = string.Empty;
@@ -28,6 +29,8 @@ public sealed class VirtualDiskViewModel : ViewModelBase
         AttachReadOnlyCommand = new RelayCommand(() => Attach(readOnly: true), () => !IsBusy);
         AttachReadWriteCommand = new RelayCommand(() => Attach(readOnly: false), () => !IsBusy);
         DetachCommand = new RelayCommand(Detach, () => !IsBusy);
+        MountIsoCommand = new RelayCommand(async () => await MountIsoAsync(), () => !IsBusy);
+        DismountIsoCommand = new RelayCommand(async () => await DismountIsoAsync(), () => !IsBusy);
 
         RefreshInfo();
     }
@@ -42,6 +45,10 @@ public sealed class VirtualDiskViewModel : ViewModelBase
 
     public ICommand DetachCommand { get; }
 
+    public ICommand MountIsoCommand { get; }
+
+    public ICommand DismountIsoCommand { get; }
+
     public bool IsBusy
     {
         get => _isBusy;
@@ -53,6 +60,9 @@ public sealed class VirtualDiskViewModel : ViewModelBase
         get => _hasInfo;
         private set => SetField(ref _hasInfo, value);
     }
+
+    /// <summary>ISO se připojuje jinak než VHD/VHDX (Mount-DiskImage, ne přímé virtdisk.dll) - viz UI.</summary>
+    public bool IsIso => _format == VirtualDiskFormat.Iso;
 
     public string? ErrorMessage
     {
@@ -104,10 +114,12 @@ public sealed class VirtualDiskViewModel : ViewModelBase
         var outcome = _service.ReadInfo(Path);
         if (outcome is { Success: true, Summary: { } summary })
         {
+            _format = summary.Format;
             FormatDisplay = summary.Format switch
             {
                 VirtualDiskFormat.Vhd => "VHD",
                 VirtualDiskFormat.Vhdx => "VHDX",
+                VirtualDiskFormat.Iso => "ISO",
                 _ => "Neznámý formát",
             };
             VirtualSizeDisplay = ByteSizeFormatter.Format((long)summary.VirtualSizeBytes);
@@ -118,10 +130,12 @@ public sealed class VirtualDiskViewModel : ViewModelBase
         }
         else
         {
+            _format = VirtualDiskFormat.Unknown;
             ErrorMessage = outcome.FailureReason;
             HasInfo = false;
         }
 
+        OnPropertyChanged(nameof(IsIso));
         IsBusy = false;
     }
 
@@ -145,6 +159,30 @@ public sealed class VirtualDiskViewModel : ViewModelBase
 
         var result = _service.Detach(Path);
         OperationMessage = result.Success ? "Disk byl odpojen." : result.FailureReason;
+
+        IsBusy = false;
+    }
+
+    private async Task MountIsoAsync()
+    {
+        IsBusy = true;
+        OperationMessage = null;
+
+        var result = await _service.MountIsoAsync(Path);
+        OperationMessage = result.Success
+            ? $"Obraz byl připojen jako jednotka {result.DriveLetter}:."
+            : result.FailureReason;
+
+        IsBusy = false;
+    }
+
+    private async Task DismountIsoAsync()
+    {
+        IsBusy = true;
+        OperationMessage = null;
+
+        var result = await _service.DismountIsoAsync(Path);
+        OperationMessage = result.Success ? "Obraz byl odpojen." : result.FailureReason;
 
         IsBusy = false;
     }
