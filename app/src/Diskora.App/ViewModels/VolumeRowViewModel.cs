@@ -6,7 +6,7 @@ namespace Diskora.App.ViewModels;
 
 public sealed class VolumeRowViewModel
 {
-    public VolumeRowViewModel(VolumeInfo info)
+    public VolumeRowViewModel(VolumeInfo info, DiskMediaType? diskMediaType)
     {
         Name = info.Name;
         Label = string.IsNullOrWhiteSpace(info.Label) ? "(bez názvu)" : info.Label;
@@ -14,6 +14,8 @@ public sealed class VolumeRowViewModel
         DriveTypeDisplay = info.DriveType.ToDisplayText();
         TotalSizeDisplay = ByteSizeFormatter.Format(info.TotalSizeBytes);
         FreeSpaceDisplay = ByteSizeFormatter.Format(info.FreeSpaceBytes);
+        DiskMediaType = diskMediaType;
+        DiskMediaTypeDisplay = diskMediaType?.ToDisplayText() ?? "—";
 
         var usedBytes = info.TotalSizeBytes - info.FreeSpaceBytes;
         UsedPercent = info.TotalSizeBytes > 0
@@ -34,4 +36,9 @@ public sealed class VolumeRowViewModel
     public string FreeSpaceDisplay { get; }
 
     public double UsedPercent { get; }
+
+    /// <summary>Typ média fyzického disku pod tímto svazkem, pokud se ho podařilo zjistit.</summary>
+    public DiskMediaType? DiskMediaType { get; }
+
+    public string DiskMediaTypeDisplay { get; }
 }

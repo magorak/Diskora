@@ -46,7 +46,8 @@ public sealed class DiskEnumerationService : IDiskEnumerationService
                     FileSystem: SafeGetFileSystem(drive),
                     TotalSizeBytes: drive.TotalSize,
                     FreeSpaceBytes: drive.AvailableFreeSpace,
-                    DriveType: drive.DriveType));
+                    DriveType: drive.DriveType,
+                    PhysicalDiskIndex: TryGetPhysicalDiskIndex(drive.Name)));
             }
             catch (IOException)
             {
@@ -56,6 +57,50 @@ public sealed class DiskEnumerationService : IDiskEnumerationService
         }
 
         return volumes;
+    }
+
+    /// <summary>
+    /// Zjistí, na kterém fyzickém disku (Win32_DiskDrive.Index) leží daný svazek,
+    /// přes standardní WMI asociátorový řetězec Win32_LogicalDisk →
+    /// Win32_LogicalDiskToPartition → Win32_DiskPartition →
+    /// Win32_DiskDriveToDiskPartition → Win32_DiskDrive - ověřeno živě.
+    /// U svazků rozložených přes více disků (Storage Spaces apod.) se vrátí
+    /// první nalezený disk - přesnější mapování 1:N zatím Diskora nepotřebuje.
+    /// Vrací null pro svazky bez mapování (síťové jednotky apod.).
+    /// </summary>
+    private static int? TryGetPhysicalDiskIndex(string driveName)
+    {
+        var deviceId = driveName.TrimEnd('\\');
+
+        try
+        {
+            using var partitionSearcher = new ManagementObjectSearcher(
+                $"ASSOCIATORS OF {{Win32_LogicalDisk.DeviceID='{deviceId}'}} WHERE AssocClass = Win32_LogicalDiskToPartition");
+
+            foreach (ManagementBaseObject partitionItem in partitionSearcher.Get())
+            {
+                using var partition = partitionItem;
+                if (partition["DeviceID"] is not string partitionDeviceId)
+                {
+                    continue;
+                }
+
+                using var diskSearcher = new ManagementObjectSearcher(
+                    $"ASSOCIATORS OF {{Win32_DiskPartition.DeviceID='{partitionDeviceId}'}} WHERE AssocClass = Win32_DiskDriveToDiskPartition");
+
+                foreach (ManagementBaseObject diskItem in diskSearcher.Get())
+                {
+                    using var disk = diskItem;
+                    return Convert.ToInt32(disk["Index"]);
+                }
+            }
+        }
+        catch (ManagementException)
+        {
+            // Svazek nemusí mít mapování na fyzický disk (síťová jednotka apod.) - v pořádku.
+        }
+
+        return null;
     }
 
     private static string? SafeGetLabel(DriveInfo drive)

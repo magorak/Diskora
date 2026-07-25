@@ -6,6 +6,10 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Dokončení Fáze 1: mapování svazek → fyzický disk (WMI asociátorový řetězec
+  Win32_LogicalDisk → ... → Win32_DiskDrive, živě ověřeno) a barevné odznaky
+  typu disku (SSD/HDD/vyměnitelný/virtuální) u fyzických disků i svazků
+  v dashboardu - nový sloupec "Typ disku" u svazků.
 - Lokální historie (Fáze 2 a 3 - dokončení): nový projekt `Diskora.Data` se
   `SqliteDiskHistoryStore` (SQLite v `%LocalAppData%\Diskora\diskora.db`, žádný
   cloud/účet). `SmartService` a `IntegrityCheckService` teď volitelně zapisují

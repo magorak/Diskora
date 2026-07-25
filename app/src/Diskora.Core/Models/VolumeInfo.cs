@@ -6,4 +6,5 @@ public sealed record VolumeInfo(
     string? FileSystem,
     long TotalSizeBytes,
     long FreeSpaceBytes,
-    DriveType DriveType);
+    DriveType DriveType,
+    int? PhysicalDiskIndex);

@@ -12,6 +12,7 @@
 
     <Window.Resources>
         <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+        <conv:DiskMediaTypeToBrushConverter x:Key="DiskMediaTypeToBrushConverter" />
     </Window.Resources>
 
     <Window.InputBindings>
@@ -73,7 +74,16 @@
                             <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="40" />
                             <DataGridTextColumn Header="Název" Binding="{Binding FriendlyName}" Width="*" />
                             <DataGridTextColumn Header="Velikost" Binding="{Binding SizeDisplay}" Width="110" />
-                            <DataGridTextColumn Header="Typ" Binding="{Binding MediaTypeDisplay}" Width="90" />
+                            <DataGridTemplateColumn Header="Typ" Width="90">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{Binding MediaType, Converter={StaticResource DiskMediaTypeToBrushConverter}}"
+                                                CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding MediaTypeDisplay}" Foreground="White" FontSize="11" />
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Rozhraní" Binding="{Binding BusTypeDisplay}" Width="120" />
                             <DataGridTextColumn Header="Sériové číslo" Binding="{Binding SerialNumberDisplay}" Width="170" />
                             <DataGridTemplateColumn Header="" Width="110">
@@ -98,6 +108,16 @@
                             <DataGridTextColumn Header="Název" Binding="{Binding Label}" Width="140" />
                             <DataGridTextColumn Header="Systém souborů" Binding="{Binding FileSystem}" Width="120" />
                             <DataGridTextColumn Header="Typ" Binding="{Binding DriveTypeDisplay}" Width="100" />
+                            <DataGridTemplateColumn Header="Typ disku" Width="90">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{Binding DiskMediaType, Converter={StaticResource DiskMediaTypeToBrushConverter}}"
+                                                CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding DiskMediaTypeDisplay}" Foreground="White" FontSize="11" />
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTemplateColumn Header="Zaplněnost" Width="180">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>

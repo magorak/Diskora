@@ -12,6 +12,8 @@ public sealed class PhysicalDiskRowViewModel(PhysicalDiskInfo info)
 
     public string SizeDisplay { get; } = ByteSizeFormatter.Format((long)info.SizeBytes);
 
+    public DiskMediaType MediaType { get; } = info.MediaType;
+
     public string MediaTypeDisplay { get; } = info.MediaType.ToDisplayText();
 
     public string BusTypeDisplay { get; } = info.BusType.ToDisplayText();

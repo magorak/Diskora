@@ -19,8 +19,11 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] `ElevationHelper` (detekce admin práv)
 - [x] Základní WPF shell (navigace, light/dark theming)
 - [x] Dashboard view: seznam fyzických disků a svazků s kapacitou/typem/rozhraním
-- [ ] Mapování svazek → fyzický disk (Win32_LogicalDiskToPartition řetězec)
-- [ ] Ikony/vizuální odlišení typu disku (HDD/SSD/NVMe/USB/virtuální)
+- [x] Mapování svazek → fyzický disk (WMI asociátorový řetězec Win32_LogicalDisk →
+      Win32_LogicalDiskToPartition → Win32_DiskPartition → Win32_DiskDriveToDiskPartition →
+      Win32_DiskDrive) - živě ověřeno na C:\ i E:\, u svazků přes více disků se bere první
+- [x] Barevné odznaky typu disku (SSD/HDD/vyměnitelný/virtuální) u fyzických disků i svazků
+      v dashboardu - živě ověřeno
 - [x] Ikona aplikace (vlastní design, vícerozměrná .ico pro exe i titulek okna)
 - [x] Horní menu (Soubor/Zobrazit/Nápověda) s funkčním přepínáním světlé/tmavé/podle systému
 - [x] Oprava kontrastního bugu: přepis SystemColors + explicitní styly DataGridRow/Menu,

@@ -100,7 +100,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border Background="{Binding DirtyState, Converter={StaticResource RiskToBrushConverter}}"
-                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left">
+                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding DirtyStateDisplay}" Foreground="White" FontSize="11" />
                                 </Border>
                             </DataTemplate>

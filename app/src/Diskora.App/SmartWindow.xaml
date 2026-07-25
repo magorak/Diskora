@@ -62,7 +62,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border Background="{Binding Risk, Converter={StaticResource RiskToBrushConverter}}"
-                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left">
+                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding RiskDisplay}" Foreground="White" FontSize="11" />
                                 </Border>
                             </DataTemplate>
@@ -88,7 +88,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border Background="{Binding Health, Converter={StaticResource RiskToBrushConverter}}"
-                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left">
+                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding HealthDisplay}" Foreground="White" FontSize="11" />
                                 </Border>
                             </DataTemplate>

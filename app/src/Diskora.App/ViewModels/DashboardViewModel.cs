@@ -85,8 +85,10 @@ public sealed class DashboardViewModel : ViewModelBase
 
         try
         {
+            var physicalDisks = _diskEnumerationService.GetPhysicalDisks();
+
             PhysicalDisks.Clear();
-            foreach (var disk in _diskEnumerationService.GetPhysicalDisks())
+            foreach (var disk in physicalDisks)
             {
                 PhysicalDisks.Add(new PhysicalDiskRowViewModel(disk));
             }
@@ -94,7 +96,10 @@ public sealed class DashboardViewModel : ViewModelBase
             Volumes.Clear();
             foreach (var volume in _diskEnumerationService.GetVolumes())
             {
-                Volumes.Add(new VolumeRowViewModel(volume));
+                var diskMediaType = volume.PhysicalDiskIndex is int diskIndex
+                    ? physicalDisks.FirstOrDefault(d => d.Index == diskIndex)?.MediaType
+                    : null;
+                Volumes.Add(new VolumeRowViewModel(volume, diskMediaType));
             }
         }
         catch (Exception ex) when (ex is System.Management.ManagementException or UnauthorizedAccessException)
