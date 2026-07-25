@@ -5,6 +5,22 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Přidáno
+- Lokální historie (Fáze 2 a 3 - dokončení): nový projekt `Diskora.Data` se
+  `SqliteDiskHistoryStore` (SQLite v `%LocalAppData%\Diskora\diskora.db`, žádný
+  cloud/účet). `SmartService` a `IntegrityCheckService` teď volitelně zapisují
+  každé čtení/kontrolu do historie; okna S.M.A.R.T. a Kontrola integrity zobrazují
+  posledních 20 záznamů (barevně odlišený stav, u kontrol i výsledek skenu).
+  10 nových testů (`Diskora.Data.Tests`), živě ověřeno na reálném svazku E: i
+  fyzickém disku - historie se persistentně ukládá a znovu načítá napříč spuštěními.
+
+### Opraveno
+- `Diskora.Data`: výchozí verze `Microsoft.Data.Sqlite` 9.0.0 táhla transitivní
+  závislost `SQLitePCLRaw.lib.e_sqlite3` 2.1.10/2.1.11 se známou bezpečnostní
+  chybou (GHSA-2m69-gcr7-jv3q, paměťová korupce v SQLite < 3.50.2) - opraveno
+  explicitním přepisem na `SQLitePCLRaw.bundle_e_sqlite3` 3.0.4, ověřeno běžícími
+  testy (žádné varování při buildu).
+
 ## [0.1.0] - 2026-07-25
 
 První sestavitelná verze. Základy repozitáře (Fáze 0), dashboard disků (Fáze 1)

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Diskora.App.Commands;
+using Diskora.App.Display;
 using Diskora.Core.Models;
 using Diskora.Core.Services;
 
@@ -9,15 +10,17 @@ namespace Diskora.App.ViewModels;
 public sealed class SmartViewModel : ViewModelBase
 {
     private readonly ISmartService _smartService;
+    private readonly IDiskHistoryStore _historyStore;
     private readonly int _diskIndex;
     private bool _isLoading;
     private bool _isSupported;
     private string? _unavailableReason;
     private DiskHealthStatus _overallHealth = DiskHealthStatus.Unknown;
 
-    public SmartViewModel(ISmartService smartService, int diskIndex, string diskName)
+    public SmartViewModel(ISmartService smartService, IDiskHistoryStore historyStore, int diskIndex, string diskName)
     {
         _smartService = smartService;
+        _historyStore = historyStore;
         _diskIndex = diskIndex;
         DiskName = diskName;
         RefreshCommand = new RelayCommand(Load, () => !IsLoading);
@@ -27,6 +30,8 @@ public sealed class SmartViewModel : ViewModelBase
     public string DiskName { get; }
 
     public ObservableCollection<SmartAttributeRowViewModel> Attributes { get; } = [];
+
+    public ObservableCollection<SmartHistoryRowViewModel> History { get; } = [];
 
     public ICommand RefreshCommand { get; }
 
@@ -54,13 +59,7 @@ public sealed class SmartViewModel : ViewModelBase
         private set => SetField(ref _overallHealth, value);
     }
 
-    public string OverallHealthDisplay => OverallHealth switch
-    {
-        DiskHealthStatus.Healthy => "V pořádku",
-        DiskHealthStatus.Warning => "Varování",
-        DiskHealthStatus.Critical => "Kritické",
-        _ => "Neznámé",
-    };
+    public string OverallHealthDisplay => OverallHealth.ToDisplayText();
 
     private void Load()
     {
@@ -86,6 +85,13 @@ public sealed class SmartViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(OverallHealthDisplay));
+
+        History.Clear();
+        foreach (var entry in _historyStore.GetRecentSmartHistory(_diskIndex))
+        {
+            History.Add(new SmartHistoryRowViewModel(entry));
+        }
+
         IsLoading = false;
     }
 }

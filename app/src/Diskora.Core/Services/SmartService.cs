@@ -4,7 +4,7 @@ using Diskora.Native.Smart;
 
 namespace Diskora.Core.Services;
 
-public sealed class SmartService : ISmartService
+public sealed class SmartService(IDiskHistoryStore? historyStore = null) : ISmartService
 {
     public SmartReadResult ReadReport(int physicalDiskIndex)
     {
@@ -32,6 +32,8 @@ public sealed class SmartService : ISmartService
             DateTimeOffset.UtcNow,
             readings,
             SmartHealthEvaluator.EvaluateOverallHealth(readings));
+
+        historyStore?.RecordSmartReading(physicalDiskIndex, report.OverallHealth);
 
         return new SmartReadResult(true, null, report);
     }

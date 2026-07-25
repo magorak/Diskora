@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Diskora.Core\Diskora.Core.csproj" />
     <ProjectReference Include="..\Diskora.Native\Diskora.Native.csproj" />
+    <ProjectReference Include="..\Diskora.Data\Diskora.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

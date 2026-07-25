@@ -9,15 +9,17 @@ namespace Diskora.App.ViewModels;
 public sealed class IntegrityViewModel : ViewModelBase
 {
     private readonly IIntegrityCheckService _service;
+    private readonly IDiskHistoryStore _historyStore;
     private readonly string _driveLetter;
     private CancellationTokenSource? _scanCts;
     private VolumeDirtyState _dirtyState = VolumeDirtyState.Unknown;
     private bool _isScanning;
     private IntegrityScanOutcome? _lastOutcome;
 
-    public IntegrityViewModel(IIntegrityCheckService service, string driveLetter, string volumeName)
+    public IntegrityViewModel(IIntegrityCheckService service, IDiskHistoryStore historyStore, string driveLetter, string volumeName)
     {
         _service = service;
+        _historyStore = historyStore;
         _driveLetter = driveLetter;
         VolumeName = volumeName;
 
@@ -31,6 +33,8 @@ public sealed class IntegrityViewModel : ViewModelBase
     public string VolumeName { get; }
 
     public ObservableCollection<string> OutputLines { get; } = [];
+
+    public ObservableCollection<IntegrityHistoryRowViewModel> History { get; } = [];
 
     public ICommand RefreshDirtyStateCommand { get; }
 
@@ -71,7 +75,20 @@ public sealed class IntegrityViewModel : ViewModelBase
         _ => $"Kontrola dokončena (návratový kód {_lastOutcome.ExitCode}). Zkontrolujte výstup níže.",
     };
 
-    private void RefreshDirtyState() => DirtyState = _service.CheckDirtyState(_driveLetter);
+    private void RefreshDirtyState()
+    {
+        DirtyState = _service.CheckDirtyState(_driveLetter);
+        LoadHistory();
+    }
+
+    private void LoadHistory()
+    {
+        History.Clear();
+        foreach (var entry in _historyStore.GetRecentIntegrityHistory(_driveLetter))
+        {
+            History.Add(new IntegrityHistoryRowViewModel(entry));
+        }
+    }
 
     private async Task StartScanAsync()
     {

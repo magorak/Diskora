@@ -4,17 +4,13 @@ using Diskora.Repair;
 
 namespace Diskora.Core.Services;
 
-public sealed class IntegrityCheckService : IIntegrityCheckService
+public sealed class IntegrityCheckService(IDiskHistoryStore? historyStore = null) : IIntegrityCheckService
 {
     public VolumeDirtyState CheckDirtyState(string driveLetter)
     {
-        var isDirty = VolumeDirtyChecker.IsDirty(driveLetter);
-        return isDirty switch
-        {
-            true => VolumeDirtyState.Dirty,
-            false => VolumeDirtyState.Clean,
-            null => VolumeDirtyState.Unknown,
-        };
+        var state = ReadDirtyState(driveLetter);
+        historyStore?.RecordIntegrityCheck(driveLetter, state, scanExitCode: null, scanAppearsClean: null);
+        return state;
     }
 
     public async Task<IntegrityScanOutcome> RunReadOnlyScanAsync(
@@ -23,6 +19,18 @@ public sealed class IntegrityCheckService : IIntegrityCheckService
         CancellationToken cancellationToken = default)
     {
         var result = await ChkdskRunner.RunReadOnlyScanAsync(driveLetter, onOutputLine, cancellationToken);
-        return new IntegrityScanOutcome(result.Started, result.FailureReason, result.ExitCode, result.OutputLines);
+        var outcome = new IntegrityScanOutcome(result.Started, result.FailureReason, result.ExitCode, result.OutputLines);
+
+        var state = ReadDirtyState(driveLetter);
+        historyStore?.RecordIntegrityCheck(driveLetter, state, outcome.ExitCode, outcome.Started ? outcome.AppearsClean : null);
+
+        return outcome;
     }
+
+    private static VolumeDirtyState ReadDirtyState(string driveLetter) => VolumeDirtyChecker.IsDirty(driveLetter) switch
+    {
+        true => VolumeDirtyState.Dirty,
+        false => VolumeDirtyState.Clean,
+        null => VolumeDirtyState.Unknown,
+    };
 }

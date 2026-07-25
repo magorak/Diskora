@@ -34,7 +34,8 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] Dekódování atributů + srozumitelná vysvětlení rizika (odlišující prvek) - `SmartAttributeCatalog`
 - [x] Health skóre (`SmartHealthEvaluator`, testováno) a graceful degradace, když SMART není dostupné
 - [x] Minimální SMART UI (tlačítko u disku → okno s atributy, rizikem a celkovým verdiktem)
-- [ ] `Diskora.Data`: SQLite historie SMART hodnot, trend grafy
+- [x] `Diskora.Data`: SQLite historie SMART hodnot (`SqliteDiskHistoryStore`, tabulka historie
+      v okně S.M.A.R.T.) - živě ověřeno; grafické trendy (graf v čase) zatím ne, jen tabulka
 - [ ] Upozornění/notifikace při zhoršení zdraví (návaznost na Fázi 7 - tray)
 
 ## Fáze 3 — Kontrola a oprava integrity
@@ -48,7 +49,8 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       potvrzovací UI (riziko naplánovaného restartu na systémovém svazku)
 - [ ] Čtení Event Logu (Ntfs/Disk/Wininit chkdsk výsledky, chybové eventy)
 - [ ] Read-only povrchový sken vadných sektorů + report
-- [ ] Historie výsledků oprav (návaznost na Fázi 2 - SQLite)
+- [x] Historie výsledků kontrol (`SqliteDiskHistoryStore`, tabulka historie v okně Kontrola
+      integrity - dirty-bit i výsledky skenů) - živě ověřeno
 
 ## Fáze 4 — Analýza zaplněnosti (styl TreeSize)
 - [x] Rekurzivní scanner složek/souborů (`DiskUsageScanner`, zatím jednovláknový - viz níže) -

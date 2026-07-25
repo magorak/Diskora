@@ -53,4 +53,19 @@ public static class DiskDisplayFormatting
         DriveType.Ram => "RAM disk",
         _ => "Neznámý",
     };
+
+    public static string ToDisplayText(this DiskHealthStatus health) => health switch
+    {
+        DiskHealthStatus.Healthy => "V pořádku",
+        DiskHealthStatus.Warning => "Varování",
+        DiskHealthStatus.Critical => "Kritické",
+        _ => "Neznámé",
+    };
+
+    public static string ToDisplayText(this VolumeDirtyState state) => state switch
+    {
+        VolumeDirtyState.Clean => "V pořádku",
+        VolumeDirtyState.Dirty => "Poškozený",
+        _ => "Neznámý",
+    };
 }

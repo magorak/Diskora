@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:conv="clr-namespace:Diskora.App.Converters"
         mc:Ignorable="d"
-        Title="Kontrola integrity disku" Height="560" Width="760" MinWidth="560" MinHeight="360"
+        Title="Kontrola integrity disku" Height="700" Width="760" MinWidth="560" MinHeight="440"
         WindowStartupLocation="CenterOwner"
         Icon="Assets/AppIcon.ico">
 
@@ -22,7 +22,9 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Margin="0,0,0,12">
@@ -66,6 +68,27 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+        </Border>
+
+        <TextBlock Grid.Row="5" Text="Historie" Style="{StaticResource HeadingTextStyle}" Margin="0,16,0,8" />
+
+        <Border Grid.Row="6" Style="{StaticResource CardBorderStyle}">
+            <DataGrid ItemsSource="{Binding History}" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Kdy" Binding="{Binding TimestampDisplay}" Width="180" />
+                    <DataGridTemplateColumn Header="Stav" Width="130">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding DirtyState, Converter={StaticResource RiskToBrushConverter}}"
+                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding DirtyStateDisplay}" Foreground="White" FontSize="11" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Sken" Binding="{Binding ScanDisplay}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
         </Border>
     </Grid>
 </Window>

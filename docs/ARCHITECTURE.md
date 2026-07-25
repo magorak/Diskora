@@ -20,7 +20,8 @@ Diskora je monorepo se dvěma hlavními částmi:
   a srozumitelném reportování nad ověřenými mechanismy, ne v přepisování zápisu
   na disk.
 - **SQLite** (`Microsoft.Data.Sqlite`, MIT) pro lokální historii — žádný cloud,
-  žádný účet, v souladu s principem "žádná telemetrie".
+  žádný účet, v souladu s principem "žádná telemetrie". Databáze žije v
+  `%LocalAppData%\Diskora\diskora.db`, nevyžaduje admin práva.
 
 ## Struktura projektů (`app/src/`)
 
