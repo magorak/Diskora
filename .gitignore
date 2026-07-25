@@ -1,0 +1,46 @@
+# .NET / Visual Studio
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+.vs/
+*.userosscache
+*.sln.docstates
+
+# Rider / VS Code
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Build output
+app/**/bin/
+app/**/obj/
+*.dll
+*.exe
+*.pdb
+/BUILD/
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+coverage*/
+
+# Node / Astro web
+web/node_modules/
+web/dist/
+web/.astro/
+
+# Local data (SQLite history, logs)
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Secrets / local overrides
+*.local.json
+.env

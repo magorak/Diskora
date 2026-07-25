@@ -1,0 +1,132 @@
+<Window x:Class="Diskora.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Diskora.App"
+        xmlns:conv="clr-namespace:Diskora.App.Converters"
+        mc:Ignorable="d"
+        Title="Diskora" Height="720" Width="1100" MinWidth="820" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Icon="Assets/AppIcon.ico">
+
+    <Window.Resources>
+        <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Key="R" Modifiers="Control" Command="{Binding RefreshCommand}" />
+    </Window.InputBindings>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Soubor">
+                <MenuItem Header="_Obnovit disky" Command="{Binding RefreshCommand}" InputGestureText="Ctrl+R" />
+                <MenuItem Header="_Otevřít virtuální disk (VHD/VHDX)..." Click="OpenVirtualDisk_Click" />
+                <Separator />
+                <MenuItem Header="_Konec" Command="{Binding ExitCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Zobrazit">
+                <MenuItem Header="Světlé" IsCheckable="True" IsChecked="{Binding IsLightThemeActive, Mode=OneWay}" Command="{Binding SetLightThemeCommand}" />
+                <MenuItem Header="Tmavé" IsCheckable="True" IsChecked="{Binding IsDarkThemeActive, Mode=OneWay}" Command="{Binding SetDarkThemeCommand}" />
+                <MenuItem Header="Podle systému" IsCheckable="True" IsChecked="{Binding IsSystemThemeActive, Mode=OneWay}" Command="{Binding SetSystemThemeCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Nápověda">
+                <MenuItem Header="_O aplikaci Diskora" Click="ShowAbout_Click" />
+            </MenuItem>
+        </Menu>
+
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Diskora" FontSize="26" FontWeight="Bold" />
+                    <TextBlock Text="{Binding ElevationStatusText}" Style="{StaticResource MutedTextStyle}" Margin="0,4,0,0" />
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="Obnovit" Command="{Binding RefreshCommand}" VerticalAlignment="Center" />
+            </Grid>
+
+            <Border Grid.Row="1"
+                    Background="{DynamicResource DangerBrush}"
+                    CornerRadius="4" Padding="10" Margin="0,0,0,12"
+                    Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap" />
+            </Border>
+
+            <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Fyzické disky" Style="{StaticResource HeadingTextStyle}" />
+                    <DataGrid ItemsSource="{Binding PhysicalDisks}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="40" />
+                            <DataGridTextColumn Header="Název" Binding="{Binding FriendlyName}" Width="*" />
+                            <DataGridTextColumn Header="Velikost" Binding="{Binding SizeDisplay}" Width="110" />
+                            <DataGridTextColumn Header="Typ" Binding="{Binding MediaTypeDisplay}" Width="90" />
+                            <DataGridTextColumn Header="Rozhraní" Binding="{Binding BusTypeDisplay}" Width="120" />
+                            <DataGridTextColumn Header="Sériové číslo" Binding="{Binding SerialNumberDisplay}" Width="170" />
+                            <DataGridTemplateColumn Header="" Width="110">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="S.M.A.R.T." Padding="8,3" FontSize="11"
+                                                Click="ShowSmart_Click" Tag="{Binding}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Svazky" Style="{StaticResource HeadingTextStyle}" />
+                    <DataGrid ItemsSource="{Binding Volumes}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Jednotka" Binding="{Binding Name}" Width="80" />
+                            <DataGridTextColumn Header="Název" Binding="{Binding Label}" Width="140" />
+                            <DataGridTextColumn Header="Systém souborů" Binding="{Binding FileSystem}" Width="120" />
+                            <DataGridTextColumn Header="Typ" Binding="{Binding DriveTypeDisplay}" Width="100" />
+                            <DataGridTemplateColumn Header="Zaplněnost" Width="180">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ProgressBar Value="{Binding UsedPercent, Mode=OneWay}"
+                                                     Minimum="0" Maximum="100"
+                                                     VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Volno" Binding="{Binding FreeSpaceDisplay}" Width="100" />
+                            <DataGridTextColumn Header="Celkem" Binding="{Binding TotalSizeDisplay}" Width="100" />
+                            <DataGridTemplateColumn Header="" Width="320">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Zkontrolovat" Padding="8,3" FontSize="11" Margin="0,0,6,0"
+                                                    Click="ShowIntegrity_Click" Tag="{Binding}" />
+                                            <Button Content="Analyzovat" Padding="8,3" FontSize="11" Margin="0,0,6,0"
+                                                    Click="ShowDiskUsage_Click" Tag="{Binding}" />
+                                            <Button Content="Optimalizovat" Padding="8,3" FontSize="11"
+                                                    Click="ShowOptimization_Click" Tag="{Binding}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>

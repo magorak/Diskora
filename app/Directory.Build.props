@@ -1,0 +1,16 @@
+<Project>
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Company>Diskora</Company>
+    <Product>Diskora</Product>
+    <Copyright>Copyright (C) Diskora contributors</Copyright>
+    <NeutralLanguage>cs</NeutralLanguage>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+</Project>

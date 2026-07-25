@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Diskora.Native\Diskora.Native.csproj" />
+    <ProjectReference Include="..\Diskora.Repair\Diskora.Repair.csproj" />
+    <ProjectReference Include="..\Diskora.VirtualDisks\Diskora.VirtualDisks.csproj" />
+  </ItemGroup>
+
+</Project>

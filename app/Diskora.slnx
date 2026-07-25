@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Diskora.App/Diskora.App.csproj" />
+    <Project Path="src/Diskora.Core/Diskora.Core.csproj" />
+    <Project Path="src/Diskora.Native/Diskora.Native.csproj" />
+    <Project Path="src/Diskora.Repair/Diskora.Repair.csproj" />
+    <Project Path="src/Diskora.VirtualDisks/Diskora.VirtualDisks.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Diskora.Core.Tests/Diskora.Core.Tests.csproj" />
+  </Folder>
+</Solution>

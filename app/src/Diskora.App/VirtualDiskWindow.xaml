@@ -1,0 +1,85 @@
+<Window x:Class="Diskora.App.VirtualDiskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:conv="clr-namespace:Diskora.App.Converters"
+        mc:Ignorable="d"
+        Title="Virtuální disk" Height="460" Width="600" MinWidth="480" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        Icon="Assets/AppIcon.ico">
+
+    <Window.Resources>
+        <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{Binding Path}" FontSize="14" FontWeight="SemiBold"
+                   TextWrapping="Wrap" Margin="0,0,0,12" />
+
+        <Border Grid.Row="1"
+                Background="{DynamicResource DangerBrush}"
+                CornerRadius="4" Padding="10" Margin="0,0,0,12"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="White" TextWrapping="Wrap" />
+        </Border>
+
+        <Border Grid.Row="2"
+                Background="{DynamicResource AccentBrush}"
+                CornerRadius="4" Padding="10" Margin="0,0,0,12"
+                Visibility="{Binding OperationMessage, Converter={StaticResource StringToVisibilityConverter}}">
+            <TextBlock Text="{Binding OperationMessage}" Foreground="White" TextWrapping="Wrap" />
+        </Border>
+
+        <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12"
+                Visibility="{Binding HasInfo, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Formát:" Style="{StaticResource MutedTextStyle}" Margin="0,0,16,6" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding FormatDisplay}" Margin="0,0,0,6" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Virtuální velikost:" Style="{StaticResource MutedTextStyle}" Margin="0,0,16,6" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding VirtualSizeDisplay}" Margin="0,0,0,6" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Velikost na disku:" Style="{StaticResource MutedTextStyle}" Margin="0,0,16,6" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PhysicalSizeDisplay}" Margin="0,0,0,6" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Velikost bloku:" Style="{StaticResource MutedTextStyle}" Margin="0,0,16,6" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding BlockSizeDisplay}" Margin="0,0,0,6" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Velikost sektoru:" Style="{StaticResource MutedTextStyle}" Margin="0,0,16,0" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SectorSizeDisplay}" />
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="4" VerticalAlignment="Top">
+            <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
+                       Text="Připojení (mount) vyžaduje práva administrátora - Windows to vyžaduje stejně jako u Mount-VHD." />
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Připojit (jen ke čtení)" Margin="0,0,8,0" Command="{Binding AttachReadOnlyCommand}" />
+                <Button Content="Připojit (zápis)" Margin="0,0,8,0" Command="{Binding AttachReadWriteCommand}" />
+                <Button Content="Odpojit" Command="{Binding DetachCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
