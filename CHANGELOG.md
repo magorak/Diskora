@@ -6,6 +6,21 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Čtení Event Logu (Fáze 3): nový `Diskora.Native.EventLog.DiskEventLogReader`
+  (`System.Diagnostics.Eventing.Reader.EventLogReader`, dotazuje protokoly System
+  a Application XPath filtrem na providery Ntfs/Disk/Volsnap/Virtual Disk Service/
+  FilterManager/Wininit) a `Diskora.Core.Services.DiskEventLogService`, které
+  namapuje `EventRecord.Level` na doménový `DiskEventLevel` (7 nových testů
+  `DiskEventLevelMapperTests`). Nové okno „Systémový protokol" (menu Nástroje →
+  Systémový protokol (disky)...) zobrazuje posledních 50 relevantních událostí
+  s barevným odznakem úrovně. Read-only, žádná elevace potřeba - živě ověřeno:
+  otevřené okno na tomto stroji skutečně ukázalo reálné události (Ntfs event 98
+  "Svazek E: je v pořádku" vzniklý přímo z vlastní dirty-bit kontroly Diskory,
+  Volsnap 33, Virtual Disk Service 3/4), správně česky lokalizované díky cs-CZ
+  systémové locale (na rozdíl od chkdsk, který je natvrdo anglicky).
+- Oprava kolidující přístupové klávesy v horním menu - „Nástroje" a „Nápověda"
+  obě používaly podtržené N, což způsobovalo nejednoznačnou mnemoniku (Alt+N
+  nešlo spolehlivě otevřít přes klávesnici); opraveno na „Nás_troje" (T).
 - Produktový web (Fáze 10, první řez): nový podprojekt `web/` (Astro 7 + Tailwind v4),
   bez telemetrie/trackerů, `noindex` dokud nebude veřejné vydání. Landing page se
   čtyřmi pilíři (skutečné screenshoty ze živého testování, ne makety), upřímným

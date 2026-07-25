@@ -90,6 +90,15 @@ public partial class MainWindow : Window
         optimizationWindow.Show();
     }
 
+    private void ShowSystemEventLog_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new SystemEventLogWindow
+        {
+            Owner = this,
+        };
+        window.Show();
+    }
+
     private void ShowAbout_Click(object sender, RoutedEventArgs e)
     {
         var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.1.0";

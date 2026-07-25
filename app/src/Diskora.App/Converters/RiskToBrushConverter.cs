@@ -20,6 +20,10 @@ public sealed class RiskToBrushConverter : IValueConverter
             SmartAttributeRisk.Critical => "DangerBrush",
             VolumeDirtyState.Clean => "SuccessBrush",
             VolumeDirtyState.Dirty => "DangerBrush",
+            DiskEventLevel.Information => "MutedForegroundBrush",
+            DiskEventLevel.Warning => "WarningBrush",
+            DiskEventLevel.Error => "DangerBrush",
+            DiskEventLevel.Critical => "DangerBrush",
             _ => "MutedForegroundBrush",
         };
 

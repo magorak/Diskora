@@ -68,4 +68,13 @@ public static class DiskDisplayFormatting
         VolumeDirtyState.Dirty => "Poškozený",
         _ => "Neznámý",
     };
+
+    public static string ToDisplayText(this DiskEventLevel level) => level switch
+    {
+        DiskEventLevel.Information => "Informace",
+        DiskEventLevel.Warning => "Varování",
+        DiskEventLevel.Error => "Chyba",
+        DiskEventLevel.Critical => "Kritické",
+        _ => "Neznámé",
+    };
 }

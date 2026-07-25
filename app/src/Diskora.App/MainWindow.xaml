@@ -32,6 +32,9 @@
                 <MenuItem Header="Tmavé" IsCheckable="True" IsChecked="{Binding IsDarkThemeActive, Mode=OneWay}" Command="{Binding SetDarkThemeCommand}" />
                 <MenuItem Header="Podle systému" IsCheckable="True" IsChecked="{Binding IsSystemThemeActive, Mode=OneWay}" Command="{Binding SetSystemThemeCommand}" />
             </MenuItem>
+            <MenuItem Header="Nás_troje">
+                <MenuItem Header="_Systémový protokol (disky)..." Click="ShowSystemEventLog_Click" />
+            </MenuItem>
             <MenuItem Header="_Nápověda">
                 <MenuItem Header="_O aplikaci Diskora" Click="ShowAbout_Click" />
             </MenuItem>

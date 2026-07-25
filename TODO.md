@@ -56,7 +56,13 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       nebylo možné vizuálně ověřit v tomto prostředí)
 - [ ] Skutečná oprava (`/f`, `/spotfix`) - záměrně zatím nepropojeno, potřebuje vlastní
       potvrzovací UI (riziko naplánovaného restartu na systémovém svazku)
-- [ ] Čtení Event Logu (Ntfs/Disk/Wininit chkdsk výsledky, chybové eventy)
+- [x] Čtení Event Logu (`Diskora.Native.EventLog.DiskEventLogReader` přes
+      `System.Diagnostics.Eventing.Reader.EventLogReader`, filtrováno na providery
+      Ntfs/Disk/Volsnap/Virtual Disk Service/FilterManager/Wininit v protokolech
+      System i Application) - nové okno „Systémový protokol" (menu Nástroje),
+      read-only, funguje bez admin práv - živě ověřeno na reálném protokolu
+      tohoto stroje (dirty-bit kontrola svazku E: se skutečně propsala jako
+      Ntfs event 98, korektně česky lokalizovaná zpráva díky cs-CZ locale)
 - [ ] Read-only povrchový sken vadných sektorů + report
 - [x] Historie výsledků kontrol (`SqliteDiskHistoryStore`, tabulka historie v okně Kontrola
       integrity - dirty-bit i výsledky skenů) - živě ověřeno
