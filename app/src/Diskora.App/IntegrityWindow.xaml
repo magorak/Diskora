@@ -22,6 +22,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="2*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="1*" />
@@ -58,7 +59,26 @@
             <TextBlock Grid.Column="2" Text="{Binding ScanSummary}" VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap" />
         </Grid>
 
-        <Border Grid.Row="4" Style="{StaticResource CardBorderStyle}">
+        <Grid Grid.Row="4" Margin="0,0,0,12"
+              Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding CurrentStageDescription}" FontWeight="SemiBold" />
+                <TextBlock Grid.Column="1" Text="{Binding ProgressPercent, StringFormat={}{0:F0} %}" Style="{StaticResource MutedTextStyle}" />
+            </Grid>
+
+            <ProgressBar Grid.Row="1" Height="10" Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" />
+        </Grid>
+
+        <Border Grid.Row="5" Style="{StaticResource CardBorderStyle}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding OutputLines}">
                     <ItemsControl.ItemTemplate>
@@ -70,9 +90,9 @@
             </ScrollViewer>
         </Border>
 
-        <TextBlock Grid.Row="5" Text="Historie" Style="{StaticResource HeadingTextStyle}" Margin="0,16,0,8" />
+        <TextBlock Grid.Row="6" Text="Historie" Style="{StaticResource HeadingTextStyle}" Margin="0,16,0,8" />
 
-        <Border Grid.Row="6" Style="{StaticResource CardBorderStyle}">
+        <Border Grid.Row="7" Style="{StaticResource CardBorderStyle}">
             <DataGrid ItemsSource="{Binding History}" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Kdy" Binding="{Binding TimestampDisplay}" Width="180" />

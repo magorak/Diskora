@@ -45,6 +45,12 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] Orchestrace `chkdsk.exe /scan` (needestruktivní read-only sken), streamovaný výstup do UI
       (`Diskora.Repair.ChkdskRunner`, okno Kontrola integrity otevíratelné ze svazku) - živě
       ověřeno: vždy vyžaduje admin práva (VSS snapshot), i na nesystémovém svazku
+- [x] Srozumitelný český průběh nad anglickým výstupem chkdsk (`ChkdskOutputParser` -
+      parsuje "Stage N:"/"N percent complete", mapuje na české popisky fází, pohání
+      grafický progress bar; syrový anglický log zůstává jako doplňkový detail, protože
+      chkdsk vypisuje pevně anglicky bez ohledu na jazyk Windows) - 15 testů, UI ověřeno
+      živě (bez adminu chkdsk padne před fází 1, takže reálné plnění baru přes fáze
+      nebylo možné vizuálně ověřit v tomto prostředí)
 - [ ] Skutečná oprava (`/f`, `/spotfix`) - záměrně zatím nepropojeno, potřebuje vlastní
       potvrzovací UI (riziko naplánovaného restartu na systémovém svazku)
 - [ ] Čtení Event Logu (Ntfs/Disk/Wininit chkdsk výsledky, chybové eventy)
@@ -58,6 +64,10 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       a `System Volume Information` je správně nahlášena jako nedostupná
 - [ ] Zrychlení: vícevláknový sken s omezenou paralelitou
 - [x] List view s drill-down navigací (řazeno dle velikosti, podíl v %, počet souborů)
+- [x] Grafický přehled podílu (vodorovný kompoziční pruh + legenda, ověřená paleta ze
+      skillu dataviz - part-to-whole formou segmentovaného pruhu, ne koláčem, protože
+      u mnoha/dlouhých názvů složek se koláčové výseče špatně porovnávají; top 5 + "Ostatní")
+      - živě ověřeno na reálných datech
 - [ ] Vlastní treemap control (squarified algoritmus) / sunburst jako alternativní zobrazení
 - [ ] Hledač duplicit (hash-based), velkých a starých souborů
 - [ ] Export reportu (CSV/JSON)

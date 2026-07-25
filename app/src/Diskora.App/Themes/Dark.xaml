@@ -12,6 +12,13 @@
     <SolidColorBrush x:Key="DangerBrush" Color="#F87171" />
     <SolidColorBrush x:Key="TrackBrush" Color="#2E3036" />
 
+    <!-- Kategoriální paleta pro grafy - viz komentář v Light.xaml. Stejné odstíny, dark krok. -->
+    <SolidColorBrush x:Key="SeriesBrush1" Color="#3987E5" />
+    <SolidColorBrush x:Key="SeriesBrush2" Color="#D95926" />
+    <SolidColorBrush x:Key="SeriesBrush3" Color="#199E70" />
+    <SolidColorBrush x:Key="SeriesBrush4" Color="#C98500" />
+    <SolidColorBrush x:Key="SeriesBrush5" Color="#D55181" />
+
     <!-- Viz komentář v Light.xaml - sjednocuje výchozí chrome vestavěných prvků s tématem. -->
     <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#222327" />
     <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}" Color="#F1F2F4" />

@@ -33,6 +33,8 @@ public sealed class DiskUsageViewModel : ViewModelBase
 
     public ObservableCollection<DiskUsageNodeRowViewModel> Items { get; } = [];
 
+    public ObservableCollection<CompositionSegmentViewModel> CompositionSegments { get; } = [];
+
     public ICommand RescanCommand { get; }
 
     public ICommand NavigateUpCommand { get; }
@@ -133,6 +135,62 @@ public sealed class DiskUsageViewModel : ViewModelBase
             Items.Add(new DiskUsageNodeRowViewModel(child, current.SizeBytes));
         }
 
+        UpdateCompositionSegments(current);
+
         OnPropertyChanged(nameof(CanNavigateUp));
+    }
+
+    /// <summary>
+    /// Připraví nejvýše 5 pojmenovaných podílů (souboru dat) + volitelnou
+    /// souhrnnou položku "Ostatní" pro zbytek - viz skill dataviz, "series-count
+    /// ladder": nad 5-6 položek se skládá do jedné souhrnné, negeneruje se
+    /// další barva. Přímé soubory v aktuální složce (nejsou samostatnou
+    /// podsložkou) se dopočítají jako zbytek celkové velikosti.
+    /// </summary>
+    private void UpdateCompositionSegments(DirectoryUsageNode current)
+    {
+        CompositionSegments.Clear();
+
+        if (current.SizeBytes <= 0)
+        {
+            return;
+        }
+
+        var parts = current.Subdirectories
+            .Select(s => (s.Name, s.SizeBytes))
+            .ToList();
+
+        var directFilesSize = current.SizeBytes - current.Subdirectories.Sum(s => s.SizeBytes);
+        if (directFilesSize > 0)
+        {
+            parts.Add(("Soubory v této složce", directFilesSize));
+        }
+
+        var ordered = parts.OrderByDescending(p => p.SizeBytes).ToList();
+        const int maxSlots = 5;
+
+        for (var i = 0; i < ordered.Count && i < maxSlots; i++)
+        {
+            var (name, size) = ordered[i];
+            CompositionSegments.Add(new CompositionSegmentViewModel
+            {
+                Name = name,
+                Percent = size * 100.0 / current.SizeBytes,
+                SizeDisplay = ByteSizeFormatter.Format(size),
+                SeriesIndex = i,
+            });
+        }
+
+        if (ordered.Count > maxSlots)
+        {
+            var otherSize = ordered.Skip(maxSlots).Sum(p => p.SizeBytes);
+            CompositionSegments.Add(new CompositionSegmentViewModel
+            {
+                Name = "Ostatní",
+                Percent = otherSize * 100.0 / current.SizeBytes,
+                SizeDisplay = ByteSizeFormatter.Format(otherSize),
+                SeriesIndex = -1,
+            });
+        }
     }
 }

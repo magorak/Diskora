@@ -13,6 +13,17 @@
     <SolidColorBrush x:Key="TrackBrush" Color="#E5E7EB" />
 
     <!--
+        Kategoriální paleta pro grafy (skill dataviz - referenční ověřená paleta,
+        pevné pořadí odstínů, ne cyklované). Pátý+ podíl se skládá do "Ostatní"
+        pomocí MutedForegroundBrush výše.
+    -->
+    <SolidColorBrush x:Key="SeriesBrush1" Color="#2A78D6" />
+    <SolidColorBrush x:Key="SeriesBrush2" Color="#EB6834" />
+    <SolidColorBrush x:Key="SeriesBrush3" Color="#1BAF7A" />
+    <SolidColorBrush x:Key="SeriesBrush4" Color="#EDA100" />
+    <SolidColorBrush x:Key="SeriesBrush5" Color="#E87BA4" />
+
+    <!--
         Windows odvozuje výchozí (nestylované) části vestavěných ovládacích prvků
         (DataGridRow, Menu, ScrollBar, ...) z těchto systémových barev. Pokud je
         v OS zapnutý tmavý režim, bez tohoto přepisu by tyto části zůstaly tmavé,

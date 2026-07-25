@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Diskora.App.Commands;
+using Diskora.App.Parsing;
 using Diskora.Core.Models;
 using Diskora.Core.Services;
 
@@ -8,6 +9,11 @@ namespace Diskora.App.ViewModels;
 
 public sealed class IntegrityViewModel : ViewModelBase
 {
+    // chkdsk /scan (bez /r) proběhne fázemi 1-3; fáze 4-5 (kontrola sektorů)
+    // se spouští jen s /r, který zatím Diskora nenabízí (viz TODO - skutečná
+    // oprava je záměrně samostatný krok).
+    private const int TotalStages = 3;
+
     private readonly IIntegrityCheckService _service;
     private readonly IDiskHistoryStore _historyStore;
     private readonly string _driveLetter;
@@ -15,6 +21,9 @@ public sealed class IntegrityViewModel : ViewModelBase
     private VolumeDirtyState _dirtyState = VolumeDirtyState.Unknown;
     private bool _isScanning;
     private IntegrityScanOutcome? _lastOutcome;
+    private int? _currentStage;
+    private string? _currentStageDescription;
+    private double _progressPercent;
 
     public IntegrityViewModel(IIntegrityCheckService service, IDiskHistoryStore historyStore, string driveLetter, string volumeName)
     {
@@ -67,6 +76,18 @@ public sealed class IntegrityViewModel : ViewModelBase
         private set => SetField(ref _isScanning, value);
     }
 
+    public string? CurrentStageDescription
+    {
+        get => _currentStageDescription;
+        private set => SetField(ref _currentStageDescription, value);
+    }
+
+    public double ProgressPercent
+    {
+        get => _progressPercent;
+        private set => SetField(ref _progressPercent, value);
+    }
+
     public string? ScanSummary => _lastOutcome switch
     {
         null => null,
@@ -96,9 +117,12 @@ public sealed class IntegrityViewModel : ViewModelBase
         _lastOutcome = null;
         OnPropertyChanged(nameof(ScanSummary));
         IsScanning = true;
+        _currentStage = null;
+        CurrentStageDescription = "Spouštím kontrolu...";
+        ProgressPercent = 0;
         _scanCts = new CancellationTokenSource();
 
-        var progress = new Progress<string>(line => OutputLines.Add(line));
+        var progress = new Progress<string>(OnOutputLine);
 
         try
         {
@@ -107,10 +131,41 @@ public sealed class IntegrityViewModel : ViewModelBase
         finally
         {
             IsScanning = false;
+
+            if (_lastOutcome?.Started == true)
+            {
+                ProgressPercent = 100;
+                CurrentStageDescription = "Dokončeno";
+            }
+
             OnPropertyChanged(nameof(ScanSummary));
             RefreshDirtyState();
         }
     }
+
+    private void OnOutputLine(string line)
+    {
+        OutputLines.Add(line);
+
+        var stage = ChkdskOutputParser.TryParseStage(line);
+        if (stage is not null)
+        {
+            _currentStage = stage;
+            CurrentStageDescription = ChkdskOutputParser.GetStageDescription(stage.Value);
+            ProgressPercent = StageBaselinePercent(stage.Value);
+        }
+
+        var percent = ChkdskOutputParser.TryParsePercent(line);
+        if (percent is not null && _currentStage is int currentStage)
+        {
+            var baseline = StageBaselinePercent(currentStage);
+            var stageSpan = 100.0 / TotalStages;
+            ProgressPercent = Math.Clamp(baseline + (percent.Value / 100.0 * stageSpan), 0, 100);
+        }
+    }
+
+    private static double StageBaselinePercent(int stage) =>
+        Math.Clamp((stage - 1) * (100.0 / TotalStages), 0, 100);
 
     private void CancelScan() => _scanCts?.Cancel();
 }

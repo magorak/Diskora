@@ -13,6 +13,17 @@ verzování dle [Semantic Versioning](https://semver.org/).
   posledních 20 záznamů (barevně odlišený stav, u kontrol i výsledek skenu).
   10 nových testů (`Diskora.Data.Tests`), živě ověřeno na reálném svazku E: i
   fyzickém disku - historie se persistentně ukládá a znovu načítá napříč spuštěními.
+- UI vylepšení (drobnosti na žádost uživatele):
+  - `ChkdskOutputParser` (Diskora.App) rozpoznává "Stage N:"/"N percent complete"
+    v anglickém výstupu chkdsk (ten je pevně anglický bez ohledu na jazyk Windows -
+    ověřeno živě) a pohání český popisek fáze + grafický progress bar v okně
+    Kontrola integrity; syrový log zůstává jako doplňkový detail. 15 nových testů
+    (`Diskora.App.Tests`, nový projekt).
+  - Kompoziční pruh + legenda v okně Analýza zaplněnosti - vodorovný segmentovaný
+    pruh s ověřenou kategoriální paletou (skill dataviz), místo koláčového grafu
+    (part-to-whole se u mnoha/dlouhých názvů složek lépe čte jako pruh než koláč);
+    top 5 podílů + souhrnná položka "Ostatní", barevné dlaždice v legendě, tooltip
+    s přesnou velikostí. Živě ověřeno na reálných datech.
 
 ### Opraveno
 - `Diskora.Data`: výchozí verze `Microsoft.Data.Sqlite` 9.0.0 táhla transitivní
