@@ -38,12 +38,13 @@ public sealed class DiskUsageScannerTests : IDisposable
         Directory.CreateDirectory(Path.Combine(_root, "sub2"));
 
         var result = await _scanner.ScanAsync(_root);
+        var root = result.Root;
 
-        Assert.Equal(600, result.SizeBytes);
-        Assert.Equal(3, result.FileCount);
-        Assert.Equal(2, result.Subdirectories.Count);
+        Assert.Equal(600, root.SizeBytes);
+        Assert.Equal(3, root.FileCount);
+        Assert.Equal(2, root.Subdirectories.Count);
 
-        var resultSub1 = result.Subdirectories.Single(n => n.Name == "sub1");
+        var resultSub1 = root.Subdirectories.Single(n => n.Name == "sub1");
         Assert.Equal(500, resultSub1.SizeBytes);
         Assert.Equal(2, resultSub1.FileCount);
 
@@ -51,7 +52,7 @@ public sealed class DiskUsageScannerTests : IDisposable
         Assert.Equal(300, resultSub1a.SizeBytes);
         Assert.Equal(1, resultSub1a.FileCount);
 
-        var resultSub2 = result.Subdirectories.Single(n => n.Name == "sub2");
+        var resultSub2 = root.Subdirectories.Single(n => n.Name == "sub2");
         Assert.Equal(0, resultSub2.SizeBytes);
         Assert.Equal(0, resultSub2.FileCount);
         Assert.Empty(resultSub2.Subdirectories);
@@ -62,9 +63,11 @@ public sealed class DiskUsageScannerTests : IDisposable
     {
         var result = await _scanner.ScanAsync(_root);
 
-        Assert.Equal(0, result.SizeBytes);
-        Assert.Equal(0, result.FileCount);
-        Assert.False(result.HadAccessError);
+        Assert.Equal(0, result.Root.SizeBytes);
+        Assert.Equal(0, result.Root.FileCount);
+        Assert.False(result.Root.HadAccessError);
+        Assert.Empty(result.LargestFiles);
+        Assert.Empty(result.OldestFiles);
     }
 
     [Fact]
@@ -74,8 +77,41 @@ public sealed class DiskUsageScannerTests : IDisposable
 
         var result = await _scanner.ScanAsync(missingPath);
 
-        Assert.True(result.HadAccessError);
-        Assert.Equal(0, result.SizeBytes);
+        Assert.True(result.Root.HadAccessError);
+        Assert.Equal(0, result.Root.SizeBytes);
+    }
+
+    [Fact]
+    public async Task ScanAsync_TracksLargestFilesAcrossWholeTree_OrderedDescendingBySize()
+    {
+        WriteFile(Path.Combine(_root, "small.bin"), 10);
+        var sub = Directory.CreateDirectory(Path.Combine(_root, "sub")).FullName;
+        WriteFile(Path.Combine(sub, "big.bin"), 1000);
+        WriteFile(Path.Combine(sub, "medium.bin"), 100);
+
+        var result = await _scanner.ScanAsync(_root);
+
+        Assert.Equal(3, result.LargestFiles.Count);
+        Assert.Equal("big.bin", result.LargestFiles[0].Name);
+        Assert.Equal("medium.bin", result.LargestFiles[1].Name);
+        Assert.Equal("small.bin", result.LargestFiles[2].Name);
+    }
+
+    [Fact]
+    public async Task ScanAsync_TracksOldestFiles_OrderedAscendingByLastWriteTime()
+    {
+        var oldPath = Path.Combine(_root, "old.bin");
+        var newPath = Path.Combine(_root, "new.bin");
+        WriteFile(oldPath, 10);
+        WriteFile(newPath, 10);
+        File.SetLastWriteTimeUtc(oldPath, new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        File.SetLastWriteTimeUtc(newPath, new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        var result = await _scanner.ScanAsync(_root);
+
+        Assert.Equal(2, result.OldestFiles.Count);
+        Assert.Equal("old.bin", result.OldestFiles[0].Name);
+        Assert.Equal("new.bin", result.OldestFiles[1].Name);
     }
 
     [Fact]

@@ -79,26 +79,55 @@
         </Border>
 
         <Grid Grid.Row="4">
-            <Border Style="{StaticResource CardBorderStyle}"
-                    Visibility="{Binding IsScanning, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
-                <DataGrid ItemsSource="{Binding Items}" x:Name="ItemsGrid"
-                          MouseDoubleClick="ItemsGrid_MouseDoubleClick">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Název" Binding="{Binding Name}" Width="*" />
-                        <DataGridTemplateColumn Header="Podíl" Width="160">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <ProgressBar Value="{Binding PercentOfParent, Mode=OneWay}"
-                                                 Minimum="0" Maximum="100" VerticalAlignment="Center" />
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="Velikost" Binding="{Binding SizeDisplay}" Width="110" />
-                        <DataGridTextColumn Header="Souborů" Binding="{Binding FileCount}" Width="80" />
-                        <DataGridTextColumn Header="Stav" Binding="{Binding StatusDisplay}" Width="120" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Border>
+            <TabControl Visibility="{Binding IsScanning, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                <TabItem Header="Složky">
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <DataGrid ItemsSource="{Binding Items}" x:Name="ItemsGrid"
+                                  MouseDoubleClick="ItemsGrid_MouseDoubleClick">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Název" Binding="{Binding Name}" Width="*" />
+                                <DataGridTemplateColumn Header="Podíl" Width="160">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ProgressBar Value="{Binding PercentOfParent, Mode=OneWay}"
+                                                         Minimum="0" Maximum="100" VerticalAlignment="Center" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Velikost" Binding="{Binding SizeDisplay}" Width="110" />
+                                <DataGridTextColumn Header="Souborů" Binding="{Binding FileCount}" Width="80" />
+                                <DataGridTextColumn Header="Stav" Binding="{Binding StatusDisplay}" Width="120" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </TabItem>
+
+                <TabItem Header="Největší soubory">
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <DataGrid ItemsSource="{Binding LargestFiles}" IsReadOnly="True" AutoGenerateColumns="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Název" Binding="{Binding Name}" Width="220" />
+                                <DataGridTextColumn Header="Velikost" Binding="{Binding SizeDisplay}" Width="110" />
+                                <DataGridTextColumn Header="Poslední změna" Binding="{Binding LastWriteDisplay}" Width="150" />
+                                <DataGridTextColumn Header="Umístění" Binding="{Binding FullPath}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </TabItem>
+
+                <TabItem Header="Nejstarší soubory">
+                    <Border Style="{StaticResource CardBorderStyle}">
+                        <DataGrid ItemsSource="{Binding OldestFiles}" IsReadOnly="True" AutoGenerateColumns="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Název" Binding="{Binding Name}" Width="220" />
+                                <DataGridTextColumn Header="Poslední změna" Binding="{Binding LastWriteDisplay}" Width="150" />
+                                <DataGridTextColumn Header="Velikost" Binding="{Binding SizeDisplay}" Width="110" />
+                                <DataGridTextColumn Header="Umístění" Binding="{Binding FullPath}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </TabItem>
+            </TabControl>
 
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
                         Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}">

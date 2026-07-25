@@ -6,6 +6,17 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Hledač velkých a starých souborů (Fáze 4): `DiskUsageScanner` nyní během skenu
+  zároveň sleduje 20 největších a 20 nejstarších souborů v celém stromu přes nový
+  `BoundedTopTracker` (udržuje jen N položek seřazených podle komparátoru, žádná
+  alokace na soubor navíc - paměť neškáluje s počtem souborů na disku). Okno
+  Analýza zaplněnosti dostalo záložky „Největší soubory“ a „Nejstarší soubory“
+  vedle stávající „Složky“ (`FileUsageRowViewModel`, nové modely `FileUsageEntry`/
+  `DiskUsageScanResult` v Diskora.Core). Živě ověřeno na reálném svazku E:\ -
+  správné řazení (100 MB → 129 B sestupně; nejstarší → nejnovější vzestupně).
+  Zjištěno i empiricky potvrzeno, že jednovláknový sken neškáluje na velké svazky
+  (sken celého C:\ v tomto prostředí neskončil ani po 4 minutách) - zapsáno do
+  TODO.md jako prioritní položka pro vícevláknové zrychlení.
 - Čtení Event Logu (Fáze 3): nový `Diskora.Native.EventLog.DiskEventLogReader`
   (`System.Diagnostics.Eventing.Reader.EventLogReader`, dotazuje protokoly System
   a Application XPath filtrem na providery Ntfs/Disk/Volsnap/Virtual Disk Service/

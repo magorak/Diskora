@@ -71,14 +71,22 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] Rekurzivní scanner složek/souborů (`DiskUsageScanner`, zatím jednovláknový - viz níže) -
       živě ověřeno na reálném naplněném svazku, výsledky (velikosti/počty souborů) sedí přesně
       a `System Volume Information` je správně nahlášena jako nedostupná
-- [ ] Zrychlení: vícevláknový sken s omezenou paralelitou
+- [ ] Zrychlení: vícevláknový sken s omezenou paralelitou - živě potvrzeno jako reálná
+      potřeba: sken celého `C:\` (systémový svazek, statisíce souborů) v tomto prostředí
+      neskončil ani po 4 minutách, zatímco malý testovací svazek `E:\` (165 MB) je hotový
+      za sekundu - jednovláknový rekurzivní sken neškáluje na velké svazky
 - [x] List view s drill-down navigací (řazeno dle velikosti, podíl v %, počet souborů)
 - [x] Grafický přehled podílu (vodorovný kompoziční pruh + legenda, ověřená paleta ze
       skillu dataviz - part-to-whole formou segmentovaného pruhu, ne koláčem, protože
       u mnoha/dlouhých názvů složek se koláčové výseče špatně porovnávají; top 5 + "Ostatní")
       - živě ověřeno na reálných datech
+- [x] Hledač velkých a starých souborů: `DiskUsageScanner` teď při skenu zároveň sleduje
+      20 největších a 20 nejstarších souborů v celém stromu přes `BoundedTopTracker`
+      (bez alokace na soubor, neškáluje pamětí s počtem souborů). Okno Analýza zaplněnosti
+      má nové záložky „Největší soubory“/„Nejstarší soubory“ vedle „Složky“ - živě ověřeno
+      na reálném svazku E:\ (správné řazení sestupně dle velikosti / vzestupně dle data)
 - [ ] Vlastní treemap control (squarified algoritmus) / sunburst jako alternativní zobrazení
-- [ ] Hledač duplicit (hash-based), velkých a starých souborů
+- [ ] Hledač duplicit (hash-based)
 - [ ] Export reportu (CSV/JSON)
 - [ ] Výběr libovolné složky ke skenování (zatím jen kořen svazku z dashboardu)
 

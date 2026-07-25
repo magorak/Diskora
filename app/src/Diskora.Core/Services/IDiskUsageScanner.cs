@@ -4,7 +4,7 @@ namespace Diskora.Core.Services;
 
 public interface IDiskUsageScanner
 {
-    Task<DirectoryUsageNode> ScanAsync(
+    Task<DiskUsageScanResult> ScanAsync(
         string rootPath,
         IProgress<string>? onDirectoryScanned = null,
         CancellationToken cancellationToken = default);

@@ -35,6 +35,10 @@ public sealed class DiskUsageViewModel : ViewModelBase
 
     public ObservableCollection<CompositionSegmentViewModel> CompositionSegments { get; } = [];
 
+    public ObservableCollection<FileUsageRowViewModel> LargestFiles { get; } = [];
+
+    public ObservableCollection<FileUsageRowViewModel> OldestFiles { get; } = [];
+
     public ICommand RescanCommand { get; }
 
     public ICommand NavigateUpCommand { get; }
@@ -98,6 +102,8 @@ public sealed class DiskUsageViewModel : ViewModelBase
         IsScanning = true;
         ErrorMessage = null;
         Items.Clear();
+        LargestFiles.Clear();
+        OldestFiles.Clear();
         _navigationStack.Clear();
         CurrentPathText = _rootPath;
         CurrentSummaryText = string.Empty;
@@ -106,9 +112,21 @@ public sealed class DiskUsageViewModel : ViewModelBase
 
         try
         {
-            var rootNode = await _scanner.ScanAsync(_rootPath, progress);
-            _navigationStack.Add(rootNode);
+            var result = await _scanner.ScanAsync(_rootPath, progress);
+            _navigationStack.Add(result.Root);
             ShowCurrentLevel();
+
+            LargestFiles.Clear();
+            foreach (var entry in result.LargestFiles)
+            {
+                LargestFiles.Add(new FileUsageRowViewModel(entry));
+            }
+
+            OldestFiles.Clear();
+            foreach (var entry in result.OldestFiles)
+            {
+                OldestFiles.Add(new FileUsageRowViewModel(entry));
+            }
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
         {
