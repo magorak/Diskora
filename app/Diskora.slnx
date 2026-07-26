@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Diskora.App/Diskora.App.csproj" />
+    <Project Path="src/Diskora.Cli/Diskora.Cli.csproj" />
     <Project Path="src/Diskora.Core/Diskora.Core.csproj" />
     <Project Path="src/Diskora.Data/Diskora.Data.csproj" />
     <Project Path="src/Diskora.Native/Diskora.Native.csproj" />

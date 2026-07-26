@@ -155,7 +155,21 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 
 ## Fáze 7 — Plánování a CLI companion
 - [ ] Integrace s Windows Task Scheduler (periodické kontroly zdraví)
-- [ ] `Diskora.Cli`: headless mód s JSON výstupem pro skriptování
+- [x] `Diskora.Cli`: headless mód s JSON výstupem pro skriptování - nový projekt
+      (`AssemblyName=diskora`), top-level statements, žádná externí CLI-parsing
+      závislost (ruční parsování, konzistentní s filozofií minima závislostí).
+      Příkazy: `list` (fyzické disky + svazky), `smart <index>`, `integrity
+      <písmeno> [--scan]`, `usage <cesta> [--top N]`, `duplicates <cesta>` -
+      všechny skládají už hotové a otestované `Diskora.Core` služby, žádná nová
+      byznys logika. Globální `--json` (System.Text.Json, čitelná diakritika
+      stejně jako v GUI exportu, enumy jako řetězce přes `JsonStringEnumConverter`).
+      `smart`/`integrity` sdílí stejnou SQLite historii jako GUI
+      (`Diskora.Data.SqliteDiskHistoryStore`), takže kontrola z CLI se ukáže
+      i v historii v okně S.M.A.R.T./Kontrola integrity. Smysluplné exit kódy
+      (0 v pořádku, 1 chyba použití/cesty, 2 nalezen problém/duplicity/SMART
+      nedostupné, 130 přerušeno Ctrl+C). Živě ověřeno - všechny příkazy
+      (člověku čitelný i `--json` výstup), reálná data (fyzické disky, svazky,
+      dirty-bit E:\, sken zaplněnosti, skutečně vytvořená a smazaná duplicita).
 - [ ] Tray ikona a notifikace při upozorněních
 
 ## Fáze 8 — Reporting, nastavení, lokalizace, přístupnost

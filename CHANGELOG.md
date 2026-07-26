@@ -6,6 +6,16 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- CLI společník `diskora.exe` (Fáze 7): nový projekt `Diskora.Cli`, headless
+  doplněk ke GUI pro skriptování a automatizaci. Příkazy `list`, `smart
+  <index>`, `integrity <písmeno> [--scan]`, `usage <cesta> [--top N]`,
+  `duplicates <cesta>` - všechny skládají už existující a otestované
+  `Diskora.Core` služby (žádná nová byznys logika, jen nová prezentační
+  vrstva). Globální `--json` přepínač pro strojově čitelný výstup (čitelná
+  diakritika, enumy jako řetězce). `smart`/`integrity` zapisují do stejné
+  sdílené SQLite historie jako GUI. Smysluplné exit kódy pro skriptování
+  (0/1/2/130). Živě ověřeno - všechny příkazy, člověku čitelný i JSON výstup,
+  reálná data ze skutečných disků/svazků včetně skutečně vytvořené duplicity.
 - Export do JSON (Fáze 4): tlačítko „Exportovat JSON..." vedle „Exportovat CSV..."
   v okně Analýza zaplněnosti, exportuje aktuálně zobrazenou záložku (Složky/
   Největší soubory/Nejstarší soubory/Duplicity) přes `System.Text.Json` se
