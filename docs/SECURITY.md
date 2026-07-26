@@ -27,9 +27,13 @@ očekávaným dopadem. Snažíme se reagovat co nejdříve.
   argumenty pro externí procesy se ověřují před použitím.
 - **Žádná telemetrie ani síťová komunikace bez explicitního souhlasu.** Menší
   útočná plocha, žádná sbíraná data k úniku.
-- **Podepsané release buildy** (Authenticode) a reprodukovatelné buildy v CI.
-- **Statická analýza a dependency scanning v CI** (Roslyn analyzery, CodeQL,
-  Dependabot/Renovate) — viz Fáze 9 v [`TODO.md`](../TODO.md).
+- **Podepsané release buildy** (Authenticode) a reprodukovatelné buildy v CI —
+  zatím neimplementováno, viz Fáze 9 v [`TODO.md`](../TODO.md).
+- **Statická analýza a dependency scanning v CI.** Roslyn analyzery běží už
+  při každém buildu (`EnableNETAnalyzers` v `Directory.Build.props`). CodeQL
+  (`.github/workflows/codeql.yml`) a Dependabot (`.github/dependabot.yml`)
+  jsou nakonfigurované, ale repozitář zatím nemá GitHub remote, takže se
+  nemohly spustit naživo — YAML syntax ověřena lokálně.
 
 ## Rozsah
 

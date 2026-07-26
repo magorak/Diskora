@@ -381,8 +381,17 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 
 ## Fáze 9 — Bezpečnost a release engineering
 - [ ] `SECURITY.md` — threat model, responsible disclosure
-- [ ] Statická analýza (Roslyn analyzery) + CodeQL v CI
-- [ ] Dependency scanning (Dependabot/Renovate)
+- [x] Statická analýza (Roslyn analyzery) + CodeQL v CI: Roslyn analyzery už běžely
+      od Fáze 0 (`EnableNETAnalyzers` v `Directory.Build.props`, `AnalysisLevel=latest`) -
+      chybělo jen CodeQL. Nový `.github/workflows/codeql.yml` (`github/codeql-action/
+      init` + `analyze` pro C#, spouští se na push/PR do master i týdně navíc přes
+      `schedule: cron`). Stejné omezení jako CI pipeline z Fáze 0 - repozitář zatím
+      nemá GitHub remote, takže se nemůže spustit naživo, YAML syntax ověřena lokálně
+      přes `js-yaml`.
+- [x] Dependency scanning (Dependabot/Renovate): nový `.github/dependabot.yml` -
+      tři ekosystémy (`nuget` pro `/app`, `npm` pro `/web`, `github-actions` pro
+      samotné workflow soubory), týdenní interval. Stejné omezení - nemůže se
+      spustit naživo bez GitHub remote, YAML syntax ověřena lokálně.
 - [ ] Code signing pipeline (Authenticode) pro release buildy
 - [ ] Instalátor (Inno Setup/MSIX) + portable build
 - [ ] SBOM generování

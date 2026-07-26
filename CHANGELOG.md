@@ -6,6 +6,12 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- CodeQL a Dependabot v CI (Fáze 9): `.github/workflows/codeql.yml` (analýza C#
+  na push/PR do master i týdně navíc) a `.github/dependabot.yml` (nuget pro
+  `/app`, npm pro `/web`, github-actions pro workflow soubory, týdenní interval).
+  Roslyn analyzery už běžely od Fáze 0. Stejné omezení jako CI pipeline z Fáze 0 -
+  repozitář nemá GitHub remote, takže se nemohly spustit naživo, jen YAML syntax
+  ověřena lokálně přes `js-yaml`.
 - Integrace s Windows Plánovačem úloh (Fáze 7): nové CLI příkazy `diskora
   healthcheck` (S.M.A.R.T. přes všechny fyzické disky najednou) a `diskora
   schedule install/remove/status` (`Diskora.Repair.ScheduledTaskManager`,

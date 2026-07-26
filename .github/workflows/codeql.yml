@@ -1,0 +1,38 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Týdenní běh navíc k push/PR - zachytí nově zveřejněné CVE i beze změny kódu.
+    - cron: '0 6 * * 1'
+
+jobs:
+  analyze:
+    name: Analyzovat (C#)
+    runs-on: windows-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Nastavit .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Inicializovat CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+
+      - name: Sestavit (pro CodeQL analýzu)
+        run: dotnet build app/Diskora.slnx --configuration Release
+
+      - name: Provést CodeQL analýzu
+        uses: github/codeql-action/analyze@v3

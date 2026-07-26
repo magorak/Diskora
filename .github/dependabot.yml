@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Diskora.App/Core/Native/... (NuGet balíčky: System.Management, Microsoft.Data.Sqlite, ...)
+  - package-ecosystem: "nuget"
+    directory: "/app"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Produktový web (Astro, Tailwind, ...)
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Samotné GitHub Actions workflow soubory (actions/checkout, actions/setup-dotnet, ...)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
