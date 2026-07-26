@@ -6,6 +6,23 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Upozornění na osiřelé připojené virtuální disky (Fáze 6): Diskora připojuje
+  VHD/VHDX s `ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME` (viz oprava níže),
+  takže disk zůstává připojený i po pádu aplikace nebo zavření bez ručního
+  odpojení. Nový `IVirtualDiskAttachmentRegistry` /
+  `Diskora.Data.SqliteVirtualDiskAttachmentRegistry` (vlastní tabulka ve
+  stejné `diskora.db`) sleduje, co `VirtualDiskService.Attach`/`MountIsoAsync`
+  úspěšně připojily a co `Detach`/`DismountIsoAsync` zase odpojily. Při
+  příštím startu aplikace se zbylé záznamy (soubor, který podle registru
+  zůstal připojený z minula) ukážou v informačním dialogu s odkazem na menu
+  „Otevřít virtuální disk / ISO..."; záznamy, jejichž soubor mezitím zmizel,
+  se tiše promažou. 8 nových testů (`Diskora.Core.Tests`,
+  `Diskora.Data.Tests`) - samotné připojení/odpojení vyžaduje admin práva,
+  které v tomto vývojovém prostředí nejsou k dispozici, takže reálný scénář
+  "zavřít Diskoru s připojeným diskem a znovu ji spustit" nebyl živě ověřen;
+  ověřeno bylo, že neúspěšné připojení/odpojení (chybějící soubor) registr
+  nijak nezasáhne a že aplikace se startovní kontrolou stále čistě nastartuje
+  a ukončí.
 - CI pipeline (Fáze 0): `.github/workflows/build.yml` - `windows-latest`,
   `actions/setup-dotnet` na `10.0.x`, `dotnet restore/build/test` nad
   `app/Diskora.slnx` v konfiguraci Release. Repozitář zatím nemá GitHub

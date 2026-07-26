@@ -206,7 +206,22 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       po `convert gpt` se stejným rozvržením správně `Scheme=Gpt,
       PartitionCount=2`; end-to-end i přes `VirtualDiskService` s reálnou
       příponou `.img`
-- [ ] Bezpečný unmount/cleanup (i při pádu aplikace)
+- [x] Bezpečný unmount/cleanup (i při pádu aplikace): `AttachVirtualDisk` běží
+      s `ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME`, takže OS drží připojení
+      nezávisle na procesu Diskory - po pádu/zavření bez odpojení disk zůstane
+      připojený, což je stejné chování jako `Mount-VHD`/diskpart. Řešením proto
+      není auto-detach při zavření (to by šlo proti smyslu permanent lifetime
+      flagu), ale upozornění: nový `IVirtualDiskAttachmentRegistry` (SQLite,
+      `Diskora.Data.SqliteVirtualDiskAttachmentRegistry`, tabulka
+      `AttachedVirtualDisks` ve stejné `diskora.db`) zapisuje úspěšné
+      připojení/odpojení VHD/VHDX i ISO. Při startu aplikace
+      (`App.OnStartup`) se zbylé záznamy z minulého běhu ukážou v
+      informačním dialogu; záznamy pro mezitím smazané soubory se tiše
+      promažou (`GetTrackedAttachments`). 8 testů (registr + ověření, že
+      neúspěšný attach/detach registr nezasáhne). Skutečné admin-vyžadující
+      připojení/odpojení nebylo v tomto prostředí živě ověřeno (žádná
+      elevace k dispozici) - ověřeno jen sestavení, běh celé sady testů a
+      čistý start/konec GUI se startovní kontrolou.
 - [x] Znovupoužití integrity/SMART/TreeSize logiky nad připojenými virtuálními disky -
       živě ověřeno izolovaným harness nad připojeným testovacím VHDX (fyzický disk
       správně rozpoznán jako `BusType=FileBackedVirtual`): `IntegrityCheckService`

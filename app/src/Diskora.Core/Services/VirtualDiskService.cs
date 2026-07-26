@@ -6,6 +6,13 @@ namespace Diskora.Core.Services;
 
 public sealed class VirtualDiskService : IVirtualDiskService
 {
+    private readonly IVirtualDiskAttachmentRegistry _attachmentRegistry;
+
+    public VirtualDiskService(IVirtualDiskAttachmentRegistry attachmentRegistry)
+    {
+        _attachmentRegistry = attachmentRegistry;
+    }
+
     public VirtualDiskReadOutcome ReadInfo(string path)
     {
         var result = VirtualDiskReader.GetInfo(path);
@@ -28,24 +35,47 @@ public sealed class VirtualDiskService : IVirtualDiskService
     public VirtualDiskOperationOutcome Attach(string path, bool readOnly)
     {
         var result = VirtualDiskAttacher.Attach(path, readOnly);
+        if (result.Success)
+        {
+            var format = VirtualDiskReader.GetInfo(path) is { Success: true, Info: { } info }
+                ? MapFormat(info.Format)
+                : Models.VirtualDiskFormat.Unknown;
+            _attachmentRegistry.RecordAttached(path, format, readOnly);
+        }
+
         return new VirtualDiskOperationOutcome(result.Success, result.FailureReason);
     }
 
     public VirtualDiskOperationOutcome Detach(string path)
     {
         var result = VirtualDiskAttacher.Detach(path);
+        if (result.Success)
+        {
+            _attachmentRegistry.RecordDetached(path);
+        }
+
         return new VirtualDiskOperationOutcome(result.Success, result.FailureReason);
     }
 
     public async Task<IsoMountOutcome> MountIsoAsync(string isoPath, CancellationToken cancellationToken = default)
     {
         var result = await IsoMounter.MountAsync(isoPath, cancellationToken);
+        if (result.Success)
+        {
+            _attachmentRegistry.RecordAttached(isoPath, Models.VirtualDiskFormat.Iso, readOnly: true);
+        }
+
         return new IsoMountOutcome(result.Success, result.FailureReason, result.DriveLetter);
     }
 
     public async Task<VirtualDiskOperationOutcome> DismountIsoAsync(string isoPath, CancellationToken cancellationToken = default)
     {
         var result = await IsoMounter.DismountAsync(isoPath, cancellationToken);
+        if (result.Success)
+        {
+            _attachmentRegistry.RecordDetached(isoPath);
+        }
+
         return new VirtualDiskOperationOutcome(result.Success, result.FailureReason);
     }
 
