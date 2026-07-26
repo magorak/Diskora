@@ -1,11 +1,8 @@
-using System.IO;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Diskora.App.Export;
 using Diskora.App.ViewModels;
 using Diskora.Core.Export;
 using Diskora.Core.Layout;
@@ -86,34 +83,8 @@ public partial class DiskUsageWindow : Window
                 break;
         }
 
-        var dialog = new Microsoft.Win32.SaveFileDialog
-        {
-            Title = "Exportovat do CSV",
-            Filter = "CSV soubor (*.csv)|*.csv|Všechny soubory (*.*)|*.*",
-            FileName = suggestedName,
-        };
-
-        if (dialog.ShowDialog(this) != true)
-        {
-            return;
-        }
-
-        try
-        {
-            File.WriteAllText(dialog.FileName, csv, System.Text.Encoding.UTF8);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            MessageBox.Show(this, $"Export se nepodařilo uložit: {ex.Message}", "Export CSV",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
+        ExportHelper.SaveCsv(this, csv, suggestedName);
     }
-
-    private static readonly JsonSerializerOptions JsonExportOptions = new()
-    {
-        WriteIndented = true,
-        Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement, UnicodeRanges.LatinExtendedA),
-    };
 
     private void ExportJson_Click(object sender, RoutedEventArgs e)
     {
@@ -174,28 +145,7 @@ public partial class DiskUsageWindow : Window
                 break;
         }
 
-        var dialog = new Microsoft.Win32.SaveFileDialog
-        {
-            Title = "Exportovat do JSON",
-            Filter = "JSON soubor (*.json)|*.json|Všechny soubory (*.*)|*.*",
-            FileName = suggestedName,
-        };
-
-        if (dialog.ShowDialog(this) != true)
-        {
-            return;
-        }
-
-        try
-        {
-            var json = JsonSerializer.Serialize(payload, JsonExportOptions);
-            File.WriteAllText(dialog.FileName, json, System.Text.Encoding.UTF8);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            MessageBox.Show(this, $"Export se nepodařilo uložit: {ex.Message}", "Export JSON",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
+        ExportHelper.SaveJson(this, payload, suggestedName);
     }
 
     /// <summary>

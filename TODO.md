@@ -314,7 +314,21 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       periodická kontrola na pozadí, mimo rozsah tohoto kroku).
 
 ## Fáze 8 — Reporting, nastavení, lokalizace, přístupnost
-- [ ] Export kompletních reportů (PDF/CSV/JSON)
+- [x] Export do CSV/JSON napříč okny (PDF zatím ne): dřív mělo export jen okno Analýza
+      zaplněnosti. Přidáno do S.M.A.R.T., Kontrola integrity, Povrchový sken a Systémový
+      protokol - stejný vzor (`Diskora.Core.Export.CsvWriter` + `System.Text.Json` s
+      encoderem omezeným na Basic Latin/Latin-1/Latin Extended-A pro čitelnou diakritiku),
+      teď sdílený přes nový `Diskora.App.Export.ExportHelper` (SaveFileDialog + zápis +
+      ošetření chyby na jednom místě - dřív duplikováno jen v okně Analýza zaplněnosti,
+      teď by se to opakovalo pětkrát). `SurfaceScanViewModel` dostal novou veřejnou
+      `BadRanges` property (syrová offset/délka data), aby JSON export mohl nabídnout
+      strukturovaná čísla, ne jen naformátované řetězce z `BadRangeRows`. Živě ověřeno
+      (UI Automation): okno Systémový protokol export CSV i JSON nad reálnými daty
+      (skutečné události z protokolu tohoto stroje, čeština i escapování v pořádku),
+      okno S.M.A.R.T. export obou formátů i nad prázdnými daty (SMART nedostupné bez
+      admin práv) - žádný pád, smysluplný prázdný/degradovaný výstup. Kontrola integrity
+      a Povrchový sken sdílí identický, tímto už ověřený mechanismus, ale jejich konkrétní
+      tlačítka se živě neklikala zvlášť.
 - [x] Perzistence volby tématu: `Diskora.App.Settings.JsonAppSettingsStore` (obyčejný
       JSON v `%LocalAppData%\Diskora\settings.json` - jen hrstka skalárních hodnot,
       SQLite jako u historie by tu byl zbytečný). `ThemeService.Apply` volbu při každém

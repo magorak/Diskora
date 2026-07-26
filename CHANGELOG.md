@@ -6,6 +6,14 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Export do CSV/JSON napříč okny (Fáze 8): dřív mělo export jen okno Analýza
+  zaplněnosti. Přidáno do S.M.A.R.T., Kontrola integrity, Povrchový sken a
+  Systémový protokol - sdílené přes nový `Diskora.App.Export.ExportHelper`
+  místo duplikování dialogu/zápisu/ošetření chyby v každém okně zvlášť.
+  `SurfaceScanViewModel` dostal veřejnou `BadRanges` property (syrová
+  offset/délka data) pro strukturovaný JSON export. Živě ověřeno (UI
+  Automation): Systémový protokol export CSV i JSON nad reálnými daty tohoto
+  stroje, S.M.A.R.T. export obou formátů i nad prázdnými daty bez pádu.
 - Perzistence volby tématu (Fáze 8): `Diskora.App.Settings.JsonAppSettingsStore`
   (JSON v `%LocalAppData%\Diskora\settings.json`). `ThemeService.Apply` volbu při
   každém přepnutí uloží, `App.OnStartup` ji při startu načte zpátky - dřív se

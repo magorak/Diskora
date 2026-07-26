@@ -28,9 +28,13 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" Text="Systémový protokol - disky a souborový systém" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="Obnovit" Command="{Binding RefreshCommand}" />
+            <Button Grid.Column="1" Margin="0,0,8,0" Content="Exportovat CSV..." Click="ExportCsv_Click" />
+            <Button Grid.Column="2" Margin="0,0,8,0" Content="Exportovat JSON..." Click="ExportJson_Click" />
+            <Button Grid.Column="3" Content="Obnovit" Command="{Binding RefreshCommand}" />
         </Grid>
 
         <TextBlock Grid.Row="1" Margin="0,0,0,12" TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}"

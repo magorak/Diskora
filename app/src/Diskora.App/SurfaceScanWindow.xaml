@@ -23,7 +23,17 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="{Binding DiskName}" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12" />
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding DiskName}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Margin="0,0,8,0" Content="Exportovat CSV..." Click="ExportCsv_Click" />
+            <Button Grid.Column="2" Content="Exportovat JSON..." Click="ExportJson_Click" />
+        </Grid>
 
         <TextBlock Grid.Row="1" Margin="0,0,0,12" TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}"
                    Text="Sken je needestruktivní a pouze čte data disku - nic se nezapisuje ani neopravuje. Nečitelné oblasti obvykle znamenají vadné sektory; skutečná oprava je v Diskoře samostatný krok s vlastním potvrzením." />

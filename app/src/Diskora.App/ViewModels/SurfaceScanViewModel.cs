@@ -32,6 +32,10 @@ public sealed class SurfaceScanViewModel : ViewModelBase
 
     public ObservableCollection<string> BadRangeRows { get; } = [];
 
+    /// <summary>Syrová (offset, délka) data za posledním skenem - pro strukturovaný export,
+    /// na rozdíl od <see cref="BadRangeRows"/>, což jsou jen naformátované řádky pro zobrazení.</summary>
+    public IReadOnlyList<BadSectorRange> BadRanges => _lastResult?.BadRanges ?? [];
+
     public ICommand StartScanCommand { get; }
 
     public ICommand CancelScanCommand { get; }

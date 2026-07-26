@@ -29,6 +29,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="{Binding DiskName}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
@@ -39,7 +41,9 @@
                 <TextBlock Text="{Binding OverallHealthDisplay}" Foreground="White" FontWeight="SemiBold" />
             </Border>
 
-            <Button Grid.Column="2" Content="Obnovit" Command="{Binding RefreshCommand}" />
+            <Button Grid.Column="2" Margin="0,0,8,0" Content="Exportovat CSV..." Click="ExportCsv_Click" />
+            <Button Grid.Column="3" Margin="0,0,8,0" Content="Exportovat JSON..." Click="ExportJson_Click" />
+            <Button Grid.Column="4" Content="Obnovit" Command="{Binding RefreshCommand}" />
         </Grid>
 
         <Border Grid.Row="1"
