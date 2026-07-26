@@ -40,3 +40,69 @@ očekávaným dopadem. Snažíme se reagovat co nejdříve.
 Tato politika pokrývá `app/` (desktopová aplikace) i `web/` (produktový web).
 Web nemá žádné přihlašování ani formuláře sbírající citlivá data, což omezuje
 jeho útočnou plochu na standardní statická rizika (hlavičky, CSP, závislosti).
+
+## Model hrozeb (threat model)
+
+### Aktiva (co chráníme)
+- **Integrita a dostupnost dat na discích uživatele.** Diskora čte i zapisuje
+  (chkdsk, spotfix, TRIM/defrag) reálná uživatelská data - nejcennější aktivum
+  je "nezpůsobit ztrátu dat, kterou by uživatel bez Diskory neměl".
+- **Zvýšená oprávnění procesu.** Většina destruktivních operací běží jako
+  administrátor - kompromitace Diskory za běhu s admin právy by útočníkovi
+  dala plnou kontrolu nad systémem.
+- **Historie SMART/integrity v SQLite** (`%LocalAppData%`) - technická
+  metadata o discích, ne osobní dokumenty, ale mohla by prozradit sériová
+  čísla disků nebo vzorec používání stroje.
+- **Důvěryhodnost dodávaného binárního souboru** (dodavatelský řetězec builu
+  a distribuce) - viz `SBOM`, `Code signing` níže.
+
+### Důvěryhodné hranice a vstupy
+- **Cesty k souborům/svazkům** zadané uživatelem (dialogy pro výběr složky/
+  souboru, argumenty CLI) - jediný vstup, který by útočník s lokálním
+  přístupem mohl ovlivnit, aby prošel do argumentů externího procesu.
+- **Výstup externích nástrojů** (`chkdsk.exe`, `defrag.exe`, `schtasks.exe`,
+  PowerShell cmdlety) - Diskora ho parsuje (regulární výrazy nad
+  stage/percent hlášeními), ale nikdy needeserializuje/nevykonává jako kód.
+- **Soubory obrazů disků** (ISO/VHD/VHDX/IMG) - čtou se jako binární data
+  (MBR/GPT hlavičky, virtdisk.dll metadata), ne jako spustitelný obsah;
+  poškozený/škodlivě sestavený obraz může nanejvýš způsobit chybu parsování
+  (ošetřeno try/catch), ne spuštění kódu, protože Diskora žádný kód z
+  obrazu nenačítá ani nespouští.
+- **NuGet/npm závislosti** - viz Dependabot a SBOM níže; hranice důvěry je
+  tady "věříme balíčku, dokud ho automatizovaně nesledujeme".
+
+### Modelovaní útočníci (mimo rozsah pokud není řečeno jinak)
+- **Lokální neprivilegovaný uživatel na stejném stroji**, který by chtěl
+  Diskoru zneužít k eskalaci práv (např. přes command injection do
+  spouštěných externích procesů) - **v rozsahu**, řeší ho princip
+  "žádné skládání shell příkazů ze stringů" výše.
+- **Útočník ovlivňující obsah disku/obrazu, který Diskora analyzuje**
+  (např. připravený škodlivý `.img`/VHDX) - **v rozsahu pro parsování**
+  (nesmí způsobit RCE), ale ne pro chkdsk/PowerShell samotné - to jsou
+  důvěryhodné systémové komponenty Windows, jejich vlastní bezpečnost
+  je mimo rozsah Diskory.
+- **Vzdálený síťový útočník** - z velké části mimo rozsah, Diskora nemá
+  žádný naslouchající síťový port ani nepřijímá vzdálený vstup; jediná
+  síťová komunikace je volitelné stažení aktualizací (zatím
+  neimplementováno) a produktový web.
+- **Útočník s fyzickým přístupem k odpojenému/vypnutému stroji** - mimo
+  rozsah, řeší BitLocker/OS, ne aplikace nad diskem.
+- **Dodavatelský řetězec (supply chain)** - částečně v rozsahu: SBOM
+  (Fáze 9) dává přehled o závislostech, Dependabot hlídá známé
+  zranitelnosti, code signing (zatím neimplementováno) by ověřil
+  integritu vydaného binárního souboru.
+
+### Zmírnění podle Fáze
+- Command injection → `ProcessStartInfo.ArgumentList` / proměnné prostředí
+  místo interpolace (viz výše) - důsledně napříč `Diskora.Repair`.
+- Neúmyslné zapsání destruktivní akce → potvrzovací dialogy s explicitním
+  `MessageBoxResult.No` jako výchozím tlačítkem (spotfix ve Fázi 3).
+- Tichý špatný výsledek maskovaný jako úspěch → `$ErrorActionPreference =
+  'Stop'` + explicitní kontrola výsledku v PowerShell orchestraci (viz
+  oprava v `ChkdskRunner.RunSpotFixAsync`, Fáze 3).
+- Nadměrná oprávnění → `app.manifest` s `asInvoker` (ne `requireAdministrator`
+  natvrdo), elevace se řeší až u konkrétní operace, která ji potřebuje.
+- Zranitelné závislosti → Dependabot + SBOM (Fáze 9).
+- Nedůvěryhodný binární soubor u koncového uživatele → code signing
+  (Authenticode) - **zatím neimplementováno**, jediná zbývající mezera v
+  téhle sekci; sledováno v `TODO.md` Fáze 9.
