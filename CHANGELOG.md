@@ -6,6 +6,35 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Changelog a Ochrana soukromí na webu (Fáze 10): `web/src/pages/docs/changelog.astro`
+  generuje stránku přímo z kořenového `CHANGELOG.md` při buildu (vlastní malý
+  parser šitý na tvar tohoto souboru, žádná nová npm závislost) - stránka je tak
+  vždy doslova ve shodě s realitou, ne ruční kopie. `privacy.astro` fakticky
+  popisuje, co se ukládá lokálně (SQLite historie, JSON předvolby) a potvrzuje
+  (grepem přes `app/src`), že v appce není žádný `HttpClient`/síťový kód. Živě
+  ověřeno `astro build` (7 stránek) + `astro preview` (HTTP 200, správně
+  vyrenderované nadpisy verzí i vnořené `<code>` značky).
+- Portable self-contained build (Fáze 9): nový `app/publish-portable.ps1`
+  (`dotnet publish -r win-x64 --self-contained -p:PublishSingleFile=true`) -
+  jediný přenositelný `Diskora.exe` (~176 MB) bez závislosti na .NET nainstalovaném
+  v cíli. Instalátor (Inno Setup/MSIX) zůstává otevřený - potřebný nástroj není
+  v tomto prostředí k dispozici. Živě ověřeno: publikovaný exe zkopírovaný do
+  vlastní složky se spustil a otevřel okno (UI Automation).
+- Model hrozeb v `docs/SECURITY.md` (Fáze 9): nová sekce shrnující aktiva,
+  důvěryhodné hranice/vstupy, modelované útočníky (vč. explicitně mimo rozsah)
+  a zmírnění podle fáze s odkazy na konkrétní opravy zdokumentované jinde v
+  tomto souboru. Čistě dokumentační práce, nic k živému ověření.
+- Okno Nastavení (Fáze 8): práh upozornění na zhoršení zdraví disku (Varování
+  a horší / Jen kritické) a volba nabídnout při startu bez admin práv restart
+  s elevací (výchozí dialogové tlačítko „Ne", stejný vzor jako spotfix ve Fázi 3).
+  Menu-klik nebylo možné živě ověřit přes UI Automation (obecné omezení
+  automatizace Menu v tomto prostředí, postihuje i starší položky menu), ale
+  samotné okno je živě ověřené izolovaným harness (uložení/znovunačtení JSON
+  nastavení funguje správně).
+- Audit klávesové navigace (Fáze 8): žádné okno nepoužívá explicitní `TabIndex`,
+  pořadí Tabu tak všude odpovídá pořadí deklarace v XAML, které ve všech oknech
+  odpovídá vizuálnímu pořadí čtení. Živě ověřeno na novém okně Nastavení
+  (skutečné `MoveFocus` přes izolovaný harness).
 - Generování SBOM v CI (Fáze 9): `dotnet-CycloneDX` jako lokální .NET nástroj
   (`app/.config/dotnet-tools.json`, `dotnet tool restore` - žádná trvalá
   systémová změna). Krok v `.github/workflows/build.yml` generuje `bom.json`

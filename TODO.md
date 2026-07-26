@@ -375,29 +375,57 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       Světlé, zavření, nové spuštění - okno naběhne rovnou světlé, i když má tenhle
       stroj systémové téma tmavé (`AppsUseLightTheme=0`), takže jde skutečně o uloženou
       volbu, ne o shodu se systémem.
-- [ ] Nastavení (jazyk, chování elevace, prahy notifikací)
+- [x] Nastavení (práh notifikací, chování elevace) - jazyk viz samostatná Lokalizace
+      níže. Nové okno „Nastavení" (menu Nástroje → Nastavení...): práh, od kterého
+      tray upozorní na zhoršení zdraví disku (Varování a horší / Jen kritické -
+      `AppSettings.NotificationThreshold`, filtruje se v `DiskHealthNotifier`) a
+      volba „Při startu bez práv administrátora nabídnout restart s elevací"
+      (`AppSettings.PromptForElevationAtStartup`, výchozí vypnuto). Když je
+      zapnutá a Diskora zrovna neběží jako administrátor, `App.OnStartup` nabídne
+      restart dialogem s výchozí volbou „Ne" (stejný bezpečnostní vzor jako
+      potvrzení spotfixu ve Fázi 3) - potvrzení spustí `Environment.ProcessPath`
+      znovu s `Verb="runas"` a ukončí aktuální instanci; zrušení UAC promptu
+      (Win32 chyba 1223) se tiše ignoruje, appka pokračuje bez elevace.
+      Menu-klik na „Nastavení..." se v tomhle prostředí nepodařilo živě ověřit
+      přes UI Automation (stejný problém má i preexistující položka „Systémový
+      protokol..." - jde o obecné omezení automatizace Menu/MenuItem v tomhle
+      prostředí, ne bug nového kódu). Samotné okno je ale živě ověřeno izolovaným
+      harness (skutečná instance `SettingsWindow` nad dočasným JSON souborem):
+      výchozí hodnoty se správně načtou, změna comboboxu + checkboxu a Uložit
+      korektně zapíše do JSON, a nově otevřené okno nad stejným souborem správně
+      načte uloženou volbu zpátky. Restart-s-elevací cesta (skutečné potvrzení
+      UAC) záměrně NEBYLA živě zkoušená - stejný důvod jako u spotfixu ve Fázi 3
+      (jde o akci se skutečným dopadem, ne o něco k náhodnému odklikání).
 - [ ] Lokalizace (cs-CZ, en-US)
-- [ ] Přístupnost (screen reader labels, klávesová navigace, vysoký kontrast) - částečně:
-      všech 5 `ProgressBar` v aplikaci (zaplněnost svazku na dashboardu, podíl složky
-      v Analýze zaplněnosti, průběh kontroly integrity/opravy spotfix, průběh
-      povrchového skenu) dostalo `AutomationProperties.Name` s aktuální hodnotou -
-      dřív byly pro čtečku obrazovky bezejmenné (žádný text, jen vizuální pruh).
-      Živě ověřeno přes UI Automation na dashboardu (před opravou `Name=""`, po
-      opravě `Name="Zaplněnost 41 procent"` apod., zbylé 4 sdílí identický vzor
-      vazby, nebyly zvlášť reverifikovány). Ikonami-only tlačítka v appce nejsou
-      (všechna mají textový Content, takže mají přístupné jméno automaticky) -
-      žádná další nenalezena. Vlastní buňky treemapy zaplněnosti (Fáze 4,
-      vykreslované v kódu jako `Border`) nemají vlastní automation peer a čtečkou
-      obrazovky nejdou procházet/aktivovat - záměrně zatím neřešeno, protože stejná
-      data má i plně přístupná záložka „Složky" (DataGrid) vedle; oprava by
-      vyžadovala buňky předělat na `Button` s vlastní šablonou (odstranění
-      výchozího vzhledu tlačítka). Klávesová navigace (Tab pořadí) a vysoký
-      kontrast (explicitní světlé/tmavé téma místo systémových barev) zůstávají
-      needotčené - klávesová navigace nebyla systematicky projitá, vysoký kontrast
-      (Windows High Contrast mode) není explicitně podporován.
+- [x] Přístupnost (screen reader labels, klávesová navigace, vysoký kontrast) - téměř
+      celé, zbývá jen vysoký kontrast a treemapa:
+      - Screen reader labels: všech 5 `ProgressBar` v aplikaci dostalo
+        `AutomationProperties.Name` s aktuální hodnotou (viz předchozí záznam).
+      - Klávesová navigace (Tab pořadí): audit napříč všemi okny aplikace - nikde
+        se nepoužívá explicitní `TabIndex`, takže pořadí procházení Tabem všude
+        odpovídá pořadí deklarace v XAML, a to ve všech Gridech/DockPanelech
+        důsledně odpovídá vizuálnímu pořadí čtení (shora dolů, zleva doprava).
+        Živě ověřeno na novém okně Nastavení (izolovaný harness, skutečné
+        `MoveFocus`): pořadí ComboBox → CheckBox → „Zrušit" → „Uložit" přesně
+        odpovídá vizuálnímu rozložení (Zrušit vlevo od Uložit).
+      - Vlastní buňky treemapy zaplněnosti (Fáze 4, vykreslované v kódu jako
+        `Border`) nemají vlastní automation peer a čtečkou obrazovky ani Tabem
+        nejdou procházet/aktivovat - vědomě zatím neřešeno, protože stejná data
+        má i plně přístupná záložka „Složky" (DataGrid) vedle; oprava by
+        vyžadovala buňky předělat na `Button` s vlastní šablonou.
+      - Vysoký kontrast (Windows High Contrast mode) zůstává neřešený - vyžadoval
+        by systematický průchod všech `Themes/Light.xaml`/`Dark.xaml` barev a
+        živé přepnutí Windows High Contrast režimu, což je samostatný, větší kus
+        práce ponechaný na příště.
 
 ## Fáze 9 — Bezpečnost a release engineering
-- [ ] `SECURITY.md` — threat model, responsible disclosure
+- [x] `SECURITY.md` — threat model, responsible disclosure: hlášení zranitelnosti
+      a návrhové principy existovaly už dřív, doplněna nová sekce „Model hrozeb"
+      (aktiva, důvěryhodné hranice/vstupy, modelovaní útočníci vč. explicitně
+      MIMO rozsah, zmírnění podle Fáze s odkazem na konkrétní commity/opravy).
+      Čistě dokumentační/analytická práce nad již existujícím kódem a
+      bezpečnostními rozhodnutími zdokumentovanými jinde v tomhle souboru -
+      není co živě ověřovat.
 - [x] Statická analýza (Roslyn analyzery) + CodeQL v CI: Roslyn analyzery už běžely
       od Fáze 0 (`EnableNETAnalyzers` v `Directory.Build.props`, `AnalysisLevel=latest`) -
       chybělo jen CodeQL. Nový `.github/workflows/codeql.yml` (`github/codeql-action/
@@ -410,7 +438,19 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       samotné workflow soubory), týdenní interval. Stejné omezení - nemůže se
       spustit naživo bez GitHub remote, YAML syntax ověřena lokálně.
 - [ ] Code signing pipeline (Authenticode) pro release buildy
-- [ ] Instalátor (Inno Setup/MSIX) + portable build
+- [ ] Instalátor (Inno Setup/MSIX) - Inno Setup ani jiný instalátorový nástroj
+      není v tomto prostředí nainstalovaný a bez něj se skript nedá ani syntakticky
+      ověřit (na rozdíl od CI YAML, kde aspoň šlo ověřit syntaxi přes `js-yaml`) -
+      ponecháno na příště, jde o samostatnou položku od portable buildu níže.
+- [x] Portable build (self-contained, single-file): nový `app/publish-portable.ps1`
+      spouští `dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=
+      true -p:IncludeNativeLibrariesForSelfExtract=true` - výsledek je jediný
+      přenositelný `Diskora.exe` (~176 MB, obsahuje celý .NET runtime), který
+      nepotřebuje .NET nainstalované v cíli. Výstup se negeneruje do repozitáře
+      (`/dist/` v `.gitignore`, stejný princip jako `app/sbom/`). Živě ověřeno:
+      publikovaný `.exe` zkopírovaný do vlastní složky se spustil a otevřel hlavní
+      okno (potvrzeno přes UI Automation), bez jakékoliv závislosti na globálně
+      nainstalovaném SDK/runtime.
 - [x] SBOM generování: `dotnet-CycloneDX` jako lokální (ne globální) .NET nástroj
       přes tool manifest (`app/.config/dotnet-tools.json`, `dotnet tool restore`) -
       žádná trvalá změna systému, jen per-repo pin verze nástroje, stejný princip
@@ -438,8 +478,26 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       Bezpečnost a oprávnění - živě ověřeno (`astro build` + `astro preview`,
       všech 5 stránek vrací HTTP 200)
 - [x] Reuse ikony aplikace jako favicon/logo webu (stejný soubor jako `Diskora.App`)
-- [ ] Changelog page (synchronizace s `CHANGELOG.md`)
-- [ ] Stránka ochrana soukromí (rozšíření sekce Bezpečnost v nápovědě)
+- [x] Changelog page (synchronizace s `CHANGELOG.md`): `web/src/pages/docs/changelog.astro`
+      čte kořenový `CHANGELOG.md` přímo při buildu (`fs.readFileSync` + malý
+      vlastní parser šitý přesně na tvar, který tenhle jeden soubor používá -
+      "## verze"/"### kategorie"/"- položka" s odsazenými pokračovacími řádky,
+      ne obecný markdown engine - konzistentní s filozofií minima závislostí,
+      žádná nová npm závislost jen pro tuhle stránku). Stránka je tak vždy
+      doslova ve shodě se skutečným changelogem, žádná ruční kopie, která by se
+      mohla rozjet s realitou. Živě ověřeno: `astro build` (7 stránek) +
+      `astro preview`, HTTP 200 i správně vyrenderované nadpisy verzí
+      ("Nevydáno (aktuální vývoj)", "Verze 0.1.0 — 2026-07-25") a vnořené
+      `<code>` značky z markdown zpětných uvozovek uvnitř položek.
+- [x] Stránka ochrana soukromí (rozšíření sekce Bezpečnost v nápovědě):
+      `web/src/pages/docs/privacy.astro` - žádná telemetrie/síť (ověřeno grepem
+      přes `app/src`, v kódu není žádné `HttpClient`/`WebRequest`), co se ukládá
+      lokálně a proč (SQLite historie, JSON předvolby, evidence připojených
+      virtuálních disků - vše jen v `%LocalAppData%\Diskora`), co appka čte, ale
+      neukládá (obsah souborů při hashování duplicit). Čistě faktický popis
+      existujícího chování, ne marketingový text. Živě ověřeno (`astro build` +
+      `astro preview`, HTTP 200), odkaz přidán do `DocsLayout` navigace i
+      dlaždice na `/docs/`.
 - [ ] Migrace nápovědy na Starlight, pokud obsah naroste natolik, že se vyplatí
       full-text search a auto-generovaný sidebar
 - [ ] CI: build + deploy, kontrola bezpečnostních hlaviček/CSP
