@@ -411,7 +411,19 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       spustit naživo bez GitHub remote, YAML syntax ověřena lokálně.
 - [ ] Code signing pipeline (Authenticode) pro release buildy
 - [ ] Instalátor (Inno Setup/MSIX) + portable build
-- [ ] SBOM generování
+- [x] SBOM generování: `dotnet-CycloneDX` jako lokální (ne globální) .NET nástroj
+      přes tool manifest (`app/.config/dotnet-tools.json`, `dotnet tool restore`) -
+      žádná trvalá změna systému, jen per-repo pin verze nástroje, stejný princip
+      jako package-lock. Krok `dotnet tool restore` + `dotnet tool run dotnet-CycloneDX`
+      přidán do `.github/workflows/build.yml`, výsledný `bom.json` se nahrává jako
+      CI artefakt (`actions/upload-artifact`) - generuje se čerstvě při každém
+      buildu, proto se sám soubor necommituje (`app/sbom/` v `.gitignore`). Na
+      rozdíl od CodeQL/Dependabot (čistě konfigurační, nemohly se spustit bez
+      GitHub remote) tohle šlo živě vyzkoušet lokálně: `dotnet tool restore` +
+      `dotnet tool run dotnet-CycloneDX -- Diskora.slnx -o sbom --json` reálně
+      vygeneroval platný CycloneDX 1.7 JSON (30 komponent, správné hashe/licence
+      NuGet balíčků) - jen samotný krok "spustit se v GitHub Actions" zůstává
+      needověřený kvůli chybějícímu remote.
 
 ## Fáze 10 — Produktový web (Diskora Web)
 - [x] Scaffold Astro 7 + Tailwind v4 (`web/`), bez trackerů/analytiky, `noindex` dokud

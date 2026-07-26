@@ -27,3 +27,17 @@ jobs:
 
       - name: Spustit testy (Release)
         run: dotnet test app/Diskora.slnx --no-build --configuration Release
+
+      - name: Obnovit lokální nástroje (.NET tools manifest)
+        run: dotnet tool restore
+        working-directory: app
+
+      - name: Vygenerovat SBOM (CycloneDX)
+        run: dotnet tool run dotnet-CycloneDX -- Diskora.slnx -o sbom --json
+        working-directory: app
+
+      - name: Nahrát SBOM jako artefakt
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: app/sbom/bom.json

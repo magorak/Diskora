@@ -6,6 +6,14 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Generování SBOM v CI (Fáze 9): `dotnet-CycloneDX` jako lokální .NET nástroj
+  (`app/.config/dotnet-tools.json`, `dotnet tool restore` - žádná trvalá
+  systémová změna). Krok v `.github/workflows/build.yml` generuje `bom.json`
+  (CycloneDX 1.7) při každém buildu a nahrává ho jako CI artefakt - soubor se
+  necommituje (`app/sbom/` v `.gitignore`), generuje se vždy čerstvě. Na
+  rozdíl od CodeQL/Dependabot šlo tohle ověřit živě lokálně - reálně
+  vygenerovaný platný JSON s 30 komponentami, hashi a licencemi NuGet
+  balíčků.
 - Přístupnost - popisky pro čtečku obrazovky u průběhových pruhů (Fáze 8,
   částečně): všech 5 `ProgressBar` (zaplněnost svazku, podíl složky, průběh
   kontroly integrity/opravy, průběh povrchového skenu) dostalo

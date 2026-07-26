@@ -25,6 +25,10 @@ app/**/obj/
 *.trx
 coverage*/
 
+# Generovaný SBOM (CycloneDX) - build artefakt, generuje se čerstvě v CI, viz
+# .github/workflows/build.yml a app/.config/dotnet-tools.json
+app/sbom/
+
 # Node / Astro web
 web/node_modules/
 web/dist/
