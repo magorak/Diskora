@@ -6,6 +6,14 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Integrace s Windows Plánovačem úloh (Fáze 7): nové CLI příkazy `diskora
+  healthcheck` (S.M.A.R.T. přes všechny fyzické disky najednou) a `diskora
+  schedule install/remove/status` (`Diskora.Repair.ScheduledTaskManager`,
+  orchestrace `schtasks.exe`). Bez `/RU`/`/RP` běží úloha pod aktuálním
+  uživatelem bez admin práv, i když GUI vůbec neběží - doplňuje `DiskHealthNotifier`
+  z Fáze 2, který kontroluje jen za běhu GUI. Živě ověřeno celým cyklem
+  install → status (i nezávisle přes `Get-ScheduledTask`) → remove → potvrzeno
+  smazáno.
 - Skutečná oprava integrity - spotfix (Fáze 3): `ChkdskRunner.RunSpotFixAsync`
   (`Repair-Volume -SpotFix` orchestrace, stejný vzor jako `IsoMounter`). Vědomě
   jen spotfix (Windows 8+ online self-healing), ne `/f`/`/r` - ty by na

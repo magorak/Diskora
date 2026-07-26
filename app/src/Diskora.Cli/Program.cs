@@ -6,6 +6,7 @@ using Diskora.Core.Models;
 using Diskora.Core.Services;
 using Diskora.Core.Smart;
 using Diskora.Data;
+using Diskora.Repair;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -37,6 +38,8 @@ try
         "integrity" => await RunIntegrityAsync(rest, json, cts.Token),
         "usage" => await RunUsageAsync(rest, json, cts.Token),
         "duplicates" => await RunDuplicatesAsync(rest, json, cts.Token),
+        "healthcheck" => RunHealthCheck(json),
+        "schedule" => await RunScheduleAsync(rest, json, cts.Token),
         "help" or "-h" or "--help" => PrintUsage(),
         _ => PrintUnknownCommand(command),
     };
@@ -63,11 +66,18 @@ static int PrintUsage()
                                          (vyžaduje administrátorská práva).
           usage <cesta> [--top N]       Analýza zaplněnosti složky (výchozí top 10).
           duplicates <cesta>            Hledání duplicitních souborů (SHA-256).
+          healthcheck                   S.M.A.R.T. přes všechny fyzické disky najednou
+                                         (pro naplánovanou kontrolu, viz „schedule").
+          schedule install [--time HH:mm]
+                                         Naplánuje denní „healthcheck" v Plánovači úloh
+                                         Windows (výchozí čas 09:00).
+          schedule remove               Zruší naplánovanou kontrolu.
+          schedule status               Zobrazí, jestli je kontrola naplánovaná.
 
         Přepínač --json vypíše výstup jako JSON místo tabulky pro člověka
-        (skriptování/automatizace). Bez admin práv fungují list/usage/duplicates
-        a dirty-bit část integrity; smart a integrity --scan podle disku/svazku
-        mohou vyžadovat elevaci.
+        (skriptování/automatizace). Bez admin práv fungují list/usage/duplicates,
+        dirty-bit část integrity a schedule (běží pod aktuálním uživatelem); smart,
+        healthcheck a integrity --scan podle disku/svazku mohou vyžadovat elevaci.
         """);
     return 0;
 }
@@ -144,6 +154,97 @@ static int RunSmart(string[] rest, bool json)
     }
 
     return 0;
+}
+
+static int RunHealthCheck(bool json)
+{
+    var enumerationService = new DiskEnumerationService();
+    var smartService = new SmartService(new SqliteDiskHistoryStore());
+
+    var rows = enumerationService.GetPhysicalDisks()
+        .Select(disk => (Disk: disk, Result: smartService.ReadReport(disk.Index)))
+        .ToList();
+
+    var hasProblem = rows.Any(r => !r.Result.IsSupported
+        || r.Result.Report?.OverallHealth is DiskHealthStatus.Warning or DiskHealthStatus.Critical);
+
+    if (json)
+    {
+        PrintJson(rows.Select(r => new
+        {
+            r.Disk.Index,
+            r.Disk.FriendlyName,
+            r.Result.IsSupported,
+            OverallHealth = r.Result.Report?.OverallHealth,
+            r.Result.UnavailableReason,
+        }));
+        return hasProblem ? 2 : 0;
+    }
+
+    Console.WriteLine($"{"#",-4} {"Disk",-32} {"Stav",-12}");
+    foreach (var (disk, result) in rows)
+    {
+        var status = result.IsSupported ? result.Report!.OverallHealth.ToString() : "nedostupné";
+        Console.WriteLine($"{disk.Index,-4} {Truncate(disk.FriendlyName, 32),-32} {status,-12}");
+    }
+
+    return hasProblem ? 2 : 0;
+}
+
+static async Task<int> RunScheduleAsync(string[] rest, bool json, CancellationToken cancellationToken)
+{
+    if (rest.Length < 1)
+    {
+        Console.Error.WriteLine("Použití: diskora schedule <install|remove|status> [--time HH:mm] [--json]");
+        return 1;
+    }
+
+    var action = rest[0].ToLowerInvariant();
+    ScheduledTaskResult result;
+
+    switch (action)
+    {
+        case "install":
+            var time = "09:00";
+            var timeIndex = Array.IndexOf(rest, "--time");
+            if (timeIndex >= 0 && timeIndex + 1 < rest.Length)
+            {
+                time = rest[timeIndex + 1];
+            }
+
+            var executablePath = Environment.ProcessPath
+                ?? throw new InvalidOperationException("Cestu k vlastnímu spustitelnému souboru se nepodařilo zjistit.");
+            result = await ScheduledTaskManager.InstallAsync(executablePath, time, cancellationToken);
+            break;
+        case "remove":
+            result = await ScheduledTaskManager.RemoveAsync(cancellationToken);
+            break;
+        case "status":
+            result = await ScheduledTaskManager.QueryAsync(cancellationToken);
+            break;
+        default:
+            Console.Error.WriteLine($"Neznámá akce „{action}“. Použijte install, remove nebo status.");
+            return 1;
+    }
+
+    if (json)
+    {
+        PrintJson(result);
+        return result.Started && result.ExitCode == 0 ? 0 : (result.Started ? 2 : 1);
+    }
+
+    foreach (var line in result.OutputLines)
+    {
+        Console.WriteLine(line);
+    }
+
+    if (!result.Started)
+    {
+        Console.Error.WriteLine(result.FailureReason);
+        return 1;
+    }
+
+    return result.ExitCode == 0 ? 0 : 2;
 }
 
 static async Task<int> RunIntegrityAsync(string[] rest, bool json, CancellationToken cancellationToken)

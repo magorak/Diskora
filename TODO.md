@@ -303,7 +303,21 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       žádná speciální větev navíc potřeba)
 
 ## Fáze 7 — Plánování a CLI companion
-- [ ] Integrace s Windows Task Scheduler (periodické kontroly zdraví)
+- [x] Integrace s Windows Task Scheduler (periodické kontroly zdraví): nové CLI
+      příkazy `diskora healthcheck` (S.M.A.R.T. přes všechny fyzické disky najednou,
+      stejná konvence návratových kódů jako `smart`) a `diskora schedule
+      install/remove/status` (`Diskora.Repair.ScheduledTaskManager`, orchestrace
+      `schtasks.exe` - stejný vzor jako `ChkdskRunner`/`DefragRunner`, cesta k
+      vlastnímu `diskora.exe` přes `Environment.ProcessPath`, ne přes uživatelský
+      vstup). Bez `/RU`/`/RP` se úloha vytvoří pod aktuálním uživatelem - nevyžaduje
+      admin práva, na rozdíl od `Diskora.App.Tray.DiskHealthNotifier` (Fáze 2),
+      který kontroluje jen po dobu běhu GUI - naplánovaná úloha běží i když GUI vůbec
+      neběží. Stejná mojibake oprava OEM kódové stránky jako u `DefragRunner`
+      (`schtasks.exe` píše diakritiku v CP852, ne UTF-8). Živě ověřeno celým
+      cyklem: `schedule install` → `schedule status` (i nezávisle přes `Get-
+      ScheduledTask`/`schtasks /V`) → `schedule remove` → potvrzeno smazáno;
+      `healthcheck` živě ověřeno na obou fyzických discích (bez admin práv
+      korektně "nedostupné", exit kód 2).
 - [x] `Diskora.Cli`: headless mód s JSON výstupem pro skriptování - nový projekt
       (`AssemblyName=diskora`), top-level statements, žádná externí CLI-parsing
       závislost (ruční parsování, konzistentní s filozofií minima závislostí).
