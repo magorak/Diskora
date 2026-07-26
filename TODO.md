@@ -10,7 +10,13 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] `TODO.md` (tento soubor)
 - [x] `docs/ARCHITECTURE.md`, `docs/CONTRIBUTING.md`, `docs/SECURITY.md`
 - [x] Kostra `.sln` a projektů (`Diskora.App`, `Diskora.Core`, `Diskora.Native`, `Diskora.Core.Tests`)
-- [ ] CI pipeline (build/test na Windows runneru) — `.github/workflows/`
+- [x] CI pipeline (build/test na Windows runneru) — `.github/workflows/build.yml`
+      (`windows-latest`, `actions/setup-dotnet` na `10.0.x`, `dotnet restore/build/test`
+      nad `app/Diskora.slnx` v konfiguraci Release). Repozitář zatím nemá GitHub remote
+      (`origin` je lokální bare repo), takže se pipeline nemůže spustit na GitHubu -
+      ale přesně tahle posloupnost příkazů (restore → build Release → test Release)
+      byla živě ověřena lokálně a projde (74 testů, 0 chyb), YAML syntax ověřena
+      přes `js-yaml`
 
 ## Fáze 1 — Enumerace disků a dashboard
 - [x] Modely `PhysicalDiskInfo`, `VolumeInfo`, `DiskMediaType`, `DiskBusType`

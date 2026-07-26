@@ -6,6 +6,11 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- CI pipeline (Fáze 0): `.github/workflows/build.yml` - `windows-latest`,
+  `actions/setup-dotnet` na `10.0.x`, `dotnet restore/build/test` nad
+  `app/Diskora.slnx` v konfiguraci Release. Repozitář zatím nemá GitHub
+  remote, takže se sama pipeline nemůže spustit na GitHubu, ale přesně tahle
+  posloupnost příkazů byla živě ověřena lokálně (74 testů, 0 chyb).
 - IMG/raw obrazy - read-only inspekce rozvržení (Fáze 6): Windows raw `.img`
   neumí připojit jako jednotku (živě ověřeno - `Mount-DiskImage` je odmítne,
   `virtdisk.dll` pro ně nemá kontejner k rozpoznání), proto místo mountu nový

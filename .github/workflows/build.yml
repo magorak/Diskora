@@ -1,0 +1,29 @@
+name: Build a testy
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Nastavit .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Obnovit závislosti
+        run: dotnet restore app/Diskora.slnx
+
+      - name: Sestavit (Release)
+        run: dotnet build app/Diskora.slnx --no-restore --configuration Release
+
+      - name: Spustit testy (Release)
+        run: dotnet test app/Diskora.slnx --no-build --configuration Release
