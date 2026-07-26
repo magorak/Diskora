@@ -478,6 +478,23 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       Bezpečnost a oprávnění - živě ověřeno (`astro build` + `astro preview`,
       všech 5 stránek vrací HTTP 200)
 - [x] Reuse ikony aplikace jako favicon/logo webu (stejný soubor jako `Diskora.App`)
+- [x] Nasazení na podcestu (`https://www.magorak.cz/diskora`), ne kořen domény:
+      `astro.config.mjs` dostal `site`/`base: '/diskora/'`. Astro sám přizná base
+      jen svým vlastním vygenerovaným assetům (`_astro/*.css`) - všechny ručně
+      psané odkazy/obrázky v kódu (`href="/docs/"`, `src="/logo.png"` apod.) base
+      nedostávají automaticky a musely se ručně přepsat na
+      `` `${import.meta.env.BASE_URL}docs/` `` napříč `BaseLayout`, `DocsLayout`
+      a všemi stránkami - jinak by na reálném hostingu pod podcestou byly
+      všechny styly, obrázky i interní odkazy rozbité (fungovalo by to jen na
+      kořeni domény). Živě odhaleno: otevření `web/dist/index.html` přímo přes
+      `file://` v editoru ukázalo holý needostylovaný text bez obrázků - to je
+      ale jen důsledek root-relative cest bez HTTP serveru, ne příznak nedodělané
+      appky. Skutečná oprava (base path) ověřena jinak: `astro build` a ruční
+      simulace produkčního nasazení (zkopírování `dist/` do `<root>/diskora/` a
+      obsloužení přes obyčejný HTTP server na tom samém portu jako doména) -
+      HTML, CSS, obrázky i interní odkazy (`/docs/security/`, `/docs/changelog/`)
+      všechny vracely HTTP 200 správně pod `/diskora/...`, včetně zvýraznění
+      aktivní položky v postranním menu nápovědy.
 - [x] Changelog page (synchronizace s `CHANGELOG.md`): `web/src/pages/docs/changelog.astro`
       čte kořenový `CHANGELOG.md` přímo při buildu (`fs.readFileSync` + malý
       vlastní parser šitý přesně na tvar, který tenhle jeden soubor používá -

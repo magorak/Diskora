@@ -7,14 +7,15 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+const base = import.meta.env.BASE_URL;
 
 const nav = [
-	{ href: '/docs/', label: 'Přehled' },
-	{ href: '/docs/integrity/', label: 'Kontrola integrity' },
-	{ href: '/docs/disk-usage/', label: 'Analýza zaplněnosti' },
-	{ href: '/docs/security/', label: 'Bezpečnost a oprávnění' },
-	{ href: '/docs/privacy/', label: 'Ochrana soukromí' },
-	{ href: '/docs/changelog/', label: 'Changelog' },
+	{ href: `${base}docs/`, label: 'Přehled' },
+	{ href: `${base}docs/integrity/`, label: 'Kontrola integrity' },
+	{ href: `${base}docs/disk-usage/`, label: 'Analýza zaplněnosti' },
+	{ href: `${base}docs/security/`, label: 'Bezpečnost a oprávnění' },
+	{ href: `${base}docs/privacy/`, label: 'Ochrana soukromí' },
+	{ href: `${base}docs/changelog/`, label: 'Changelog' },
 ];
 
 const currentPath = Astro.url.pathname;
@@ -23,14 +24,14 @@ const currentPath = Astro.url.pathname;
 <BaseLayout title={title} description={description}>
 	<header class="border-b border-white/10">
 		<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-			<a href="/" class="flex items-center gap-3">
-				<img src="/logo.png" alt="Diskora" class="h-8 w-8 rounded-lg" />
+			<a href={base} class="flex items-center gap-3">
+				<img src={`${base}logo.png`} alt="Diskora" class="h-8 w-8 rounded-lg" />
 				<span class="text-lg font-semibold">Diskora</span>
 			</a>
 			<div class="flex items-center gap-6 text-sm text-neutral-400">
-				<a href="/#funkce" class="hover:text-neutral-100">Funkce</a>
-				<a href="/#bezpecnost" class="hover:text-neutral-100">Bezpečnost</a>
-				<a href="/docs/" class="text-neutral-100">Nápověda</a>
+				<a href={`${base}#funkce`} class="hover:text-neutral-100">Funkce</a>
+				<a href={`${base}#bezpecnost`} class="hover:text-neutral-100">Bezpečnost</a>
+				<a href={`${base}docs/`} class="text-neutral-100">Nápověda</a>
 			</div>
 		</nav>
 	</header>

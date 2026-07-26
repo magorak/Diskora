@@ -1,5 +1,7 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <DocsLayout
@@ -13,7 +15,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 	</p>
 
 	<div class="mt-8 overflow-hidden rounded-xl border border-white/10">
-		<img src="/screenshots/disk-usage.png" alt="Okno Analýza zaplněnosti s kompozičním pruhem a seznamem složek podle velikosti" class="w-full" />
+		<img src={`${base}screenshots/disk-usage.png`} alt="Okno Analýza zaplněnosti s kompozičním pruhem a seznamem složek podle velikosti" class="w-full" />
 	</div>
 
 	<h2 class="mt-10 text-2xl font-semibold">Jak funguje sken</h2>

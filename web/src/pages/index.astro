@@ -1,33 +1,35 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
+const base = import.meta.env.BASE_URL;
+
 const pillars = [
 	{
 		title: 'Kontrola integrity',
 		description:
 			'Needestruktivní kontrola disku (dirty-bit + chkdsk /scan) se srozumitelným českým průběhem a grafickým progress barem — místo anglického syrového výstupu.',
-		screenshot: '/screenshots/integrity.png',
+		screenshot: `${base}screenshots/integrity.png`,
 		alt: 'Okno Kontrola integrity disku se zeleným stavem "V pořádku" a historií kontrol',
 	},
 	{
 		title: 'S.M.A.R.T. monitoring',
 		description:
 			'Čtení zdravotních dat disku s lidsky srozumitelným vysvětlením rizika u každého atributu — místo hexadecimálních tabulek. Lokální historie zdraví v čase.',
-		screenshot: '/screenshots/dashboard.png',
+		screenshot: `${base}screenshots/dashboard.png`,
 		alt: 'Dashboard s přehledem fyzických disků a svazků, barevné odznaky typu disku',
 	},
 	{
 		title: 'Analýza zaplněnosti',
 		description:
 			'Rychlý rekurzivní scanner složek ve stylu TreeSize, s drill-down navigací a přehledným kompozičním grafem podílu na velikosti.',
-		screenshot: '/screenshots/disk-usage.png',
+		screenshot: `${base}screenshots/disk-usage.png`,
 		alt: 'Okno Analýza zaplněnosti s kompozičním pruhem a seznamem složek podle velikosti',
 	},
 	{
 		title: 'TRIM a defragmentace',
 		description:
 			'Diskora sama pozná, jestli je disk SSD nebo HDD, a nabídne jen tu akci, která dává smysl — TRIM na SSD, defragmentaci na HDD.',
-		screenshot: '/screenshots/optimization.png',
+		screenshot: `${base}screenshots/optimization.png`,
 		alt: 'Okno Optimalizace disku s rozpoznaným SSD a nabídkou TRIM',
 	},
 ];
@@ -47,13 +49,13 @@ const differentiators = [
 	<header class="border-b border-white/10">
 		<nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
 			<div class="flex items-center gap-3">
-				<img src="/logo.png" alt="Diskora" class="h-8 w-8 rounded-lg" />
+				<img src={`${base}logo.png`} alt="Diskora" class="h-8 w-8 rounded-lg" />
 				<span class="text-lg font-semibold">Diskora</span>
 			</div>
 			<div class="flex items-center gap-6 text-sm text-neutral-400">
 				<a href="#funkce" class="hover:text-neutral-100">Funkce</a>
 				<a href="#bezpecnost" class="hover:text-neutral-100">Bezpečnost</a>
-				<a href="/docs/" class="hover:text-neutral-100">Nápověda</a>
+				<a href={`${base}docs/`} class="hover:text-neutral-100">Nápověda</a>
 			</div>
 		</nav>
 	</header>
@@ -74,7 +76,7 @@ const differentiators = [
 			</p>
 			<div class="mt-10 flex items-center justify-center gap-4">
 				<a
-					href="/docs/"
+					href={`${base}docs/`}
 					class="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-500"
 				>
 					Prohlédnout nápovědu
@@ -82,7 +84,7 @@ const differentiators = [
 				<span class="text-sm text-neutral-500">Instalátor bude k dispozici s prvním veřejným vydáním.</span>
 			</div>
 			<div class="mt-16 overflow-hidden rounded-xl border border-white/10 shadow-2xl shadow-blue-950/50">
-				<img src="/screenshots/dashboard.png" alt="Diskora — dashboard s přehledem disků" class="w-full" />
+				<img src={`${base}screenshots/dashboard.png`} alt="Diskora — dashboard s přehledem disků" class="w-full" />
 			</div>
 		</section>
 

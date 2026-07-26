@@ -5,6 +5,20 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Opraveno
+- Web pod podcestou (Fáze 10): web se bude nasazovat na
+  `https://www.magorak.cz/diskora`, ne na kořen domény, ale všechny odkazy a
+  obrázky byly napsané jako root-relative (`/logo.png`, `/docs/...`) - na
+  reálném hostingu by proto byly rozbité styly, obrázky i veškerá interní
+  navigace. Opraveno `site`/`base: '/diskora/'` v `astro.config.mjs` a ručním
+  přepsáním všech pevně zapsaných cest na `${import.meta.env.BASE_URL}...`
+  napříč `BaseLayout`, `DocsLayout` a všemi stránkami - Astro totiž base
+  přiznává jen svým vlastním generovaným assetům, ne ručně psaným
+  href/src atributům. Živě ověřeno simulací produkčního nasazení (`dist/`
+  obsloužená obyčejným HTTP serverem pod cestou `/diskora/`) - HTML, CSS,
+  obrázky i interní odkazy vracely HTTP 200 správně, včetně zvýraznění
+  aktivní položky v menu nápovědy.
+
 ### Přidáno
 - Changelog a Ochrana soukromí na webu (Fáze 10): `web/src/pages/docs/changelog.astro`
   generuje stránku přímo z kořenového `CHANGELOG.md` při buildu (vlastní malý

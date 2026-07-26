@@ -1,5 +1,7 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
+
+const base = import.meta.env.BASE_URL;
 ---
 
 <DocsLayout
@@ -64,7 +66,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 		Diskora je open-source pod licencí GPLv3 - tvrzení na téhle stránce si můžete ověřit přímo ve
 		zdrojovém kódu, ne jen věřit prohlášení. Bezpečnostní návrhové principy (nejnižší nutná
 		oprávnění, žádné skládání shell příkazů ze stringů apod.) jsou popsané na stránce
-		<a href="/docs/security/" class="text-blue-300 hover:text-blue-200">Bezpečnost a oprávnění</a
+		<a href={`${base}docs/security/`} class="text-blue-300 hover:text-blue-200">Bezpečnost a oprávnění</a
 		>.
 	</p>
 </DocsLayout>
