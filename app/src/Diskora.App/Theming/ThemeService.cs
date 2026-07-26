@@ -1,4 +1,5 @@
 using System.Windows;
+using Diskora.App.Settings;
 using Microsoft.Win32;
 
 namespace Diskora.App.Theming;
@@ -6,10 +7,12 @@ namespace Diskora.App.Theming;
 /// <summary>
 /// Aplikuje světlé/tmavé téma za běhu přepnutím merged ResourceDictionary na
 /// Application úrovni. "System" zjistí aktuální nastavení Windows a mapuje
-/// ho na Light/Dark - preference se zatím nepersistuje mezi spuštěními
-/// (viz Fáze 8 v TODO.md - perzistence nastavení).
+/// ho na Light/Dark. Volba se přes <see cref="IAppSettingsStore"/> ukládá při
+/// každém <see cref="Apply"/> a při startu appky (viz <c>App.OnStartup</c>) se
+/// načte zpátky, takže přežije restart - zbytek Fáze 8 (jazyk, práh notifikací,
+/// chování elevace) zatím ne.
 /// </summary>
-public sealed class ThemeService(Application application)
+public sealed class ThemeService(Application application, IAppSettingsStore settingsStore)
 {
     private ResourceDictionary? _activeThemeDictionary;
 
@@ -44,8 +47,17 @@ public sealed class ThemeService(Application application)
 
         application.Resources.MergedDictionaries.Insert(0, dictionary);
         _activeThemeDictionary = dictionary;
+
+        var settings = settingsStore.Load();
+        settings.Theme = theme.ToString();
+        settingsStore.Save(settings);
+
         ThemeChanged?.Invoke();
     }
+
+    /// <summary>Načte uloženou volbu tématu - neplatná/chybějící hodnota v souboru tiše spadne na System.</summary>
+    public static AppTheme LoadSavedTheme(IAppSettingsStore settingsStore) =>
+        Enum.TryParse<AppTheme>(settingsStore.Load().Theme, out var theme) ? theme : AppTheme.System;
 
     private static bool DetectSystemThemeIsLight()
     {

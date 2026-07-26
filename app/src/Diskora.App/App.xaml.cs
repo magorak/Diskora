@@ -1,6 +1,7 @@
 using System.Text;
 using System.Windows;
 using System.Windows.Threading;
+using Diskora.App.Settings;
 using Diskora.App.Theming;
 using Diskora.Data;
 
@@ -13,8 +14,10 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        Theme = new ThemeService(this);
-        Theme.Apply(AppTheme.System);
+
+        var settingsStore = new JsonAppSettingsStore();
+        Theme = new ThemeService(this, settingsStore);
+        Theme.Apply(ThemeService.LoadSavedTheme(settingsStore));
 
         Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, WarnAboutLeftoverAttachments);
     }

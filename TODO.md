@@ -315,7 +315,17 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 
 ## Fáze 8 — Reporting, nastavení, lokalizace, přístupnost
 - [ ] Export kompletních reportů (PDF/CSV/JSON)
-- [ ] Nastavení (téma, jazyk, chování elevace, prahy notifikací)
+- [x] Perzistence volby tématu: `Diskora.App.Settings.JsonAppSettingsStore` (obyčejný
+      JSON v `%LocalAppData%\Diskora\settings.json` - jen hrstka skalárních hodnot,
+      SQLite jako u historie by tu byl zbytečný). `ThemeService.Apply` volbu při každém
+      přepnutí uloží, `App.OnStartup` ji při startu načte zpátky místo pevného
+      `AppTheme.System` - zbytek Fáze 8 (jazyk, chování elevace, práh notifikací) zatím
+      ne, žádná nová Nastavení obrazovka, jen perzistence už existující volby z menu
+      Zobrazit. 9 testů (store i parsování uložené hodnoty). Živě ověřeno: přepnutí na
+      Světlé, zavření, nové spuštění - okno naběhne rovnou světlé, i když má tenhle
+      stroj systémové téma tmavé (`AppsUseLightTheme=0`), takže jde skutečně o uloženou
+      volbu, ne o shodu se systémem.
+- [ ] Nastavení (jazyk, chování elevace, prahy notifikací)
 - [ ] Lokalizace (cs-CZ, en-US)
 - [ ] Přístupnost (screen reader labels, klávesová navigace, vysoký kontrast)
 

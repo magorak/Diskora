@@ -6,6 +6,12 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Perzistence volby tématu (Fáze 8): `Diskora.App.Settings.JsonAppSettingsStore`
+  (JSON v `%LocalAppData%\Diskora\settings.json`). `ThemeService.Apply` volbu při
+  každém přepnutí uloží, `App.OnStartup` ji při startu načte zpátky - dřív se
+  vždy startovalo na "Podle systému" bez ohledu na poslední volbu. 9 testů.
+  Živě ověřeno: přepnutí na Světlé → restart appky → naběhne světlé i na stroji
+  se systémovým tmavým tématem.
 - Analýza fragmentace souborů (Fáze 5): `Diskora.Native.Storage.
   FileFragmentationReader` (`FSCTL_GET_RETRIEVAL_POINTERS`, bez admin práv -
   stačí právo číst soubor) + `Diskora.Core.Services.FragmentationAnalysisService`
