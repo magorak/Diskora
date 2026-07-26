@@ -6,6 +6,14 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Tray ikona (Fáze 7): `Diskora.App.Tray.TrayIconService` (`System.Windows.Forms.
+  NotifyIcon` přes `UseWindowsForms`, bez externí závislosti). Ikona vidět po celou
+  dobu běhu, kontextové menu „Zobrazit Diskoru"/„Konec", dvojklik obnoví okno;
+  minimalizace okno schová i z hlavního panelu, zavření (×) aplikaci normálně
+  ukončí. Živě ověřeno (UI Automation + screenshoty). Cestou odstraněny
+  auto-přidané global usingy `System.Windows.Forms`/`System.Drawing` z
+  `Diskora.App.csproj` - kolidovaly s WPF `Application`/`Color` napříč celým
+  projektem.
 - Treemapa zaplněnosti (Fáze 4): nová záložka „Mapa" v okně Analýza zaplněnosti
   vedle Složek/Největší souborů/Nejstarší souborů/Duplicit -
   `Diskora.Core.Layout.SquarifiedTreemapLayout` (čistě geometrický port

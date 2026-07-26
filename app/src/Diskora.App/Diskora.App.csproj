@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>Diskora</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
@@ -17,6 +18,15 @@
 
   <ItemGroup>
     <Resource Include="Assets\AppIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- UseWindowsForms (kvůli tray ikoně) automaticky přidá tyto dvě jako global
+         using, což koliduje s WPF (Application, Color existují v obou) napříč
+         celým projektem - odstraněno, WinForms typy se používají plně
+         kvalifikované (viz Tray/TrayIconService.cs). -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
   </ItemGroup>
 
 </Project>

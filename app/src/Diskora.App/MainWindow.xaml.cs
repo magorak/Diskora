@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using Diskora.App.Tray;
 using Diskora.App.ViewModels;
 using Diskora.Core.Services;
 
@@ -8,10 +9,43 @@ namespace Diskora.App;
 
 public partial class MainWindow : Window
 {
+    private readonly TrayIconService _trayIcon;
+    private bool _hasShownMinimizeHint;
+
     public MainWindow()
     {
         InitializeComponent();
         DataContext = new DashboardViewModel(new DiskEnumerationService(), ((App)Application.Current).Theme);
+
+        _trayIcon = new TrayIconService(this);
+        _trayIcon.Show();
+        StateChanged += MainWindow_StateChanged;
+        Closed += (_, _) => _trayIcon.Dispose();
+    }
+
+    /// <summary>
+    /// Tray ikona je vidět po celou dobu běhu (ne jen po minimalizaci) - připravuje to
+    /// půdu pro budoucí upozornění na zhoršení zdraví disku (Fáze 2), která se mají
+    /// zobrazit bez ohledu na to, jestli je hlavní okno zrovna otevřené. Minimalizace
+    /// navíc okno schová úplně (Hide, ne jen ikonu na hlavním panelu) - zavření (×)
+    /// naopak aplikaci normálně ukončí (stejně jako menu Soubor -> Konec), ať
+    /// uživatele nepřekvapí zdánlivě "zmizelá" aplikace. Balónková nápověda se ukáže
+    /// jen při prvním schování za běh, ne opakovaně při každé minimalizaci.
+    /// </summary>
+    private void MainWindow_StateChanged(object? sender, EventArgs e)
+    {
+        if (WindowState != WindowState.Minimized)
+        {
+            return;
+        }
+
+        Hide();
+
+        if (!_hasShownMinimizeHint)
+        {
+            _hasShownMinimizeHint = true;
+            _trayIcon.ShowBalloonTip("Diskora běží na pozadí", "Diskoru znovu otevřete kliknutím na tuto ikonu.");
+        }
     }
 
     private void ShowSmart_Click(object sender, RoutedEventArgs e)

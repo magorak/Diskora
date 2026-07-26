@@ -267,7 +267,21 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       nedostupné, 130 přerušeno Ctrl+C). Živě ověřeno - všechny příkazy
       (člověku čitelný i `--json` výstup), reálná data (fyzické disky, svazky,
       dirty-bit E:\, sken zaplněnosti, skutečně vytvořená a smazaná duplicita).
-- [ ] Tray ikona a notifikace při upozorněních
+- [x] Tray ikona: `Diskora.App.Tray.TrayIconService` přes `System.Windows.Forms.NotifyIcon`
+      (`UseWindowsForms` v csproj - WPF vlastní tray API nemá, žádná externí závislost
+      navíc; auto-přidané global usingy `System.Windows.Forms`/`System.Drawing` odstraněny
+      z csproj, protože kolidovaly s WPF typy `Application`/`Color` napříč projektem -
+      WinForms typy jsou plně kvalifikované). Ikona je vidět po celou dobu běhu (ne jen
+      po minimalizaci - připraveno na budoucí notifikace bez nutnosti mít okno otevřené),
+      kontextové menu „Zobrazit Diskoru"/„Konec", dvojklik obnoví okno. Minimalizace okno
+      úplně schová (`Hide`, zmizí i z hlavního panelu), zavření (×) aplikaci normálně
+      ukončí - žádné překvapivé "zmizení" aplikace. Živě ověřeno (UI Automation +
+      screenshoty): ikona se objeví ve skryté oblasti hlavního panelu se správným
+      obrázkem aplikace, minimalizace okno schová i z hlavního panelu, dvojklik na
+      ikonu okno spolehlivě obnoví.
+      Zbývá: skutečná notifikace při zhoršení zdraví disku (`ShowBalloonTip` už
+      existuje a je připravené k použití, ale nic ho zatím nevolá - potřeba
+      periodická kontrola na pozadí, mimo rozsah tohoto kroku).
 
 ## Fáze 8 — Reporting, nastavení, lokalizace, přístupnost
 - [ ] Export kompletních reportů (PDF/CSV/JSON)
