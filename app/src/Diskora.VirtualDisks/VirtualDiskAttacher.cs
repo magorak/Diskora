@@ -98,13 +98,23 @@ public static class VirtualDiskAttacher
     }
 
     private const int ErrorAccessDenied = 5;
+    private const int ErrorSharingViolation = 32;
     private const int ErrorPrivilegeNotHeld = 1314;
 
     private static string DescribeFailure(string operation, int win32Error)
     {
         var isPrivilegeIssue = win32Error is ErrorAccessDenied or ErrorPrivilegeNotHeld;
-        return isPrivilegeIssue
-            ? $"Disk se nepodařilo {operation} - chybí práva administrátora (Win32 chyba {win32Error}). Spusťte Diskoru jako administrátor a zkuste to znovu."
-            : $"Disk se nepodařilo {operation} (Win32 chyba {win32Error}).";
+        if (isPrivilegeIssue)
+        {
+            return $"Disk se nepodařilo {operation} - chybí práva administrátora (Win32 chyba {win32Error}). Spusťte Diskoru jako administrátor a zkuste to znovu.";
+        }
+
+        if (win32Error == ErrorSharingViolation)
+        {
+            return $"Disk se nepodařilo {operation} - soubor už je otevřený/připojený jinde (Win32 chyba {win32Error}). " +
+                   "Pokud je disk už připojen (např. z předchozího spuštění Diskory), nejdřív ho odpojte.";
+        }
+
+        return $"Disk se nepodařilo {operation} (Win32 chyba {win32Error}).";
     }
 }

@@ -18,6 +18,11 @@ verzování dle [Semantic Versioning](https://semver.org/).
   `IntegrityCheckService` (dirty bit i celý `chkdsk /scan`), `DiskUsageScanner`
   a `SmartService` (korektně a srozumitelně hlásí, že SMART na virtuálním
   disku není k dispozici).
+- `Diskora.VirtualDisks.VirtualDiskAttacher`: opětovné připojení již připojeného
+  VHD/VHDX (typicky po pádu/zavření Diskory bez explicitního odpojení) vracelo
+  jen syrové "Win32 chyba 32" - přidán srozumitelný český popis
+  (ERROR_SHARING_VIOLATION → disk je už otevřený/připojený jinde, nejdřív ho
+  odpojte). Živě ověřeno dvojím připojením stejného testovacího VHDX.
 
 ### Přidáno
 - CLI společník `diskora.exe` (Fáze 7): nový projekt `Diskora.Cli`, headless

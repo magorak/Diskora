@@ -159,7 +159,11 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       disk#: Not found."). Bez elevovaného testu se tohle nedalo odhalit - dřív ověřená
       byla jen cesta selhání bez admin práv, ne skutečné připojení. Po přidání flagu
       živě ověřeno na testovacím VHDX (vytvořen/naformátován přes diskpart): disk
-      zůstává připojený, přidělí se mu písmeno, `Detach` funguje
+      zůstává připojený, přidělí se mu písmeno, `Detach` funguje. Zároveň při
+      testování narazil na druhý reálný rough-edge: opětovné připojení už
+      připojeného souboru vracelo jen syrové "Win32 chyba 32" - přidán srozumitelný
+      český popis (ERROR_SHARING_VIOLATION → "soubor už je otevřený/připojený
+      jinde... nejdřív ho odpojte"), živě ověřeno dvojím připojením stejného VHDX
 - [x] ISO: mount/dismount přes orchestraci `Mount-DiskImage`/`Dismount-DiskImage`
       (`Diskora.Repair.IsoMounter`) - živě ověřeno, funguje bez admin práv (na rozdíl od
       VHD/VHDX). Přímé `AttachVirtualDisk` s VIRTUAL_STORAGE_TYPE_DEVICE_ISO sice vrátí
