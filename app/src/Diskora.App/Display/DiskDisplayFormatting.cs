@@ -62,6 +62,14 @@ public static class DiskDisplayFormatting
         _ => "Neznámé",
     };
 
+    public static string ToDisplayText(this SmartAttributeRisk risk) => risk switch
+    {
+        SmartAttributeRisk.Ok => "OK",
+        SmartAttributeRisk.Warning => "Varování",
+        SmartAttributeRisk.Critical => "Kritické",
+        _ => "?",
+    };
+
     public static string ToDisplayText(this VolumeDirtyState state) => state switch
     {
         VolumeDirtyState.Clean => "V pořádku",

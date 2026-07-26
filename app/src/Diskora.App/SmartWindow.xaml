@@ -12,6 +12,7 @@
     <Window.Resources>
         <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <conv:RiskToBrushConverter x:Key="RiskToBrushConverter" />
+        <conv:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>
 
@@ -53,7 +54,37 @@
             <TextBlock Text="{Binding UnavailableReason}" Foreground="White" TextWrapping="Wrap" />
         </Border>
 
-        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+        <!-- NVMe disky nehlásí ATA atributy (ID/aktuální/nejhorší/práh), ale pevnou sadu
+             pojmenovaných polí - proto vlastní tabulka místo prázdných sloupců. -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}"
+                Visibility="{Binding IsNvme, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <DataGrid ItemsSource="{Binding NvmeMetrics}" AutoGenerateColumns="False"
+                      AutomationProperties.Name="Zdravotní údaje NVMe disku">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Údaj" Binding="{Binding Name}" Width="*" />
+                    <DataGridTextColumn Header="Hodnota" Binding="{Binding Value}" Width="200" />
+                    <DataGridTemplateColumn Header="Riziko" Width="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding Risk, Converter={StaticResource RiskToBrushConverter}}"
+                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding RiskDisplay}" Foreground="White" FontSize="11" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" Margin="40,2,10,8" Style="{StaticResource MutedTextStyle}" />
+                    </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+                <DataGrid.RowDetailsVisibilityMode>VisibleWhenSelected</DataGrid.RowDetailsVisibilityMode>
+            </DataGrid>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}"
+                Visibility="{Binding IsNvme, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
             <DataGrid ItemsSource="{Binding Attributes}" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="40" />

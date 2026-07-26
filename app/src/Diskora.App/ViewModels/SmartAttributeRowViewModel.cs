@@ -1,3 +1,4 @@
+using Diskora.App.Display;
 using Diskora.Core.Models;
 using Diskora.Core.Smart;
 
@@ -21,11 +22,5 @@ public sealed class SmartAttributeRowViewModel(SmartAttributeReading reading)
 
     public SmartAttributeRisk Risk { get; } = SmartHealthEvaluator.EvaluateAttributeRisk(reading);
 
-    public string RiskDisplay => Risk switch
-    {
-        SmartAttributeRisk.Ok => "OK",
-        SmartAttributeRisk.Warning => "Varování",
-        SmartAttributeRisk.Critical => "Kritické",
-        _ => "?",
-    };
+    public string RiskDisplay => Risk.ToDisplayText();
 }

@@ -39,7 +39,29 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 ## Fáze 2 — S.M.A.R.T. monitoring
 - [x] `Diskora.Native`: SMART READ DATA/THRESHOLDS pro ATA/SATA (legacy `IOCTL_SMART_RCV_DRIVE_DATA`)
 - [ ] Přechod/doplnění na `IOCTL_ATA_PASS_THROUGH` (spolehlivější u některých řadičů)
-- [ ] NVMe health log (`IOCTL_STORAGE_QUERY_PROPERTY` / protocol-specific)
+- [x] NVMe health log (`IOCTL_STORAGE_QUERY_PROPERTY` / protocol-specific):
+      `Diskora.Native.Smart.NvmeHealthReader` čte log stránku 0x02 přes
+      `StorageDeviceProtocolSpecificProperty`. `SmartService` zkouší nejdřív NVMe
+      a teprve pak ATA - dotaz na NVMe log uspěje jen u skutečně NVMe zařízení,
+      je levný a **nepotřebuje admin práva** (handle se otevírá s
+      `dwDesiredAccess = 0`; ATA passthrough elevaci vyžaduje vždy, a i vlastní
+      `Get-StorageReliabilityCounter` ve Windows bez elevace odmítne CIM přístup).
+      NVMe nemá ATA atributy s normalizovanou/nejhorší/prahovou hodnotou, ale
+      pevnou sadu pojmenovaných polí - model se proto netváří jako ATA:
+      `NvmeHealthInfo` (syrová data přepočtená na °C a bajty), `NvmeHealthCatalog`
+      (11 řádků s českým názvem/hodnotou/vysvětlením - stejný odlišující prvek jako
+      `SmartAttributeCatalog`) a `NvmeHealthEvaluator` s explicitními pravidly.
+      `SmartReport` má nově nepovinné `NvmeHealth`, okno S.M.A.R.T. má druhou
+      mřížku přepínanou přes `IsNvme`, CLI `smart`/`healthcheck` i export CSV/JSON
+      pokrývají obě varianty. 15 testů. Živě ověřeno bez elevace na reálném
+      Samsung SSD 980 PRO 1TB (PhysicalDrive4): CLI, `--json` i skutečná instance
+      `SmartWindow` v izolovaném harness (NVMe mřížka 11 řádků viditelná, ATA
+      skrytá; u SATA disku naopak). Dekódování ověřeno vnitřní konzistencí
+      (36,15 TB zapsáno vs. 600 TBW udávaných výrobcem ≈ hlášených 6 %
+      spotřebované životnosti). Ne-NVMe disky vrací `ERROR_INVALID_FUNCTION`
+      a korektně padají zpět na ATA cestu. Cesta „vadný NVMe disk" (nenulové
+      critical warning bity, vyčerpaná rezerva) živě ověřená není - takový disk
+      v prostředí není, stejné omezení jako u vadných sektorů ve Fázi 3.
 - [x] Dekódování atributů + srozumitelná vysvětlení rizika (odlišující prvek) - `SmartAttributeCatalog`
 - [x] Health skóre (`SmartHealthEvaluator`, testováno) a graceful degradace, když SMART není dostupné
 - [x] Minimální SMART UI (tlačítko u disku → okno s atributy, rizikem a celkovým verdiktem)

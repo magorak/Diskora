@@ -78,6 +78,8 @@ static int PrintUsage()
         (skriptování/automatizace). Bez admin práv fungují list/usage/duplicates,
         dirty-bit část integrity a schedule (běží pod aktuálním uživatelem); smart,
         healthcheck a integrity --scan podle disku/svazku mohou vyžadovat elevaci.
+        U NVMe disků se smart/healthcheck čte přes NVMe health log, který elevaci
+        nepotřebuje - u ATA/SATA disků se jde přes ATA passthrough, kde je nutná.
         """);
     return 0;
 }
@@ -145,6 +147,18 @@ static int RunSmart(string[] rest, bool json)
 
     var report = result.Report;
     Console.WriteLine($"Disk {diskIndex} - celkový stav: {report.OverallHealth}");
+
+    if (report.NvmeHealth is { } nvmeHealth)
+    {
+        Console.WriteLine($"{"Údaj",-30} {"Hodnota",-24} {"Riziko",-8}");
+        foreach (var metric in NvmeHealthCatalog.Describe(nvmeHealth))
+        {
+            Console.WriteLine($"{Truncate(metric.Name, 30),-30} {Truncate(metric.Value, 24),-24} {metric.Risk,-8}");
+        }
+
+        return 0;
+    }
+
     Console.WriteLine($"{"ID",-4} {"Název",-38} {"Aktuální",-9} {"Nejhorší",-9} {"Práh",-6} {"Surová hodnota",-15} {"Riziko",-8}");
     foreach (var attribute in report.Attributes)
     {

@@ -25,6 +25,38 @@ verzování dle [Semantic Versioning](https://semver.org/).
   aktivní položky v menu nápovědy.
 
 ### Přidáno
+- Podpora S.M.A.R.T. u NVMe disků (Fáze 2): nový `Diskora.Native.Smart.NvmeHealthReader`
+  čte NVMe log stránku 0x02 („SMART / Health Information") přes
+  `IOCTL_STORAGE_QUERY_PROPERTY` s `StorageDeviceProtocolSpecificProperty`. Do teď
+  Diskora uměla jen ATA passthrough (`IOCTL_SMART_RCV_DRIVE_DATA`), který u NVMe
+  disků principiálně selhává - na stroji s NVMe systémovým diskem tak zdraví
+  disku nešlo zjistit vůbec. `SmartService` nově zkouší nejdřív NVMe cestu a
+  teprve při neúspěchu ATA. Vedlejší efekt, který stojí za zmínku:
+  **NVMe health se čte bez práv administrátora** (handle se otevírá s
+  `dwDesiredAccess = 0`, dotaz na vlastnost zařízení nepotřebuje právo číst data),
+  zatímco ATA cesta elevaci vyžaduje vždy - i vlastní `Get-StorageReliabilityCounter`
+  ve Windows bez elevace odmítne přístup k CIM prostředku.
+  NVMe nemá ATA atributy (ID/aktuální/nejhorší/práh), ale pevnou sadu pojmenovaných
+  polí, takže se model netváří jako ATA: nový `NvmeHealthInfo` +
+  `NvmeHealthCatalog` (11 řádků s českým názvem, hodnotou a vysvětlením rizika -
+  stejný odlišující prvek jako `SmartAttributeCatalog` u ATA) a
+  `NvmeHealthEvaluator` s explicitními pravidly (critical warning bity od řadiče,
+  rezervní kapacita vůči výrobcem hlášenému prahu, spotřebovaná životnost,
+  neopravitelné chyby média, teplota). Okno S.M.A.R.T. i `diskora smart`/`healthcheck`
+  přepínají mezi ATA tabulkou a NVMe přehledem podle toho, co disk skutečně
+  nabízí; export CSV/JSON pokrývá obě varianty. 15 nových testů.
+  Živě ověřeno na reálném Samsung SSD 980 PRO 1TB (PhysicalDrive4) **bez elevace**:
+  CLI `smart 4` i `healthcheck` (dřív hlásil „nedostupné" pro všech 6 disků, teď
+  u NVMe `Healthy`), `--json` výstup i okno S.M.A.R.T. přes izolovaný harness nad
+  skutečnou instancí `SmartWindow` (NVMe mřížka viditelná s 11 řádky, ATA mřížka
+  správně skrytá; u SATA disku přesně naopak + hláška o nutné elevaci).
+  Správnost dekódování ověřena vnitřní konzistencí dat: 36,15 TB zapsaných na disku
+  s výrobcem udávanou životností 600 TBW odpovídá hlášeným 6 % spotřebované
+  životnosti, teplota 42-43 °C a rezerva 100 % / práh 10 % sedí s očekáváním.
+  Ne-NVMe disky (4× SATA, 1× USB) korektně vracejí `ERROR_INVALID_FUNCTION`
+  a spadnou zpět na ATA cestu. Cestu „poškozený NVMe disk" (nenulové critical
+  warning bity, vyčerpaná rezerva) se živě ověřit nedalo - žádný takový disk
+  v prostředí není, pokrytá je jen testy nad `NvmeHealthEvaluator`.
 - Changelog a Ochrana soukromí na webu (Fáze 10): `web/src/pages/docs/changelog.astro`
   generuje stránku přímo z kořenového `CHANGELOG.md` při buildu (vlastní malý
   parser šitý na tvar tohoto souboru, žádná nová npm závislost) - stránka je tak

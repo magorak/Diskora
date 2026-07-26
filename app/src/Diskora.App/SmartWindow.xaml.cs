@@ -23,10 +23,14 @@ public partial class SmartWindow : Window
             return;
         }
 
-        var csv = CsvWriter.Write(
-            ["ID", "Atribut", "Aktuální", "Nejhorší", "Práh", "Raw", "Riziko"],
-            viewModel.Attributes.Select(a => (IReadOnlyList<string>)
-                [a.Id.ToString(), a.Name, a.CurrentValue.ToString(), a.WorstValue.ToString(), a.Threshold.ToString(), a.RawValue.ToString(), a.RiskDisplay]));
+        var csv = viewModel.IsNvme
+            ? CsvWriter.Write(
+                ["Údaj", "Hodnota", "Riziko"],
+                viewModel.NvmeMetrics.Select(m => (IReadOnlyList<string>)[m.Name, m.Value, m.RiskDisplay]))
+            : CsvWriter.Write(
+                ["ID", "Atribut", "Aktuální", "Nejhorší", "Práh", "Raw", "Riziko"],
+                viewModel.Attributes.Select(a => (IReadOnlyList<string>)
+                    [a.Id.ToString(), a.Name, a.CurrentValue.ToString(), a.WorstValue.ToString(), a.Threshold.ToString(), a.RawValue.ToString(), a.RiskDisplay]));
 
         ExportHelper.SaveCsv(this, csv, "diskora-smart.csv");
     }
@@ -42,8 +46,16 @@ public partial class SmartWindow : Window
         {
             viewModel.DiskName,
             viewModel.IsSupported,
+            viewModel.IsNvme,
             viewModel.UnavailableReason,
             OverallHealth = viewModel.OverallHealthDisplay,
+            NvmeMetrics = viewModel.NvmeMetrics.Select(m => new
+            {
+                m.Name,
+                m.Value,
+                Risk = m.RiskDisplay,
+                m.Explanation,
+            }),
             Attributes = viewModel.Attributes.Select(a => new
             {
                 a.Id,

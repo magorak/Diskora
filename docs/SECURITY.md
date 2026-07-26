@@ -15,7 +15,10 @@ očekávaným dopadem. Snažíme se reagovat co nejdříve.
 
 - **Nejnižší nutná oprávnění.** Operace vyžadující elevaci (UAC) jsou izolované
   a jasně označené v UI; aplikace nežádá o admin práva pro funkce, které je
-  nepotřebují (např. prohlížení velikostí složek).
+  nepotřebují (např. prohlížení velikostí složek). Platí to i uvnitř jedné
+  funkce: čtení zdraví NVMe disku otevírá handle s `dwDesiredAccess = 0`, protože
+  dotaz na vlastnost zařízení nepotřebuje právo číst data z disku - proto na
+  rozdíl od ATA passthrough funguje bez elevace (`NvmeHealthReader`).
 - **Žádné skládání shell příkazů ze stringů.** Všechna volání externích procesů
   (`chkdsk.exe`, `defrag.exe`) používají `ProcessStartInfo` s argument listy —
   nikdy interpolaci uživatelského vstupu do příkazové řádky. Prevence command
