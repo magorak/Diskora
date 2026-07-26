@@ -49,11 +49,25 @@ public sealed class VirtualDiskService : IVirtualDiskService
         return new VirtualDiskOperationOutcome(result.Success, result.FailureReason);
     }
 
+    public RawImageInspectionOutcome InspectRawImage(string path)
+    {
+        var result = RawImageInspector.Inspect(path);
+        return new RawImageInspectionOutcome(result.Success, result.FailureReason, MapScheme(result.Scheme), result.PartitionCount);
+    }
+
     private static Models.VirtualDiskFormat MapFormat(VirtualDisks.VirtualDiskFormat format) => format switch
     {
         VirtualDisks.VirtualDiskFormat.Vhd => Models.VirtualDiskFormat.Vhd,
         VirtualDisks.VirtualDiskFormat.Vhdx => Models.VirtualDiskFormat.Vhdx,
         VirtualDisks.VirtualDiskFormat.Iso => Models.VirtualDiskFormat.Iso,
+        VirtualDisks.VirtualDiskFormat.Img => Models.VirtualDiskFormat.Img,
         _ => Models.VirtualDiskFormat.Unknown,
+    };
+
+    private static Models.RawImagePartitionScheme MapScheme(VirtualDisks.RawImagePartitionScheme scheme) => scheme switch
+    {
+        VirtualDisks.RawImagePartitionScheme.Mbr => Models.RawImagePartitionScheme.Mbr,
+        VirtualDisks.RawImagePartitionScheme.Gpt => Models.RawImagePartitionScheme.Gpt,
+        _ => Models.RawImagePartitionScheme.Unknown,
     };
 }

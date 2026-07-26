@@ -6,4 +6,5 @@ public enum VirtualDiskFormat
     Vhd,
     Vhdx,
     Iso,
+    Img,
 }

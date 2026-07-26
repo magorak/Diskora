@@ -14,4 +14,10 @@ public interface IVirtualDiskService
     Task<IsoMountOutcome> MountIsoAsync(string isoPath, CancellationToken cancellationToken = default);
 
     Task<VirtualDiskOperationOutcome> DismountIsoAsync(string isoPath, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Read-only rozvržení oblastí (MBR/GPT) raw/dd obrazu - obyčejné čtení
+    /// souboru, žádné mountování ani admin práva (na rozdíl od VHD/VHDX).
+    /// </summary>
+    RawImageInspectionOutcome InspectRawImage(string path);
 }

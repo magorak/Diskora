@@ -183,7 +183,23 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       VHD/VHDX). Přímé `AttachVirtualDisk` s VIRTUAL_STORAGE_TYPE_DEVICE_ISO sice vrátí
       úspěch i bez elevace, ale výsledná jednotka zůstane bez souborového systému -
       zdokumentováno v kódu, proto orchestrace přes ověřený cmdlet místo P/Invoke
-- [ ] IMG/raw: mount jako virtuální disk nebo read-only sektorová inspekce
+- [x] IMG/raw: read-only sektorová inspekce (mount jako virtuální disk vědomě
+      vynechán - živě ověřeno, že `Mount-DiskImage` raw `.img` odmítá jako
+      "soubor je porušen a není čitelný" a `virtdisk.dll`/`AttachVirtualDisk`
+      pro tento formát vůbec neexistuje kontejner/hlavička k rozpoznání, takže
+      by šlo jen o vlastní ovladač virtuálního disku - mimo filozofii minima
+      závislostí). Nový `Diskora.VirtualDisks.RawImageInspector` čte MBR (offset
+      446-509, boot signatura 0x55AA) i GPT (protective MBR typ 0xEE →
+      hlavička "EFI PART" na LBA1 → tabulka oddílů), obyčejným čtením souboru
+      bez admin práv - jen primární MBR záznamy, rozšířené/logické oddíly
+      přes EBR řetěz se neprochází. `VirtualDiskWindow` dostal třetí větev
+      (vedle VHD/VHDX attach/detach a ISO mount/dismount): tlačítko
+      „Prozkoumat rozvržení", zobrazí schéma + počet oddílů. Živě ověřeno na
+      dvou reálných discích (fixed VHD jako nosič syrových bajtů, ne
+      mountované) - MBR se 2 oddíly správně `Scheme=Mbr, PartitionCount=2`,
+      po `convert gpt` se stejným rozvržením správně `Scheme=Gpt,
+      PartitionCount=2`; end-to-end i přes `VirtualDiskService` s reálnou
+      příponou `.img`
 - [ ] Bezpečný unmount/cleanup (i při pádu aplikace)
 - [x] Znovupoužití integrity/SMART/TreeSize logiky nad připojenými virtuálními disky -
       živě ověřeno izolovaným harness nad připojeným testovacím VHDX (fyzický disk

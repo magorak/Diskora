@@ -74,7 +74,7 @@
         </Border>
 
         <StackPanel Grid.Row="4" VerticalAlignment="Top">
-            <StackPanel Visibility="{Binding IsIso, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+            <StackPanel Visibility="{Binding IsVhdOrVhdx, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
                            Text="Připojení (mount) vyžaduje práva administrátora - Windows to vyžaduje stejně jako u Mount-VHD." />
                 <StackPanel Orientation="Horizontal">
@@ -91,6 +91,26 @@
                     <Button Content="Připojit obraz" Margin="0,0,8,0" Command="{Binding MountIsoCommand}" />
                     <Button Content="Odpojit obraz" Command="{Binding DismountIsoCommand}" />
                 </StackPanel>
+            </StackPanel>
+
+            <StackPanel Visibility="{Binding IsImg, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
+                           Text="IMG/raw obrazy Windows neumí připojit jako jednotku (na rozdíl od VHD/VHDX/ISO) - nabízí se jen read-only přečtení rozvržení oblastí (MBR/GPT), nic se nemountuje." />
+                <Button Content="Prozkoumat rozvržení (jen čtení)" Margin="0,0,0,12" HorizontalAlignment="Left" Command="{Binding InspectRawImageCommand}" />
+                <Grid Visibility="{Binding PartitionSchemeDisplay, Converter={StaticResource StringToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Schéma oddílů:" Style="{StaticResource MutedTextStyle}" Margin="0,0,16,6" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding PartitionSchemeDisplay}" Margin="0,0,0,6" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Počet oddílů:" Style="{StaticResource MutedTextStyle}" Margin="0,0,16,0" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PartitionCountDisplay}" />
+                </Grid>
             </StackPanel>
         </StackPanel>
     </Grid>

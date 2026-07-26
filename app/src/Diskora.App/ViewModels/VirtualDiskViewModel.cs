@@ -19,6 +19,8 @@ public sealed class VirtualDiskViewModel : ViewModelBase
     private string _physicalSizeDisplay = string.Empty;
     private string _blockSizeDisplay = string.Empty;
     private string _sectorSizeDisplay = string.Empty;
+    private string? _partitionSchemeDisplay;
+    private string? _partitionCountDisplay;
 
     public VirtualDiskViewModel(IVirtualDiskService service, string path)
     {
@@ -31,6 +33,7 @@ public sealed class VirtualDiskViewModel : ViewModelBase
         DetachCommand = new RelayCommand(Detach, () => !IsBusy);
         MountIsoCommand = new RelayCommand(async () => await MountIsoAsync(), () => !IsBusy);
         DismountIsoCommand = new RelayCommand(async () => await DismountIsoAsync(), () => !IsBusy);
+        InspectRawImageCommand = new RelayCommand(InspectRawImage, () => !IsBusy);
 
         RefreshInfo();
     }
@@ -49,6 +52,8 @@ public sealed class VirtualDiskViewModel : ViewModelBase
 
     public ICommand DismountIsoCommand { get; }
 
+    public ICommand InspectRawImageCommand { get; }
+
     public bool IsBusy
     {
         get => _isBusy;
@@ -63,6 +68,11 @@ public sealed class VirtualDiskViewModel : ViewModelBase
 
     /// <summary>ISO se připojuje jinak než VHD/VHDX (Mount-DiskImage, ne přímé virtdisk.dll) - viz UI.</summary>
     public bool IsIso => _format == VirtualDiskFormat.Iso;
+
+    public bool IsVhdOrVhdx => _format is VirtualDiskFormat.Vhd or VirtualDiskFormat.Vhdx;
+
+    /// <summary>IMG/raw se nedá mountovat (Windows to nepodporuje) - nabízí se jen read-only inspekce rozvržení.</summary>
+    public bool IsImg => _format == VirtualDiskFormat.Img;
 
     public string? ErrorMessage
     {
@@ -106,6 +116,18 @@ public sealed class VirtualDiskViewModel : ViewModelBase
         private set => SetField(ref _sectorSizeDisplay, value);
     }
 
+    public string? PartitionSchemeDisplay
+    {
+        get => _partitionSchemeDisplay;
+        private set => SetField(ref _partitionSchemeDisplay, value);
+    }
+
+    public string? PartitionCountDisplay
+    {
+        get => _partitionCountDisplay;
+        private set => SetField(ref _partitionCountDisplay, value);
+    }
+
     private void RefreshInfo()
     {
         IsBusy = true;
@@ -120,6 +142,7 @@ public sealed class VirtualDiskViewModel : ViewModelBase
                 VirtualDiskFormat.Vhd => "VHD",
                 VirtualDiskFormat.Vhdx => "VHDX",
                 VirtualDiskFormat.Iso => "ISO",
+                VirtualDiskFormat.Img => "IMG/raw",
                 _ => "Neznámý formát",
             };
             VirtualSizeDisplay = ByteSizeFormatter.Format((long)summary.VirtualSizeBytes);
@@ -135,7 +158,11 @@ public sealed class VirtualDiskViewModel : ViewModelBase
             HasInfo = false;
         }
 
+        PartitionSchemeDisplay = null;
+        PartitionCountDisplay = null;
         OnPropertyChanged(nameof(IsIso));
+        OnPropertyChanged(nameof(IsVhdOrVhdx));
+        OnPropertyChanged(nameof(IsImg));
         IsBusy = false;
     }
 
@@ -183,6 +210,34 @@ public sealed class VirtualDiskViewModel : ViewModelBase
 
         var result = await _service.DismountIsoAsync(Path);
         OperationMessage = result.Success ? "Obraz byl odpojen." : result.FailureReason;
+
+        IsBusy = false;
+    }
+
+    private void InspectRawImage()
+    {
+        IsBusy = true;
+        OperationMessage = null;
+
+        var result = _service.InspectRawImage(Path);
+        if (!result.Success)
+        {
+            OperationMessage = result.FailureReason;
+            PartitionSchemeDisplay = null;
+            PartitionCountDisplay = null;
+        }
+        else
+        {
+            PartitionSchemeDisplay = result.Scheme switch
+            {
+                RawImagePartitionScheme.Mbr => "MBR",
+                RawImagePartitionScheme.Gpt => "GPT",
+                _ => "Nerozpoznáno",
+            };
+            PartitionCountDisplay = result.Scheme == RawImagePartitionScheme.Unknown
+                ? "—"
+                : result.PartitionCount.ToString();
+        }
 
         IsBusy = false;
     }

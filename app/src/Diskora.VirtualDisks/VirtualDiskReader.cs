@@ -15,16 +15,34 @@ namespace Diskora.VirtualDisks;
 /// cestu pro ISO poskytovatele nepodporuje. Velikost se proto čte přímo
 /// ze souboru; sektor je pevně 2048 B (standard ISO 9660/CD-ROM), pojem
 /// "blok" u ISO nedává smysl (žádné dynamické růstové bloky jako u VHDX).
+///
+/// IMG/raw obrazy nemají žádný formátovaný kontejner (na rozdíl od VHD/VHDX),
+/// takže `virtdisk.dll` je vůbec nezná - živě ověřeno i to, že `Mount-DiskImage`
+/// je nepřipojí ("soubor je porušen a není čitelný"). Velikost se proto stejně
+/// jako u ISO čte přímo ze souboru; rozvržení oblastí (MBR/GPT) čte
+/// <see cref="RawImageInspector"/> zvlášť, jen ke čtení, žádné mountování.
 /// </summary>
 public static class VirtualDiskReader
 {
     private const uint IsoSectorSize = 2048;
 
+    // Standardní logický sektor u naprosté většiny raw/dd obrazů. Skutečná
+    // fyzická velikost sektoru zdroje (např. 4Kn disky) se z holého souboru
+    // bez dalších metadat zjistit nedá - proto jde o vědomý předpoklad, ne
+    // zjištěnou hodnotu (na rozdíl od VHDX, kde ji hlásí samotný formát).
+    private const uint RawImageSectorSize = 512;
+
     public static VirtualDiskReadResult GetInfo(string path)
     {
-        if (DetectFormat(path) == VirtualDiskFormat.Iso)
+        var format = DetectFormat(path);
+        if (format == VirtualDiskFormat.Iso)
         {
             return GetIsoInfo(path);
+        }
+
+        if (format == VirtualDiskFormat.Img)
+        {
+            return GetRawImageInfo(path);
         }
 
         var storageType = default(VirtualStorageType); // DeviceId=0, VendorId=Guid.Empty => auto-detekce dle přípony
@@ -75,6 +93,20 @@ public static class VirtualDiskReader
         }
     }
 
+    private static VirtualDiskReadResult GetRawImageInfo(string path)
+    {
+        try
+        {
+            var size = (ulong)new FileInfo(path).Length;
+            var info = new VirtualDiskInfo(path, VirtualDiskFormat.Img, size, size, RawImageSectorSize, RawImageSectorSize);
+            return new VirtualDiskReadResult(true, null, info);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return Failure($"Soubor se nepodařilo přečíst ({ex.Message}).");
+        }
+    }
+
     private static VirtualDiskReadResult ReadSizeInfo(IntPtr handle, string path)
     {
         var infoBuffer = VirtDiskNativeMethods.BuildSizeInfoRequestBuffer();
@@ -110,6 +142,7 @@ public static class VirtualDiskReader
         ".VHD" => VirtualDiskFormat.Vhd,
         ".VHDX" => VirtualDiskFormat.Vhdx,
         ".ISO" => VirtualDiskFormat.Iso,
+        ".IMG" or ".RAW" or ".DD" => VirtualDiskFormat.Img,
         _ => VirtualDiskFormat.Unknown,
     };
 

@@ -6,6 +6,15 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- IMG/raw obrazy - read-only inspekce rozvržení (Fáze 6): Windows raw `.img`
+  neumí připojit jako jednotku (živě ověřeno - `Mount-DiskImage` je odmítne,
+  `virtdisk.dll` pro ně nemá kontejner k rozpoznání), proto místo mountu nový
+  `Diskora.VirtualDisks.RawImageInspector` čte MBR/GPT tabulku oddílů přímo
+  ze souboru (bez admin práv). `VirtualDiskWindow` dostal třetí větev vedle
+  VHD/VHDX a ISO - tlačítko „Prozkoumat rozvržení" ukáže schéma (MBR/GPT) a
+  počet oddílů. Živě ověřeno na reálných discích s MBR i GPT rozvržením
+  (2 oddíly, obojí správně rozpoznáno) včetně celé cesty přes
+  `VirtualDiskService` s příponou `.img`.
 - Read-only povrchový sken vadných sektorů (Fáze 3): nový
   `Diskora.Native.Storage.PhysicalDiskSurfaceScanner` čte celý fyzický disk
   sekvenčně po 4MiB blocích (`\\.\PhysicalDriveN`, vyžaduje admin práva) a
