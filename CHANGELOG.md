@@ -6,6 +6,11 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Opraveno
+- Sloupce seznamu svazků na dashboardu (kosmetika): všechny sloupce měly pevnou
+  šířku, takže se při běžné velikosti okna zobrazoval zbytečný spodní vodorovný
+  posuvník místo přirozeného přizpůsobení. Sloupec Název je nově `Width="*"`,
+  ostatní zúženy na skutečnou potřebu textu. Živě ověřeno screenshoty (výchozí
+  šířka 1100px i zúžení na ~830px, blízko `MinWidth` okna) - bez posuvníku.
 - Web pod podcestou (Fáze 10): web se bude nasazovat na
   `https://www.magorak.cz/diskora`, ne na kořen domény, ale všechny odkazy a
   obrázky byly napsané jako root-relative (`/logo.png`, `/docs/...`) - na

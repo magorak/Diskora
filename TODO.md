@@ -438,10 +438,6 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       samotné workflow soubory), týdenní interval. Stejné omezení - nemůže se
       spustit naživo bez GitHub remote, YAML syntax ověřena lokálně.
 - [ ] Code signing pipeline (Authenticode) pro release buildy
-- [ ] Instalátor (Inno Setup/MSIX) - Inno Setup ani jiný instalátorový nástroj
-      není v tomto prostředí nainstalovaný a bez něj se skript nedá ani syntakticky
-      ověřit (na rozdíl od CI YAML, kde aspoň šlo ověřit syntaxi přes `js-yaml`) -
-      ponecháno na příště, jde o samostatnou položku od portable buildu níže.
 - [x] Portable build (self-contained, single-file): nový `app/publish-portable.ps1`
       spouští `dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=
       true -p:IncludeNativeLibrariesForSelfExtract=true` - výsledek je jediný
@@ -526,5 +522,13 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 
 ## Nápady na budoucí odlišení (backlog, needvidí se hned)
 - [ ] "Disk Doctor" wizard (jedno tlačítko: SMART + chkdsk + TRIM/defrag rozhodnutí)
-- [ ] Portable mód (single-exe bez instalace)
+- [x] Portable mód (single-exe bez instalace) - viz Fáze 9, `app/publish-portable.ps1`
 - [ ] Plugin architektura pro další filesystémy (ReFS, exFAT, ext4 přes WSL disky)
+- [ ] Instalátor (Inno Setup/MSIX) - vědomě odsunuto z aktivních fází do backlogu
+      (rozhodnutí uživatele): portable single-exe build (Fáze 9) pokrývá hlavní
+      potřebu distribuce bez instalace, takže instalátor teď nepřináší dost
+      navíc na to, aby byl prioritou. Šlo by k němu vrátit později, hlavně pokud
+      by bylo žádoucí Start Menu zástupce, položku v "Přidat nebo odebrat
+      programy" nebo automatickou registraci naplánované úlohy (`schedule
+      install`) při instalaci - single-exe nic z toho neřeší, uživatel si
+      spouští/registruje ručně.
