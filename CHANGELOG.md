@@ -6,6 +6,15 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Opraveno
+- **S.M.A.R.T. nefungoval na žádném ATA/SATA disku** (Fáze 2): legacy cesta
+  `IOCTL_SMART_RCV_DRIVE_DATA` počítala hlavičku `SENDCMDOUTPARAMS` na 8 bajtů,
+  ale skutečná je 16 (`cBufferSize` 4 + `DRIVERSTATUS` 12, tedy `bDriverError` 1
+  + `bIDEError` 1 + `bReserved[2]` + `dwReserved[2]` 8). Výstupní buffer byl proto
+  o 8 bajtů kratší, než ovladač vyžaduje, a `DeviceIoControl` vždy skončil na
+  `ERROR_INSUFFICIENT_BUFFER` (122). Chyba přežila od Fáze 2 nepovšimnutá, protože
+  bez elevace selže dřív už `CreateFile` (chyba 5) - navenek to vypadalo jako
+  chybějící admin práva, ne jako vada v kódu. Odhaleno až prvním živým testem
+  s elevací. Po opravě vrací legacy cesta na všech 4 SATA discích korektní data.
 - Sloupce seznamu svazků na dashboardu (kosmetika): všechny sloupce měly pevnou
   šířku, takže se při běžné velikosti okna zobrazoval zbytečný spodní vodorovný
   posuvník místo přirozeného přizpůsobení. Sloupec Název je nově `Width="*"`,
@@ -25,6 +34,28 @@ verzování dle [Semantic Versioning](https://semver.org/).
   aktivní položky v menu nápovědy.
 
 ### Přidáno
+- ATA pass-through jako hlavní cesta k S.M.A.R.T. (Fáze 2): nový
+  `AtaPassThroughSmartReader` posílá SMART příkazy přes `IOCTL_ATA_PASS_THROUGH`
+  (`ATA_PASS_THROUGH_EX` s datovým bufferem hned za strukturou). Na rozdíl od
+  legacy IOCTL nejde o obálku nad pevnou dvojicí příkazů, ale o obecný kanál pro
+  libovolný ATA příkaz, který podporuje širší škála řadičů. `AtaSmartReader` je
+  nově jen rozcestník: zkusí pass-through, při neúspěchu spadne na legacy cestu,
+  a když selžou obě, spojí důvody do jedné hlášky (shodné důvody neopakuje).
+  Úspěch s prázdnou tabulkou atributů se záměrně bere jako neúspěch - prázdný
+  seznam nahlášený jako „v pořádku" by uživateli tvrdil, že disk je bez problémů,
+  aniž by se cokoli změřilo.
+  Parsování tabulky vytaženo do sdíleného `SmartAttributeTableParser`; do teď bylo
+  privátní uvnitř readeru, takže netestované - přibylo 8 testů včetně 48bitových
+  syrových hodnot (doba provozu a „celkem zapsáno" u SSD běžně přerostou 32 bitů)
+  a hraničních případů. Prahy selhání jsou nově best-effort: příkaz 0xD1 je
+  v novějších revizích ATA zastaralý a disk ho smí odmítnout, aniž by to mělo
+  shodit celé čtení. Živé testování na reálném HDD zároveň ukázalo atributy
+  ID 3/4/11/200, které katalog neznal a zobrazoval jako „Neznámý atribut" - doplněny.
+  Živě ověřeno s admin právy na 6 fyzických discích: obě cesty vrací na všech
+  4 SATA discích bajt po bajtu identická data (nezávislé křížové ověření), NVMe
+  a USB most obě ATA cesty korektně odmítnou. End-to-end `diskora healthcheck`
+  hlásí nově `Healthy` u 5 z 6 disků (dřív „nedostupné" u všech) a okno S.M.A.R.T.
+  poprvé skutečně zobrazuje ATA atributy (17 řádků reálného 4TB HDD).
 - Podpora S.M.A.R.T. u NVMe disků (Fáze 2): nový `Diskora.Native.Smart.NvmeHealthReader`
   čte NVMe log stránku 0x02 („SMART / Health Information") přes
   `IOCTL_STORAGE_QUERY_PROPERTY` s `StorageDeviceProtocolSpecificProperty`. Do teď

@@ -13,10 +13,13 @@ public static class SmartAttributeCatalog
         new List<SmartAttributeDefinition>
         {
             new(1, "Míra chyb při čtení", "Jak často disk musí opravovat chyby při čtení dat. Občasné nízké hodnoty jsou normální."),
+            new(3, "Doba roztočení", "Jak dlouho trvá roztočit talíře na provozní otáčky (jen mechanické HDD). Postupné prodlužování ukazuje na opotřebení motoru."),
+            new(4, "Počet roztočení", "Kolikrát se disk roztočil a zastavil. Informativní hodnota."),
             new(5, "Přemapované sektory", "Počet vadných sektorů, které disk nahradil záložními. Jakýkoli nárůst nad nulu je varovný signál opotřebení."),
             new(7, "Míra chyb vyhledávání", "Jak často dochází k chybě při polohování hlaviček (jen mechanické HDD)."),
             new(9, "Doba provozu", "Celkový počet hodin, kdy byl disk zapnutý. Informativní hodnota, sama o sobě neznamená problém."),
             new(10, "Opakování roztočení", "Kolikrát disk musel opakovaně zkoušet roztočit talíře (jen mechanické HDD)."),
+            new(11, "Opakování kalibrace", "Kolikrát disk musel zopakovat kalibraci polohy hlaviček (jen mechanické HDD)."),
             new(12, "Počet zapnutí", "Kolikrát byl disk zapnut/vypnut. Informativní hodnota."),
             new(173, "Opotřebení paměťových buněk (SSD)", "Míra opotřebení flash pamětí u SSD. Klesající normalizovaná hodnota značí blížící se konec životnosti."),
             new(177, "Rozsah opotřebení (SSD)", "Rozdíl v opotřebení mezi jednotlivými bloky paměti SSD."),
@@ -32,6 +35,7 @@ public static class SmartAttributeCatalog
             new(197, "Čekající vadné sektory", "Sektory podezřelé z vadnosti, čekající na opravu při dalším zápisu. Nenulová hodnota vyžaduje pozornost."),
             new(198, "Neopravitelné sektory (offline)", "Sektory, které disk nedokázal opravit ani offline testem. Vážný signál blížícího se selhání."),
             new(199, "Chyby UDMA CRC", "Chyby přenosu dat po kabelu/sběrnici - často ukazuje na vadný kabel nebo konektor, ne nutně na vadný disk."),
+            new(200, "Míra chyb zápisu", "Jak často se nepodařilo správně zapsat data na plotnu (jen mechanické HDD). Nazývá se také Multi-Zone Error Rate."),
             new(233, "Ukazatel opotřebení média (SSD)", "Souhrnný ukazatel zbývající životnosti SSD, 100 = nové, 0 = konec životnosti."),
             new(241, "Celkem zapsáno (SSD)", "Celkové množství dat zapsaných na SSD za celou dobu životnosti."),
             new(242, "Celkem přečteno (SSD)", "Celkové množství dat přečtených z SSD za celou dobu životnosti."),

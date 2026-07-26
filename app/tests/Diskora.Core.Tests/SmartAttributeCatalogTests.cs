@@ -28,6 +28,19 @@ public class SmartAttributeCatalogTests
         Assert.False(string.IsNullOrWhiteSpace(explanation));
     }
 
+    [Theory]
+    [InlineData((byte)3)]
+    [InlineData((byte)4)]
+    [InlineData((byte)11)]
+    [InlineData((byte)200)]
+    public void Find_AtributyZeZiveTestovanehoHdd_JsouVKatalogu(byte id)
+    {
+        // Tyhle ID reálně hlásí WDC WD40EZRZ v testovacím prostředí a do teď
+        // se zobrazovaly jako „Neznámý atribut" - odhaleno až po opravě legacy
+        // cesty, kdy poprvé začaly ATA atributy vůbec dorazit do UI.
+        Assert.NotNull(SmartAttributeCatalog.Find(id));
+    }
+
     [Fact]
     public void Find_KnownAttribute_HasNonEmptyNameAndExplanation()
     {

@@ -38,7 +38,36 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 
 ## Fáze 2 — S.M.A.R.T. monitoring
 - [x] `Diskora.Native`: SMART READ DATA/THRESHOLDS pro ATA/SATA (legacy `IOCTL_SMART_RCV_DRIVE_DATA`)
-- [ ] Přechod/doplnění na `IOCTL_ATA_PASS_THROUGH` (spolehlivější u některých řadičů)
+- [x] Přechod/doplnění na `IOCTL_ATA_PASS_THROUGH` (spolehlivější u některých řadičů):
+      `AtaPassThroughSmartReader` (obecný kanál pro libovolný ATA příkaz,
+      `ATA_PASS_THROUGH_EX` s bufferem hned za strukturou) doplnil původní
+      `LegacySmartIoctlReader`. `AtaSmartReader` je nově jen rozcestník: zkusí
+      pass-through, při neúspěchu spadne na legacy, a když selžou obě, spojí
+      důvody do jedné hlášky (shodné důvody nedupluje). Úspěch s prázdnou
+      tabulkou se záměrně bere jako neúspěch - prázdný seznam nahlášený jako
+      „v pořádku" by uživateli tvrdil, že disk je bez problémů, aniž by se
+      cokoli změřilo. Parsování tabulky atributů vytaženo do sdíleného
+      `SmartAttributeTableParser` (do teď bylo privátní uvnitř readeru, tedy
+      netestovatelné) - 8 nových testů vč. 48bitových syrových hodnot a
+      hraničních případů; prahy jsou nově best-effort, protože příkaz 0xD1
+      je v novějších revizích ATA zastaralý a disk ho smí odmítnout.
+      **Živý test s admin právy odhalil skutečnou chybu, která tu byla od
+      Fáze 2**: legacy cesta měla hlavičku `SENDCMDOUTPARAMS` spočítanou na
+      8 bajtů místo 16 (`cBufferSize` 4 + `DRIVERSTATUS` 12), takže
+      `DeviceIoControl` vždy vrátil `ERROR_INSUFFICIENT_BUFFER` (122) a
+      S.M.A.R.T. nefungoval na ŽÁDNÉM ATA disku - jen se to nikdy neprojevilo,
+      protože bez elevace selhalo dřív už otevření disku a chyba vypadala jako
+      chybějící práva. Po opravě obě cesty vrací na všech 4 SATA discích
+      (2× SATA SSD, 1× M.2 SATA SSD, 1× 4TB HDD) **bajt po bajtu identická
+      data** - nezávislé křížové ověření, že je pass-through implementace
+      správně. Živě ověřeno i end-to-end: `diskora healthcheck` hlásí nově
+      `Healthy` u 5 z 6 disků (dřív „nedostupné" u všech), `diskora smart 3`
+      i okno S.M.A.R.T. přes izolovaný harness ukazují 17 reálných atributů
+      HDD (20 613 h provozu, 34 °C, 113 138 pohybových cyklů). U NVMe (chyba
+      50) a USB mostu (chyba 1/122) obě ATA cesty korektně selžou - u NVMe
+      se stejně použije jeho vlastní cesta. Živé testování zároveň ukázalo,
+      že reálný HDD hlásí ID 3/4/11/200, které katalog neznal a zobrazoval
+      jako „Neznámý atribut" - doplněny.
 - [x] NVMe health log (`IOCTL_STORAGE_QUERY_PROPERTY` / protocol-specific):
       `Diskora.Native.Smart.NvmeHealthReader` čte log stránku 0x02 přes
       `StorageDeviceProtocolSpecificProperty`. `SmartService` zkouší nejdřív NVMe
