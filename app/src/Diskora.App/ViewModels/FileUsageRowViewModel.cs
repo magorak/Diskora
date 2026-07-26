@@ -13,5 +13,7 @@ public sealed class FileUsageRowViewModel(FileUsageEntry entry)
 
     public string SizeDisplay { get; } = ByteSizeFormatter.Format(entry.SizeBytes);
 
+    public DateTime LastWriteTimeUtc { get; } = entry.LastWriteTimeUtc;
+
     public string LastWriteDisplay { get; } = entry.LastWriteTimeUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm");
 }

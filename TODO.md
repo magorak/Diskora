@@ -112,11 +112,13 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       nemaže), řazeno podle reklamovatelné velikosti sestupně. 6 testů + živě ověřeno na
       reálném souboru (kopie `IMG_0001.jpg` na E:\ správně detekována jako duplicita,
       smazána po testu).
-- [x] Export reportu (CSV): `Diskora.Core.Export.CsvWriter` (RFC 4180 escapování, 5 testů)
-      + tlačítko „Exportovat CSV..." v okně Analýza zaplněnosti, exportuje aktuálně
-      zobrazenou záložku (Složky/Největší soubory/Nejstarší soubory) přes `SaveFileDialog`
-      - živě ověřeno, skutečný CSV soubor se správným escapováním české lokalizace
-      (čárka v „100,00 MB" korektně obalena uvozovkami). JSON export zatím ne.
+- [x] Export reportu (CSV i JSON): `Diskora.Core.Export.CsvWriter` (RFC 4180 escapování,
+      5 testů) + tlačítko „Exportovat CSV..." a „Exportovat JSON..." v okně Analýza
+      zaplněnosti, obě exportují aktuálně zobrazenou záložku (Složky/Největší soubory/
+      Nejstarší soubory/Duplicity) přes `SaveFileDialog`. JSON přes `System.Text.Json`
+      s `JavaScriptEncoder` omezeným na Basic Latin + Latin-1 Supplement + Latin Extended-A,
+      aby čeština zůstala v souboru čitelná (přímo diakritika, ne `á` escapy) - živě ověřeno
+      reálným exportem obou formátů, správná data i escapování.
 - [x] Výběr libovolné složky ke skenování: menu Soubor → „Analyzovat složku..." otevírá
       `Microsoft.Win32.OpenFolderDialog`, funguje se stejným oknem Analýza zaplněnosti
       jako skenování celého svazku (`DiskUsageWindow` bere libovolnou cestu, ne jen kořen

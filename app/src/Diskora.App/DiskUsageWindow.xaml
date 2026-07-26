@@ -31,6 +31,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="0" Content="↑ Nahoru" Margin="0,0,8,0"
@@ -39,7 +40,9 @@
                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
             <Button Grid.Column="2" Content="Exportovat CSV..." Margin="0,0,8,0" Click="ExportCsv_Click"
                     Visibility="{Binding IsScanning, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
-            <Button Grid.Column="3" Content="Obnovit sken" Command="{Binding RescanCommand}" />
+            <Button Grid.Column="3" Content="Exportovat JSON..." Margin="0,0,8,0" Click="ExportJson_Click"
+                    Visibility="{Binding IsScanning, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+            <Button Grid.Column="4" Content="Obnovit sken" Command="{Binding RescanCommand}" />
         </Grid>
 
         <TextBlock Grid.Row="1" Text="{Binding CurrentSummaryText}" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,8" />

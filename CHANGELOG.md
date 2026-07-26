@@ -5,6 +5,14 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Přidáno
+- Export do JSON (Fáze 4): tlačítko „Exportovat JSON..." vedle „Exportovat CSV..."
+  v okně Analýza zaplněnosti, exportuje aktuálně zobrazenou záložku (Složky/
+  Největší soubory/Nejstarší soubory/Duplicity) přes `System.Text.Json` se
+  `JavaScriptEncoder` omezeným na Basic Latin + Latin-1 Supplement + Latin
+  Extended-A, aby česká diakritika zůstala v souboru čitelná místo `\uXXXX`
+  escapů. Živě ověřeno reálným exportem se skutečnými daty.
+
 ### Opraveno
 - `TabControl`/`TabItem` (okno Analýza zaplněnosti): stejná třída bugu jako
   dřív u Menu/DataGrid - výchozí šablona nebere Background/Foreground z

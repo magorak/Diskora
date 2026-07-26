@@ -1,4 +1,7 @@
 using System.IO;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -54,9 +57,9 @@ public partial class DiskUsageWindow : Window
                 break;
             case 3:
                 csv = CsvWriter.Write(
-                    ["Skupina", "Velikost", "Umístění"],
+                    ["Skupina", "Velikost (B)", "Velikost", "Umístění"],
                     viewModel.DuplicateFiles.Select(f => (IReadOnlyList<string>)
-                        [f.GroupNumber.ToString(), f.SizeDisplay, f.FullPath]));
+                        [f.GroupNumber.ToString(), f.SizeBytes.ToString(), f.SizeDisplay, f.FullPath]));
                 suggestedName = "diskora-duplicity.csv";
                 break;
             default:
@@ -87,6 +90,95 @@ public partial class DiskUsageWindow : Window
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             MessageBox.Show(this, $"Export se nepodařilo uložit: {ex.Message}", "Export CSV",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private static readonly JsonSerializerOptions JsonExportOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement, UnicodeRanges.LatinExtendedA),
+    };
+
+    private void ExportJson_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not DiskUsageViewModel viewModel)
+        {
+            return;
+        }
+
+        object payload;
+        string suggestedName;
+        switch (ResultsTabControl.SelectedIndex)
+        {
+            case 1:
+                payload = viewModel.LargestFiles.Select(f => new
+                {
+                    f.Name,
+                    SizeBytes = f.SizeBytes,
+                    f.SizeDisplay,
+                    LastWriteTimeUtc = f.LastWriteTimeUtc,
+                    f.FullPath,
+                });
+                suggestedName = "diskora-nejvetsi-soubory.json";
+                break;
+            case 2:
+                payload = viewModel.OldestFiles.Select(f => new
+                {
+                    f.Name,
+                    SizeBytes = f.SizeBytes,
+                    f.SizeDisplay,
+                    LastWriteTimeUtc = f.LastWriteTimeUtc,
+                    f.FullPath,
+                });
+                suggestedName = "diskora-nejstarsi-soubory.json";
+                break;
+            case 3:
+                payload = viewModel.DuplicateFiles
+                    .GroupBy(f => f.GroupNumber)
+                    .Select(g => new
+                    {
+                        Skupina = g.Key,
+                        SizeBytes = g.First().SizeBytes,
+                        Soubory = g.Select(f => f.FullPath).ToList(),
+                    });
+                suggestedName = "diskora-duplicity.json";
+                break;
+            default:
+                payload = viewModel.Items.Select(i => new
+                {
+                    i.Name,
+                    SizeBytes = i.Node.SizeBytes,
+                    i.SizeDisplay,
+                    PercentOfParent = i.PercentOfParent,
+                    FileCount = i.FileCount,
+                    i.StatusDisplay,
+                    FullPath = i.Node.FullPath,
+                });
+                suggestedName = "diskora-slozky.json";
+                break;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Exportovat do JSON",
+            Filter = "JSON soubor (*.json)|*.json|Všechny soubory (*.*)|*.*",
+            FileName = suggestedName,
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            var json = JsonSerializer.Serialize(payload, JsonExportOptions);
+            File.WriteAllText(dialog.FileName, json, System.Text.Encoding.UTF8);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show(this, $"Export se nepodařilo uložit: {ex.Message}", "Export JSON",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
