@@ -1,8 +1,10 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Diskora.App.ViewModels;
+using Diskora.Core.Export;
 using Diskora.Core.Services;
 
 namespace Diskora.App;
@@ -22,6 +24,63 @@ public partial class DiskUsageWindow : Window
         if (ItemsGrid.SelectedItem is DiskUsageNodeRowViewModel row && DataContext is DiskUsageViewModel viewModel)
         {
             viewModel.NavigateInto(row);
+        }
+    }
+
+    private void ExportCsv_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not DiskUsageViewModel viewModel)
+        {
+            return;
+        }
+
+        string csv;
+        string suggestedName;
+        switch (ResultsTabControl.SelectedIndex)
+        {
+            case 1:
+                csv = CsvWriter.Write(
+                    ["Název", "Velikost (B)", "Velikost", "Poslední změna", "Umístění"],
+                    viewModel.LargestFiles.Select(f => (IReadOnlyList<string>)
+                        [f.Name, f.SizeBytes.ToString(), f.SizeDisplay, f.LastWriteDisplay, f.FullPath]));
+                suggestedName = "diskora-nejvetsi-soubory.csv";
+                break;
+            case 2:
+                csv = CsvWriter.Write(
+                    ["Název", "Velikost (B)", "Velikost", "Poslední změna", "Umístění"],
+                    viewModel.OldestFiles.Select(f => (IReadOnlyList<string>)
+                        [f.Name, f.SizeBytes.ToString(), f.SizeDisplay, f.LastWriteDisplay, f.FullPath]));
+                suggestedName = "diskora-nejstarsi-soubory.csv";
+                break;
+            default:
+                csv = CsvWriter.Write(
+                    ["Název", "Velikost (B)", "Velikost", "Podíl (%)", "Souborů", "Stav", "Umístění"],
+                    viewModel.Items.Select(i => (IReadOnlyList<string>)
+                        [i.Name, i.Node.SizeBytes.ToString(), i.SizeDisplay, i.PercentOfParent.ToString("F1"), i.FileCount.ToString(), i.StatusDisplay, i.Node.FullPath]));
+                suggestedName = "diskora-slozky.csv";
+                break;
+        }
+
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Exportovat do CSV",
+            Filter = "CSV soubor (*.csv)|*.csv|Všechny soubory (*.*)|*.*",
+            FileName = suggestedName,
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            File.WriteAllText(dialog.FileName, csv, System.Text.Encoding.UTF8);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show(this, $"Export se nepodařilo uložit: {ex.Message}", "Export CSV",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 

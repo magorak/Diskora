@@ -103,7 +103,11 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       na reálném svazku E:\ (správné řazení sestupně dle velikosti / vzestupně dle data)
 - [ ] Vlastní treemap control (squarified algoritmus) / sunburst jako alternativní zobrazení
 - [ ] Hledač duplicit (hash-based)
-- [ ] Export reportu (CSV/JSON)
+- [x] Export reportu (CSV): `Diskora.Core.Export.CsvWriter` (RFC 4180 escapování, 5 testů)
+      + tlačítko „Exportovat CSV..." v okně Analýza zaplněnosti, exportuje aktuálně
+      zobrazenou záložku (Složky/Největší soubory/Nejstarší soubory) přes `SaveFileDialog`
+      - živě ověřeno, skutečný CSV soubor se správným escapováním české lokalizace
+      (čárka v „100,00 MB" korektně obalena uvozovkami). JSON export zatím ne.
 - [ ] Výběr libovolné složky ke skenování (zatím jen kořen svazku z dashboardu)
 
 ## Fáze 5 — TRIM a defragmentace

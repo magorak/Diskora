@@ -6,6 +6,12 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Export do CSV (Fáze 4): `Diskora.Core.Export.CsvWriter` (RFC 4180 escapování
+  čárek/uvozovek/nových řádků, 5 testů) a tlačítko „Exportovat CSV..." v okně
+  Analýza zaplněnosti - exportuje aktuálně vybranou záložku (Složky/Největší
+  soubory/Nejstarší soubory) přes standardní `SaveFileDialog`. Živě ověřeno:
+  skutečný export z reálného svazku, správné escapování (česká lokalizace
+  velikosti obsahuje čárku, correctně obalena uvozovkami v CSV).
 - Vícevláknový sken zaplněnosti disku (Fáze 4): `DiskUsageScanner` teď skenuje
   sourozenecké podsložky souběžně přes `Task.Run` + `SemaphoreSlim`
   (`Environment.ProcessorCount * 2` souběžných I/O operací). Sken celého `C:\`

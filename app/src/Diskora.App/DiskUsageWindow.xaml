@@ -30,13 +30,16 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <Button Grid.Column="0" Content="↑ Nahoru" Margin="0,0,8,0"
                     Command="{Binding NavigateUpCommand}" />
             <TextBlock Grid.Column="1" Text="{Binding CurrentPathText}" FontSize="16" FontWeight="SemiBold"
                        VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-            <Button Grid.Column="2" Content="Obnovit sken" Command="{Binding RescanCommand}" />
+            <Button Grid.Column="2" Content="Exportovat CSV..." Margin="0,0,8,0" Click="ExportCsv_Click"
+                    Visibility="{Binding IsScanning, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+            <Button Grid.Column="3" Content="Obnovit sken" Command="{Binding RescanCommand}" />
         </Grid>
 
         <TextBlock Grid.Row="1" Text="{Binding CurrentSummaryText}" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,8" />
@@ -79,7 +82,7 @@
         </Border>
 
         <Grid Grid.Row="4">
-            <TabControl Visibility="{Binding IsScanning, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+            <TabControl x:Name="ResultsTabControl" Visibility="{Binding IsScanning, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                 <TabItem Header="Složky">
                     <Border Style="{StaticResource CardBorderStyle}">
                         <DataGrid ItemsSource="{Binding Items}" x:Name="ItemsGrid"
