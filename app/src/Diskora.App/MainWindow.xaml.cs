@@ -1,8 +1,10 @@
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using Diskora.App.Settings;
 using Diskora.App.Tray;
 using Diskora.App.ViewModels;
+using Diskora.Core.Models;
 using Diskora.Core.Services;
 using Diskora.Data;
 
@@ -24,11 +26,16 @@ public partial class MainWindow : Window
         StateChanged += MainWindow_StateChanged;
 
         var historyStore = new SqliteDiskHistoryStore();
+        var settings = ((App)Application.Current).SettingsStore.Load();
+        var notificationThreshold = Enum.TryParse<DiskHealthStatus>(settings.NotificationThreshold, out var threshold)
+            ? threshold
+            : DiskHealthStatus.Warning;
         _diskHealthNotifier = new DiskHealthNotifier(
             new DiskEnumerationService(),
             new DiskHealthMonitor(new SmartService(historyStore), historyStore),
             _trayIcon,
-            interval: TimeSpan.FromMinutes(30));
+            interval: TimeSpan.FromMinutes(30),
+            minimumThresholdToNotify: notificationThreshold);
         _ = _diskHealthNotifier.CheckNowAsync();
 
         Closed += (_, _) =>
@@ -179,6 +186,15 @@ public partial class MainWindow : Window
             Owner = this,
         };
         window.Show();
+    }
+
+    private void ShowSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var settingsWindow = new SettingsWindow(((App)Application.Current).SettingsStore)
+        {
+            Owner = this,
+        };
+        settingsWindow.ShowDialog();
     }
 
     private void ShowAbout_Click(object sender, RoutedEventArgs e)

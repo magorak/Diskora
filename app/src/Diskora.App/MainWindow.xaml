@@ -35,6 +35,8 @@
             </MenuItem>
             <MenuItem Header="Nás_troje">
                 <MenuItem Header="_Systémový protokol (disky)..." Click="ShowSystemEventLog_Click" />
+                <Separator />
+                <MenuItem Header="N_astavení..." Click="ShowSettings_Click" />
             </MenuItem>
             <MenuItem Header="_Nápověda">
                 <MenuItem Header="_O aplikaci Diskora" Click="ShowAbout_Click" />

@@ -18,16 +18,19 @@ public sealed class DiskHealthNotifier : IDisposable
     private readonly IDiskHealthMonitor _healthMonitor;
     private readonly TrayIconService _trayIcon;
     private readonly DispatcherTimer _timer;
+    private readonly DiskHealthStatus _minimumThresholdToNotify;
 
     public DiskHealthNotifier(
         IDiskEnumerationService diskEnumerationService,
         IDiskHealthMonitor healthMonitor,
         TrayIconService trayIcon,
-        TimeSpan interval)
+        TimeSpan interval,
+        DiskHealthStatus minimumThresholdToNotify = DiskHealthStatus.Warning)
     {
         _diskEnumerationService = diskEnumerationService;
         _healthMonitor = healthMonitor;
         _trayIcon = trayIcon;
+        _minimumThresholdToNotify = minimumThresholdToNotify;
 
         _timer = new DispatcherTimer { Interval = interval };
         _timer.Tick += async (_, _) => await CheckNowAsync();
@@ -57,7 +60,7 @@ public sealed class DiskHealthNotifier : IDisposable
             return;
         }
 
-        foreach (var change in degraded)
+        foreach (var change in degraded.Where(change => change.CurrentHealth >= _minimumThresholdToNotify))
         {
             _trayIcon.ShowBalloonTip(
                 "Zhoršení zdraví disku",
