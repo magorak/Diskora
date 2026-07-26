@@ -102,7 +102,16 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       má nové záložky „Největší soubory“/„Nejstarší soubory“ vedle „Složky“ - živě ověřeno
       na reálném svazku E:\ (správné řazení sestupně dle velikosti / vzestupně dle data)
 - [ ] Vlastní treemap control (squarified algoritmus) / sunburst jako alternativní zobrazení
-- [ ] Hledač duplicit (hash-based)
+- [x] Hledač duplicit (hash-based): `Diskora.Core.Services.DuplicateFileFinder` - dvoufázově
+      (seskupí podle velikosti souboru zdarma z metadat, teprve kandidáty se shodnou
+      velikostí hashuje SHA-256, paralelně přes `Parallel.ForEachAsync`). Procházení stromu
+      je záměrně jednovláknové (na rozdíl od `DiskUsageScanner`) - u paralelizace té scanner
+      se objevily dvě netriviální souběžnostní chyby a zde by přinesla jen malý zisk, protože
+      skutečné těžiště (hashování) je paralelizované samostatně a bezpečně. Nová záložka
+      „Duplicity" v okně Analýza zaplněnosti (tlačítko „Najít duplicity", read-only, nic
+      nemaže), řazeno podle reklamovatelné velikosti sestupně. 6 testů + živě ověřeno na
+      reálném souboru (kopie `IMG_0001.jpg` na E:\ správně detekována jako duplicita,
+      smazána po testu).
 - [x] Export reportu (CSV): `Diskora.Core.Export.CsvWriter` (RFC 4180 escapování, 5 testů)
       + tlačítko „Exportovat CSV..." v okně Analýza zaplněnosti, exportuje aktuálně
       zobrazenou záložku (Složky/Největší soubory/Nejstarší soubory) přes `SaveFileDialog`

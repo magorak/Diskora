@@ -15,6 +15,16 @@ verzování dle [Semantic Versioning](https://semver.org/).
   v tmavém i světlém režimu.
 
 ### Přidáno
+- Hledač duplicit (Fáze 4): `Diskora.Core.Services.DuplicateFileFinder` -
+  dvoufázový hash-based přístup (nejdřív zdarma seskupí podle velikosti
+  souboru, teprve kandidáty se shodnou velikostí hashuje SHA-256 paralelně).
+  Procházení stromu je záměrně jednovláknové - na rozdíl od `DiskUsageScanner`
+  zde paralelní rekurze nestojí za riziko (viz předchozí dvě opravy
+  souběžnosti), skutečné těžiště (hashování) je paralelizované samostatně
+  a bezpečně (plochý seznam, žádná rekurze). Nová záložka „Duplicity" v okně
+  Analýza zaplněnosti - read-only, nic se nemaže (skutečné čištění by
+  potřebovalo vlastní potvrzovací UI, stejně jako `chkdsk /f`). 6 nových
+  testů + živě ověřeno reálným duplicitním souborem na testovacím svazku.
 - Výběr libovolné složky ke skenování (Fáze 4): menu Soubor → „Analyzovat
   složku..." otevírá `Microsoft.Win32.OpenFolderDialog` a spustí Analýzu
   zaplněnosti nad libovolnou složkou, ne jen kořenem svazku. Mimochodem

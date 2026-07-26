@@ -14,7 +14,7 @@ public partial class DiskUsageWindow : Window
     public DiskUsageWindow(string rootPath)
     {
         InitializeComponent();
-        var viewModel = new DiskUsageViewModel(new DiskUsageScanner(), rootPath);
+        var viewModel = new DiskUsageViewModel(new DiskUsageScanner(), new DuplicateFileFinder(), rootPath);
         viewModel.CompositionSegments.CollectionChanged += (_, _) => RebuildCompositionBar(viewModel);
         DataContext = viewModel;
     }
@@ -51,6 +51,13 @@ public partial class DiskUsageWindow : Window
                     viewModel.OldestFiles.Select(f => (IReadOnlyList<string>)
                         [f.Name, f.SizeBytes.ToString(), f.SizeDisplay, f.LastWriteDisplay, f.FullPath]));
                 suggestedName = "diskora-nejstarsi-soubory.csv";
+                break;
+            case 3:
+                csv = CsvWriter.Write(
+                    ["Skupina", "Velikost", "Umístění"],
+                    viewModel.DuplicateFiles.Select(f => (IReadOnlyList<string>)
+                        [f.GroupNumber.ToString(), f.SizeDisplay, f.FullPath]));
+                suggestedName = "diskora-duplicity.csv";
                 break;
             default:
                 csv = CsvWriter.Write(

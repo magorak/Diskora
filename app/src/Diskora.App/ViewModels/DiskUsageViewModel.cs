@@ -11,6 +11,7 @@ namespace Diskora.App.ViewModels;
 public sealed class DiskUsageViewModel : ViewModelBase
 {
     private readonly IDiskUsageScanner _scanner;
+    private readonly IDuplicateFileFinder _duplicateFinder;
     private readonly string _rootPath;
     private readonly List<DirectoryUsageNode> _navigationStack = [];
 
@@ -19,14 +20,19 @@ public sealed class DiskUsageViewModel : ViewModelBase
     private string _currentPathText = string.Empty;
     private string _currentSummaryText = string.Empty;
     private string _scanningStatusText = string.Empty;
+    private bool _isFindingDuplicates;
+    private string _duplicatesStatusText = string.Empty;
+    private string _duplicatesSummaryText = string.Empty;
 
-    public DiskUsageViewModel(IDiskUsageScanner scanner, string rootPath)
+    public DiskUsageViewModel(IDiskUsageScanner scanner, IDuplicateFileFinder duplicateFinder, string rootPath)
     {
         _scanner = scanner;
+        _duplicateFinder = duplicateFinder;
         _rootPath = rootPath;
 
         RescanCommand = new RelayCommand(async () => await ScanAsync(), () => !IsScanning);
         NavigateUpCommand = new RelayCommand(NavigateUp, () => CanNavigateUp);
+        FindDuplicatesCommand = new RelayCommand(async () => await FindDuplicatesAsync(), () => !IsFindingDuplicates && !IsScanning);
 
         _ = ScanAsync();
     }
@@ -39,9 +45,13 @@ public sealed class DiskUsageViewModel : ViewModelBase
 
     public ObservableCollection<FileUsageRowViewModel> OldestFiles { get; } = [];
 
+    public ObservableCollection<DuplicateFileRowViewModel> DuplicateFiles { get; } = [];
+
     public ICommand RescanCommand { get; }
 
     public ICommand NavigateUpCommand { get; }
+
+    public ICommand FindDuplicatesCommand { get; }
 
     public bool IsScanning
     {
@@ -72,6 +82,28 @@ public sealed class DiskUsageViewModel : ViewModelBase
         get => _scanningStatusText;
         private set => SetField(ref _scanningStatusText, value);
     }
+
+    public bool IsFindingDuplicates
+    {
+        get => _isFindingDuplicates;
+        private set => SetField(ref _isFindingDuplicates, value);
+    }
+
+    public string DuplicatesStatusText
+    {
+        get => _duplicatesStatusText;
+        private set => SetField(ref _duplicatesStatusText, value);
+    }
+
+    public string DuplicatesSummaryText
+    {
+        get => _duplicatesSummaryText;
+        private set => SetField(ref _duplicatesSummaryText, value);
+    }
+
+    public bool HasDuplicateFiles => DuplicateFiles.Count > 0;
+
+    public bool HasSearchedForDuplicates { get; private set; }
 
     public bool CanNavigateUp => _navigationStack.Count > 1;
 
@@ -104,6 +136,11 @@ public sealed class DiskUsageViewModel : ViewModelBase
         Items.Clear();
         LargestFiles.Clear();
         OldestFiles.Clear();
+        DuplicateFiles.Clear();
+        DuplicatesSummaryText = string.Empty;
+        HasSearchedForDuplicates = false;
+        OnPropertyChanged(nameof(HasDuplicateFiles));
+        OnPropertyChanged(nameof(HasSearchedForDuplicates));
         _navigationStack.Clear();
         CurrentPathText = _rootPath;
         CurrentSummaryText = string.Empty;
@@ -136,6 +173,51 @@ public sealed class DiskUsageViewModel : ViewModelBase
         {
             IsScanning = false;
             ScanningStatusText = string.Empty;
+        }
+    }
+
+    private async Task FindDuplicatesAsync()
+    {
+        IsFindingDuplicates = true;
+        DuplicatesSummaryText = string.Empty;
+        DuplicatesStatusText = string.Empty;
+        DuplicateFiles.Clear();
+        OnPropertyChanged(nameof(HasDuplicateFiles));
+
+        var progress = new Progress<string>(path => DuplicatesStatusText = path);
+
+        try
+        {
+            var groups = await _duplicateFinder.FindAsync(_rootPath, progress);
+
+            var groupNumber = 1;
+            long totalReclaimable = 0;
+            foreach (var group in groups)
+            {
+                totalReclaimable += group.ReclaimableBytes;
+                foreach (var path in group.FilePaths)
+                {
+                    DuplicateFiles.Add(new DuplicateFileRowViewModel(groupNumber, group.SizeBytes, path));
+                }
+
+                groupNumber++;
+            }
+
+            DuplicatesSummaryText = groups.Count == 0
+                ? "Žádné duplicitní soubory nenalezeny."
+                : $"{groups.Count} skupin duplicit, možná úspora {ByteSizeFormatter.Format(totalReclaimable)}.";
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            DuplicatesSummaryText = $"Hledání duplicit se nepodařilo dokončit: {ex.Message}";
+        }
+        finally
+        {
+            HasSearchedForDuplicates = true;
+            OnPropertyChanged(nameof(HasDuplicateFiles));
+            OnPropertyChanged(nameof(HasSearchedForDuplicates));
+            DuplicatesStatusText = string.Empty;
+            IsFindingDuplicates = false;
         }
     }
 
