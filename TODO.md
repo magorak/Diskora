@@ -196,7 +196,23 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] Defragmentace HDD přes orchestraci `defrag.exe /D` (stejný `DefragRunner`) - kód
       sdílí ověřenou cestu s TRIM, nebylo živě testováno na skutečném HDD (žádný
       k dispozici v testovacím prostředí)
-- [ ] Vlastní analýza fragmentace (`FSCTL_GET_RETRIEVAL_POINTERS`) pro report před spuštěním
+- [x] Vlastní analýza fragmentace (`FSCTL_GET_RETRIEVAL_POINTERS`) pro report před spuštěním:
+      `Diskora.Native.Storage.FileFragmentationReader` čte počet fragmentů (nesouvislých
+      rozsahů clusterů) jednoho souboru - na rozdíl od SMART/povrchového skenu stačí
+      právo číst daný soubor, žádná elevace. Buffer dimenzovaný na 512 extentů, nad tuhle
+      hranici se vrátí jen dolní odhad ("512+"), místo opakovaného volání IOCTL s
+      posunutým `StartingVcn` - pro report to stačí. `Diskora.Core.Services.
+      FragmentationAnalysisService` prochází strom jednovláknově (stejný důvod jako
+      `DuplicateFileFinder`) a čtení jednotlivých souborů paralelizuje přes
+      `Parallel.ForEachAsync`. Nové tlačítko „Analyzovat fragmentaci" + záložka
+      „Fragmentace" (report + tabulka nejvíc fragmentovaných souborů) v okně
+      Optimalizace disku - viditelné jen pro HDD (stejná logika jako u TRIM/defrag:
+      nenabízet nesmyslnou akci pro zjištěný typ disku). 5 testů nad `Diskora.Core.
+      Tests` běžících nad SKUTEČNÝMI soubory a reálným IOCTL voláním (ne fake) - živě
+      ověřeno, že čerstvě zapsané malé soubory korektně nevycházejí jako fragmentované.
+      Průchod UI (tlačítko/tabulka na skutečném HDD) se živě ověřit nepodařilo - v
+      tomto prostředí jsou všechny disky SSD, stejné omezení jako u netestované
+      defragmentace HDD ve Fázi 5.
 - [x] Automatické skrytí irelevantních akcí podle typu disku (okno Optimalizace nabídne
       jen TRIM na SSD, jen defragmentaci na HDD, nic při nejistém zjištění)
 

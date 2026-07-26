@@ -9,6 +9,7 @@ public partial class OptimizationWindow : Window
     public OptimizationWindow(string driveLetter, string volumeName)
     {
         InitializeComponent();
-        DataContext = new OptimizationViewModel(new DiskOptimizationService(), driveLetter, volumeName);
+        DataContext = new OptimizationViewModel(
+            new DiskOptimizationService(), new FragmentationAnalysisService(), driveLetter, volumeName);
     }
 }

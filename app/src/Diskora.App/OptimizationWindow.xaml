@@ -44,6 +44,8 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -53,24 +55,58 @@
             <Button Grid.Column="0" Margin="0,0,8,0" Content="Spustit defragmentaci"
                     Command="{Binding RunDefragmentCommand}"
                     Visibility="{Binding ShowDefragAction, Converter={StaticResource BooleanToVisibilityConverter}}" />
-            <Button Grid.Column="1" Content="Zrušit" Command="{Binding CancelCommand}"
+            <Button Grid.Column="1" Margin="0,0,8,0" Content="Analyzovat fragmentaci"
+                    Command="{Binding AnalyzeFragmentationCommand}"
+                    Visibility="{Binding ShowDefragAction, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <Button Grid.Column="2" Margin="0,0,8,0" Content="Zrušit" Command="{Binding CancelCommand}"
                     Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
-            <TextBlock Grid.Column="2" Text="{Binding OperationSummary}" VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap" />
+            <Button Grid.Column="3" Content="Zrušit analýzu" Command="{Binding CancelFragmentationCommand}"
+                    Visibility="{Binding IsAnalyzingFragmentation, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <TextBlock Grid.Column="4" Text="{Binding OperationSummary}" VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap" />
         </Grid>
 
         <TextBlock Grid.Row="3" Margin="0,0,0,12" TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}"
                    Text="TRIM (retrim) i defragmentace vyžadují práva administrátora. Diskora nabízí jen akci vhodnou pro zjištěný typ disku." />
 
         <Border Grid.Row="4" Style="{StaticResource CardBorderStyle}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding OutputLines}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+            <TabControl>
+                <TabItem Header="Výstup">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding OutputLines}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Fragmentace"
+                         Visibility="{Binding ShowDefragAction, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid Margin="4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Margin="0,0,0,8" TextWrapping="Wrap"
+                                   Text="{Binding FragmentationSummary}"
+                                   Visibility="{Binding HasAnalyzedFragmentation, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <TextBlock Grid.Row="0" Margin="0,0,0,8" TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}"
+                                   Text="{Binding FragmentationStatusText}"
+                                   Visibility="{Binding IsAnalyzingFragmentation, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding MostFragmentedFiles}" IsReadOnly="True" AutoGenerateColumns="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Soubor" Binding="{Binding FullPath}" Width="*" />
+                                <DataGridTextColumn Header="Velikost" Binding="{Binding SizeDisplay}" Width="110" />
+                                <DataGridTextColumn Header="Fragmentů" Binding="{Binding FragmentCountDisplay}" Width="90" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
         </Border>
     </Grid>
 </Window>

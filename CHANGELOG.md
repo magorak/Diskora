@@ -6,6 +6,15 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Analýza fragmentace souborů (Fáze 5): `Diskora.Native.Storage.
+  FileFragmentationReader` (`FSCTL_GET_RETRIEVAL_POINTERS`, bez admin práv -
+  stačí právo číst soubor) + `Diskora.Core.Services.FragmentationAnalysisService`
+  (jednovláknový průchod stromem, paralelní čtení jednotlivých souborů, stejný
+  vzor jako `DuplicateFileFinder`). Nové tlačítko „Analyzovat fragmentaci" a
+  záložka „Fragmentace" v okně Optimalizace disku, viditelné jen pro HDD. 5
+  testů nad reálnými soubory a skutečným IOCTL voláním. Průchod UI na
+  skutečném HDD nebyl živě ověřen - v tomto prostředí jsou k dispozici jen
+  SSD disky.
 - Upozornění na zhoršení zdraví disku (Fáze 2): `DiskHealthChangeDetector` +
   `DiskHealthMonitor` (porovnají nový SMART výsledek s posledním záznamem
   historie, 19 testů) a `DiskHealthNotifier`, který v `MainWindow` periodicky

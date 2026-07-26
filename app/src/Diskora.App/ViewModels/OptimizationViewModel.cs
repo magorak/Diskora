@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Input;
 using Diskora.App.Commands;
 using Diskora.Core.Services;
@@ -8,16 +9,24 @@ namespace Diskora.App.ViewModels;
 public sealed class OptimizationViewModel : ViewModelBase
 {
     private readonly IDiskOptimizationService _service;
+    private readonly IFragmentationAnalysisService _fragmentationService;
     private readonly string _driveLetter;
     private CancellationTokenSource? _runCts;
+    private CancellationTokenSource? _fragmentationCts;
     private bool _isRunning;
     private bool? _isSolidState;
     private bool? _supportsTrim;
     private string? _operationSummary;
+    private bool _isAnalyzingFragmentation;
+    private string _fragmentationStatusText = string.Empty;
+    private string _fragmentationSummary = string.Empty;
+    private bool _hasAnalyzedFragmentation;
 
-    public OptimizationViewModel(IDiskOptimizationService service, string driveLetter, string volumeName)
+    public OptimizationViewModel(
+        IDiskOptimizationService service, IFragmentationAnalysisService fragmentationService, string driveLetter, string volumeName)
     {
         _service = service;
+        _fragmentationService = fragmentationService;
         _driveLetter = driveLetter;
         VolumeName = volumeName;
 
@@ -25,6 +34,8 @@ public sealed class OptimizationViewModel : ViewModelBase
         RunTrimCommand = new RelayCommand(async () => await RunAsync(trim: true), () => !IsRunning);
         RunDefragmentCommand = new RelayCommand(async () => await RunAsync(trim: false), () => !IsRunning);
         CancelCommand = new RelayCommand(Cancel, () => IsRunning);
+        AnalyzeFragmentationCommand = new RelayCommand(async () => await AnalyzeFragmentationAsync(), () => !IsAnalyzingFragmentation);
+        CancelFragmentationCommand = new RelayCommand(CancelFragmentationAnalysis, () => IsAnalyzingFragmentation);
 
         RefreshCapabilities();
     }
@@ -40,6 +51,36 @@ public sealed class OptimizationViewModel : ViewModelBase
     public ICommand RunDefragmentCommand { get; }
 
     public ICommand CancelCommand { get; }
+
+    public ICommand AnalyzeFragmentationCommand { get; }
+
+    public ICommand CancelFragmentationCommand { get; }
+
+    public ObservableCollection<FragmentedFileRowViewModel> MostFragmentedFiles { get; } = [];
+
+    public bool IsAnalyzingFragmentation
+    {
+        get => _isAnalyzingFragmentation;
+        private set => SetField(ref _isAnalyzingFragmentation, value);
+    }
+
+    public string FragmentationStatusText
+    {
+        get => _fragmentationStatusText;
+        private set => SetField(ref _fragmentationStatusText, value);
+    }
+
+    public string FragmentationSummary
+    {
+        get => _fragmentationSummary;
+        private set => SetField(ref _fragmentationSummary, value);
+    }
+
+    public bool HasAnalyzedFragmentation
+    {
+        get => _hasAnalyzedFragmentation;
+        private set => SetField(ref _hasAnalyzedFragmentation, value);
+    }
 
     public bool IsRunning
     {
@@ -125,4 +166,45 @@ public sealed class OptimizationViewModel : ViewModelBase
     }
 
     private void Cancel() => _runCts?.Cancel();
+
+    private async Task AnalyzeFragmentationAsync()
+    {
+        MostFragmentedFiles.Clear();
+        FragmentationSummary = string.Empty;
+        FragmentationStatusText = string.Empty;
+        IsAnalyzingFragmentation = true;
+        _fragmentationCts = new CancellationTokenSource();
+
+        var progress = new Progress<string>(path => FragmentationStatusText = path);
+
+        try
+        {
+            var result = await _fragmentationService.AnalyzeAsync(_driveLetter, progress, _fragmentationCts.Token);
+
+            foreach (var entry in result.MostFragmentedFiles)
+            {
+                MostFragmentedFiles.Add(new FragmentedFileRowViewModel(entry));
+            }
+
+            FragmentationSummary = result.FilesScanned == 0
+                ? "Žádné soubory k analýze."
+                : $"{result.FragmentedFileCount} z {result.FilesScanned} souborů je fragmentovaných.";
+        }
+        catch (OperationCanceledException)
+        {
+            FragmentationSummary = "Analýza zrušena.";
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+        {
+            FragmentationSummary = $"Analýzu se nepodařilo dokončit: {ex.Message}";
+        }
+        finally
+        {
+            HasAnalyzedFragmentation = true;
+            FragmentationStatusText = string.Empty;
+            IsAnalyzingFragmentation = false;
+        }
+    }
+
+    private void CancelFragmentationAnalysis() => _fragmentationCts?.Cancel();
 }
