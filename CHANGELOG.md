@@ -5,6 +5,21 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Přidáno
+- Read-only povrchový sken vadných sektorů (Fáze 3): nový
+  `Diskora.Native.Storage.PhysicalDiskSurfaceScanner` čte celý fyzický disk
+  sekvenčně po 4MiB blocích (`\\.\PhysicalDriveN`, vyžaduje admin práva) a
+  hlásí bajtové rozsahy, které se nepodařilo přečíst (upřesněné na 64KiB
+  granularitu) - needestruktivní, nic nezapisuje ani neopravuje.
+  `Diskora.Core.Services.SurfaceScanService` a nové okno „Povrchový sken
+  disku" (tlačítko u řádku fyzického disku v dashboardu) s průběžným
+  procentuálním postupem a možností zrušení. Živě ověřeno s admin právy:
+  4GB testovací disk proskenován za ~1 s beze zjištěných vadných oblastí,
+  zrušení uprostřed skenu (přes `CancellationToken`) na reálném 238GB disku
+  funguje čistě. Cestu se skutečně nalezenou vadnou oblastí se nepodařilo
+  živě ověřit - žádný disk s reálně vadnými sektory není v tomto prostředí
+  k dispozici.
+
 ### Opraveno
 - `Diskora.VirtualDisks.VirtualDiskAttacher`: `Attach` neposílal
   `ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME`, takže se připojený VHD/VHDX

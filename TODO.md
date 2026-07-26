@@ -71,7 +71,21 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       read-only, funguje bez admin práv - živě ověřeno na reálném protokolu
       tohoto stroje (dirty-bit kontrola svazku E: se skutečně propsala jako
       Ntfs event 98, korektně česky lokalizovaná zpráva díky cs-CZ locale)
-- [ ] Read-only povrchový sken vadných sektorů + report
+- [x] Read-only povrchový sken vadných sektorů + report (`Diskora.Native.Storage.
+      PhysicalDiskSurfaceScanner` - sekvenční čtení `\\.\PhysicalDriveN` po 4MiB
+      blocích, bufferovaný `FileStream` místo `FILE_FLAG_NO_BUFFERING` kvůli
+      zarovnávacím požadavkům přímého I/O; při chybě čtení bloku se rozsah upřesní
+      na 64KiB granularitu. `Diskora.Core.Services.SurfaceScanService` +
+      `SurfaceScanResult`/`BadSectorRange` modely, nové okno „Povrchový sken disku"
+      otevíratelné z řádku fyzického disku v dashboardu. Needestruktivní, nic
+      nezapisuje - na rozdíl od `chkdsk /f`/`/spotfix` neřeší opravu. Živě ověřeno
+      s admin právy: celý 4GB testovací fyzický disk (backing store E:\) proskenován
+      za ~1s, `AppearsClean=True`, `ProgressPercent` plynule 0→100 %; zrušení skenu
+      uprostřed (`CancellationToken`) korektně funguje (ověřeno na reálném 238GB
+      systémovém fyzickém disku, zrušeno po ~5 % / 26s). Cestu "nalezené vadné
+      oblasti" se živě ověřit nepodařilo - žádný disk se skutečně vadnými sektory
+      není v tomto prostředí k dispozici (stejné omezení jako u netestované
+      defragmentace HDD ve Fázi 5)
 - [x] Historie výsledků kontrol (`SqliteDiskHistoryStore`, tabulka historie v okně Kontrola
       integrity - dirty-bit i výsledky skenů) - živě ověřeno
 

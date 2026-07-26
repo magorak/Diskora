@@ -28,6 +28,20 @@ public partial class MainWindow : Window
         smartWindow.Show();
     }
 
+    private void ShowSurfaceScan_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: PhysicalDiskRowViewModel disk })
+        {
+            return;
+        }
+
+        var surfaceScanWindow = new SurfaceScanWindow(disk.Index, disk.FriendlyName, (long)disk.SizeBytes)
+        {
+            Owner = this,
+        };
+        surfaceScanWindow.Show();
+    }
+
     private void ShowIntegrity_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: VolumeRowViewModel volume })

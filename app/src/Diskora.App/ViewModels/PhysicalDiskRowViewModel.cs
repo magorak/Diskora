@@ -10,6 +10,8 @@ public sealed class PhysicalDiskRowViewModel(PhysicalDiskInfo info)
 
     public string FriendlyName { get; } = info.FriendlyName;
 
+    public ulong SizeBytes { get; } = info.SizeBytes;
+
     public string SizeDisplay { get; } = ByteSizeFormatter.Format((long)info.SizeBytes);
 
     public DiskMediaType MediaType { get; } = info.MediaType;
