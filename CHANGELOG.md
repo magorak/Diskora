@@ -6,6 +6,14 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Přístupnost - popisky pro čtečku obrazovky u průběhových pruhů (Fáze 8,
+  částečně): všech 5 `ProgressBar` (zaplněnost svazku, podíl složky, průběh
+  kontroly integrity/opravy, průběh povrchového skenu) dostalo
+  `AutomationProperties.Name` s aktuální hodnotou - dřív byly bez textového
+  obsahu pro čtečku obrazovky neviditelné. Živě ověřeno přes UI Automation na
+  dashboardu (před/po). Vlastní buňky treemapy zaplněnosti zůstávají zatím bez
+  automation peer (potřebovaly by přepsat na `Button` s vlastní šablonou) -
+  vedlejší záložka „Složky" (DataGrid) se stejnými daty je ale plně přístupná.
 - CodeQL a Dependabot v CI (Fáze 9): `.github/workflows/codeql.yml` (analýza C#
   na push/PR do master i týdně navíc) a `.github/dependabot.yml` (nuget pro
   `/app`, npm pro `/web`, github-actions pro workflow soubory, týdenní interval).

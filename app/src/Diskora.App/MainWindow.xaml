@@ -135,7 +135,8 @@
                                     <DataTemplate>
                                         <ProgressBar Value="{Binding UsedPercent, Mode=OneWay}"
                                                      Minimum="0" Maximum="100"
-                                                     VerticalAlignment="Center" />
+                                                     VerticalAlignment="Center"
+                                                     AutomationProperties.Name="{Binding UsedPercent, StringFormat='Zaplněnost {0:F0} procent'}" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>

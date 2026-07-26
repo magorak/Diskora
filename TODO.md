@@ -377,7 +377,24 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       volbu, ne o shodu se systémem.
 - [ ] Nastavení (jazyk, chování elevace, prahy notifikací)
 - [ ] Lokalizace (cs-CZ, en-US)
-- [ ] Přístupnost (screen reader labels, klávesová navigace, vysoký kontrast)
+- [ ] Přístupnost (screen reader labels, klávesová navigace, vysoký kontrast) - částečně:
+      všech 5 `ProgressBar` v aplikaci (zaplněnost svazku na dashboardu, podíl složky
+      v Analýze zaplněnosti, průběh kontroly integrity/opravy spotfix, průběh
+      povrchového skenu) dostalo `AutomationProperties.Name` s aktuální hodnotou -
+      dřív byly pro čtečku obrazovky bezejmenné (žádný text, jen vizuální pruh).
+      Živě ověřeno přes UI Automation na dashboardu (před opravou `Name=""`, po
+      opravě `Name="Zaplněnost 41 procent"` apod., zbylé 4 sdílí identický vzor
+      vazby, nebyly zvlášť reverifikovány). Ikonami-only tlačítka v appce nejsou
+      (všechna mají textový Content, takže mají přístupné jméno automaticky) -
+      žádná další nenalezena. Vlastní buňky treemapy zaplněnosti (Fáze 4,
+      vykreslované v kódu jako `Border`) nemají vlastní automation peer a čtečkou
+      obrazovky nejdou procházet/aktivovat - záměrně zatím neřešeno, protože stejná
+      data má i plně přístupná záložka „Složky" (DataGrid) vedle; oprava by
+      vyžadovala buňky předělat na `Button` s vlastní šablonou (odstranění
+      výchozího vzhledu tlačítka). Klávesová navigace (Tab pořadí) a vysoký
+      kontrast (explicitní světlé/tmavé téma místo systémových barev) zůstávají
+      needotčené - klávesová navigace nebyla systematicky projitá, vysoký kontrast
+      (Windows High Contrast mode) není explicitně podporován.
 
 ## Fáze 9 — Bezpečnost a release engineering
 - [ ] `SECURITY.md` — threat model, responsible disclosure

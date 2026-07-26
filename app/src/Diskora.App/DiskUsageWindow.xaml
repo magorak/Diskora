@@ -96,7 +96,8 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <ProgressBar Value="{Binding PercentOfParent, Mode=OneWay}"
-                                                         Minimum="0" Maximum="100" VerticalAlignment="Center" />
+                                                         Minimum="0" Maximum="100" VerticalAlignment="Center"
+                                                         AutomationProperties.Name="{Binding PercentOfParent, StringFormat='Podíl {0:F0} procent'}" />
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
