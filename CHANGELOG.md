@@ -6,6 +6,11 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Výběr libovolné složky ke skenování (Fáze 4): menu Soubor → „Analyzovat
+  složku..." otevírá `Microsoft.Win32.OpenFolderDialog` a spustí Analýzu
+  zaplněnosti nad libovolnou složkou, ne jen kořenem svazku. Mimochodem
+  opravena kolidující mnemonika v menu Soubor („Obnovit"/„Otevřít" obě O).
+  Živě ověřeno na `C:\Projekt\Diskora\docs`.
 - Export do CSV (Fáze 4): `Diskora.Core.Export.CsvWriter` (RFC 4180 escapování
   čárek/uvozovek/nových řádků, 5 testů) a tlačítko „Exportovat CSV..." v okně
   Analýza zaplněnosti - exportuje aktuálně vybranou záložku (Složky/Největší

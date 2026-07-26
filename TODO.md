@@ -108,7 +108,11 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       zobrazenou záložku (Složky/Největší soubory/Nejstarší soubory) přes `SaveFileDialog`
       - živě ověřeno, skutečný CSV soubor se správným escapováním české lokalizace
       (čárka v „100,00 MB" korektně obalena uvozovkami). JSON export zatím ne.
-- [ ] Výběr libovolné složky ke skenování (zatím jen kořen svazku z dashboardu)
+- [x] Výběr libovolné složky ke skenování: menu Soubor → „Analyzovat složku..." otevírá
+      `Microsoft.Win32.OpenFolderDialog`, funguje se stejným oknem Analýza zaplněnosti
+      jako skenování celého svazku (`DiskUsageWindow` bere libovolnou cestu, ne jen kořen
+      svazku) - živě ověřeno na `C:\Projekt\Diskora\docs` (správně naskenováno jen 6,85 KB
+      / 3 soubory, ne celý disk C:)
 
 ## Fáze 5 — TRIM a defragmentace
 - [x] Detekce SSD (`DeviceSeekPenaltyProperty`) a podpory TRIM (`DeviceTrimProperty`) přes

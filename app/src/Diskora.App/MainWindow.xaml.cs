@@ -56,6 +56,25 @@ public partial class MainWindow : Window
         diskUsageWindow.Show();
     }
 
+    private void AnalyzeFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFolderDialog
+        {
+            Title = "Vybrat složku k analýze zaplněnosti",
+        };
+
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        var diskUsageWindow = new DiskUsageWindow(dialog.FolderName)
+        {
+            Owner = this,
+        };
+        diskUsageWindow.Show();
+    }
+
     private void OpenVirtualDisk_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
