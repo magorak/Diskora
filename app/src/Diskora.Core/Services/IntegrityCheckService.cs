@@ -27,6 +27,20 @@ public sealed class IntegrityCheckService(IDiskHistoryStore? historyStore = null
         return outcome;
     }
 
+    public async Task<IntegrityScanOutcome> RunSpotFixAsync(
+        string driveLetter,
+        IProgress<string>? onOutputLine = null,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await ChkdskRunner.RunSpotFixAsync(driveLetter, onOutputLine, cancellationToken);
+        var outcome = new IntegrityScanOutcome(result.Started, result.FailureReason, result.ExitCode, result.OutputLines);
+
+        var state = ReadDirtyState(driveLetter);
+        historyStore?.RecordIntegrityCheck(driveLetter, state, outcome.ExitCode, outcome.Started ? outcome.AppearsClean : null);
+
+        return outcome;
+    }
+
     private static VolumeDirtyState ReadDirtyState(string driveLetter) => VolumeDirtyChecker.IsDirty(driveLetter) switch
     {
         true => VolumeDirtyState.Dirty,

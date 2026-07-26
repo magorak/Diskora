@@ -82,8 +82,30 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       (nemá přístup k reálné interaktivní ploše - selhává i obecné GDI
       `Graphics.CopyFromScreen`, nezávisle na admin právech), vizuální kontrola
       progress baru v běžícím GUI proto zůstává na živém spuštění mimo tento nástroj
-- [ ] Skutečná oprava (`/f`, `/spotfix`) - záměrně zatím nepropojeno, potřebuje vlastní
-      potvrzovací UI (riziko naplánovaného restartu na systémovém svazku)
+- [x] Skutečná oprava - jen `/spotfix` varianta zatím (`ChkdskRunner.RunSpotFixAsync`,
+      `Repair-Volume -SpotFix` orchestrace stejným vzorem jako `IsoMounter` - cesta/písmeno
+      přes proměnnou prostředí, ne interpolace). Vědomě NE `/f`/`/r` (offline scan+fix) -
+      ty by na systémovém/uzamčeném svazku potřebovaly naplánovaný restart, což je
+      samostatný, složitější UX problém ponechaný na příště. Spotfix je Windows 8+ online
+      self-healing oprava (poškozené indexy, osiřelé soubory, bezpečnostní deskriptory)
+      bez nutnosti odpojení ve většině případů, takže se týhle komplikaci vyhýbá.
+      `IntegrityViewModel` má nové tlačítko „Opravit (spotfix)" s vlastním potvrzovacím
+      dialogem PŘED zápisem (na rozdíl od needestruktivní kontroly výše) - `MessageBoxResult.
+      No` je záměrně výchozí tlačítko, aby náhodný Enter/mezerník nemohl omylem potvrdit
+      akci, která skutečně zapisuje na disk.
+      Živě odhalené a opravené reálné chyby: (1) PowerShell skript bez admin práv Repair-Volume
+      selhal jen jako NEterminating chyba (ne výjimka), `$result` zůstal null a skript to tiše
+      prohlásil za úspěch (exit 0, prázdný `HealthStatus`) - opraveno `$ErrorActionPreference
+      = 'Stop'` uvnitř try bloku + explicitní kontrola null/prázdného výsledku jako obrana do
+      hloubky. (2) Live testování přes UI Automation nechtěně jednou skutečně vyvolalo
+      potvrzovací dialog s "Ano" (pravděpodobně zdědění focusu/vstupu z předchozího kroku
+      automatizace, přesný mechanismus se nepodařilo dohledat) - proto oprava (1) výše
+      "Ano" jako výchozí tlačítko. Skutečný dopad ověřen: svazek E:\ zůstal po tomto
+      nechtěném běhu beze změny (bez admin práv Windows operaci zablokoval dřív, než by
+      mohla cokoliv zapsat - živě ověřeno výpisem obsahu E:\ před/po). Cestou deliberátně
+      NEBYLO živě ověřeno: úspěšný běh spotfix s admin právy (tenhle krok automatický
+      classifier prostředí zablokoval jako riziková akce - správně, jde o akci se skutečným
+      zápisem na disk - takže zůstává na vědomé manuální ověření uživatelem).
 - [x] Čtení Event Logu (`Diskora.Native.EventLog.DiskEventLogReader` přes
       `System.Diagnostics.Eventing.Reader.EventLogReader`, filtrováno na providery
       Ntfs/Disk/Volsnap/Virtual Disk Service/FilterManager/Wininit v protokolech

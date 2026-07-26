@@ -6,6 +6,25 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Skutečná oprava integrity - spotfix (Fáze 3): `ChkdskRunner.RunSpotFixAsync`
+  (`Repair-Volume -SpotFix` orchestrace, stejný vzor jako `IsoMounter`). Vědomě
+  jen spotfix (Windows 8+ online self-healing), ne `/f`/`/r` - ty by na
+  systémovém/uzamčeném svazku potřebovaly naplánovaný restart, samostatný a
+  složitější UX problém ponechaný na příště. Nové tlačítko „Opravit (spotfix)"
+  v okně Kontrola integrity s vlastním potvrzovacím dialogem PŘED zápisem -
+  `MessageBoxResult.No` je záměrně výchozí, aby náhodný Enter/mezerník
+  nemohl omylem potvrdit akci, která skutečně zapisuje na disk.
+
+### Opraveno
+- `ChkdskRunner.RunSpotFixAsync`: bez admin práv `Repair-Volume` selhával jen
+  jako NEterminating chyba, takže skript to tiše prohlásil za úspěch (prázdný
+  `HealthStatus`, exit 0) - opraveno explicitní kontrolou výsledku. Živě
+  odhaleno při testování - jeden běh nechtěně skutečně proběhl (dopad ověřen
+  jako nulový, bez admin práv Windows operaci zablokoval dřív, než mohla
+  cokoliv zapsat), což zároveň odhalilo, že „Ano" bylo výchozí tlačítko
+  potvrzovacího dialogu - přepnuto na „Ne" jako výchozí.
+
+### Přidáno
 - Export do CSV/JSON napříč okny (Fáze 8): dřív mělo export jen okno Analýza
   zaplněnosti. Přidáno do S.M.A.R.T., Kontrola integrity, Povrchový sken a
   Systémový protokol - sdílené přes nový `Diskora.App.Export.ExportHelper`

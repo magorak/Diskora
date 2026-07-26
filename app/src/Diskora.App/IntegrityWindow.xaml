@@ -54,13 +54,22 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Margin="0,0,8,0" Content="Spustit kontrolu (jen čtení)"
                     Command="{Binding StartScanCommand}" Visibility="{Binding IsScanning, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
-            <Button Grid.Column="1" Content="Zrušit" Command="{Binding CancelScanCommand}"
+            <Button Grid.Column="1" Margin="0,0,8,0" Content="Zrušit" Command="{Binding CancelScanCommand}"
                     Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}" />
-            <TextBlock Grid.Column="2" Text="{Binding ScanSummary}" VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap" />
+            <Button Grid.Column="2" Margin="0,0,8,0" Content="Opravit (spotfix)"
+                    Command="{Binding RunSpotFixCommand}" Visibility="{Binding IsRepairing, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+            <Button Grid.Column="3" Margin="0,0,8,0" Content="Zrušit opravu" Command="{Binding CancelSpotFixCommand}"
+                    Visibility="{Binding IsRepairing, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <TextBlock Grid.Column="4" VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap"
+                       Text="{Binding ScanSummary}" Visibility="{Binding IsRepairing, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+            <TextBlock Grid.Column="4" VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap"
+                       Text="{Binding RepairSummary}" Visibility="{Binding IsRepairing, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </Grid>
 
         <Grid Grid.Row="4" Margin="0,0,0,12"
@@ -80,6 +89,16 @@
             </Grid>
 
             <ProgressBar Grid.Row="1" Height="10" Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" />
+        </Grid>
+
+        <Grid Grid.Row="4" Margin="0,0,0,12"
+              Visibility="{Binding IsRepairing, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Probíhá oprava (spotfix)..." FontWeight="SemiBold" Margin="0,0,0,6" />
+            <ProgressBar Grid.Row="1" Height="10" IsIndeterminate="True" />
         </Grid>
 
         <Border Grid.Row="5" Style="{StaticResource CardBorderStyle}">

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Input;
 using Diskora.App.Commands;
 using Diskora.App.Parsing;
@@ -10,17 +11,21 @@ namespace Diskora.App.ViewModels;
 public sealed class IntegrityViewModel : ViewModelBase
 {
     // chkdsk /scan (bez /r) proběhne fázemi 1-3; fáze 4-5 (kontrola sektorů)
-    // se spouští jen s /r, který zatím Diskora nenabízí (viz TODO - skutečná
-    // oprava je záměrně samostatný krok).
+    // se spouští jen s /r, který Diskora zatím nenabízí (vyžadoval by řešit
+    // naplánovaný restart na systémovém svazku - viz RunSpotFixAsync níže,
+    // který se tomu záměrně vyhýbá).
     private const int TotalStages = 3;
 
     private readonly IIntegrityCheckService _service;
     private readonly IDiskHistoryStore _historyStore;
     private readonly string _driveLetter;
     private CancellationTokenSource? _scanCts;
+    private CancellationTokenSource? _repairCts;
     private VolumeDirtyState _dirtyState = VolumeDirtyState.Unknown;
     private bool _isScanning;
+    private bool _isRepairing;
     private IntegrityScanOutcome? _lastOutcome;
+    private IntegrityScanOutcome? _lastRepairOutcome;
     private int? _currentStage;
     private string? _currentStageDescription;
     private double _progressPercent;
@@ -32,9 +37,11 @@ public sealed class IntegrityViewModel : ViewModelBase
         _driveLetter = driveLetter;
         VolumeName = volumeName;
 
-        RefreshDirtyStateCommand = new RelayCommand(RefreshDirtyState, () => !IsScanning);
-        StartScanCommand = new RelayCommand(async () => await StartScanAsync(), () => !IsScanning);
+        RefreshDirtyStateCommand = new RelayCommand(RefreshDirtyState, () => !IsBusy);
+        StartScanCommand = new RelayCommand(async () => await StartScanAsync(), () => !IsBusy);
         CancelScanCommand = new RelayCommand(CancelScan, () => IsScanning);
+        RunSpotFixCommand = new RelayCommand(async () => await RunSpotFixAsync(), () => !IsBusy);
+        CancelSpotFixCommand = new RelayCommand(CancelSpotFix, () => IsRepairing);
 
         RefreshDirtyState();
     }
@@ -50,6 +57,10 @@ public sealed class IntegrityViewModel : ViewModelBase
     public ICommand StartScanCommand { get; }
 
     public ICommand CancelScanCommand { get; }
+
+    public ICommand RunSpotFixCommand { get; }
+
+    public ICommand CancelSpotFixCommand { get; }
 
     public VolumeDirtyState DirtyState
     {
@@ -73,8 +84,29 @@ public sealed class IntegrityViewModel : ViewModelBase
     public bool IsScanning
     {
         get => _isScanning;
-        private set => SetField(ref _isScanning, value);
+        private set
+        {
+            if (SetField(ref _isScanning, value))
+            {
+                OnPropertyChanged(nameof(IsBusy));
+            }
+        }
     }
+
+    public bool IsRepairing
+    {
+        get => _isRepairing;
+        private set
+        {
+            if (SetField(ref _isRepairing, value))
+            {
+                OnPropertyChanged(nameof(IsBusy));
+            }
+        }
+    }
+
+    /// <summary>Kontrola i oprava sdílejí stejný výstupní panel - nemají běžet zároveň.</summary>
+    public bool IsBusy => IsScanning || IsRepairing;
 
     public string? CurrentStageDescription
     {
@@ -94,6 +126,14 @@ public sealed class IntegrityViewModel : ViewModelBase
         { Started: false } => _lastOutcome.FailureReason,
         { AppearsClean: true } => "Kontrola dokončena - žádné chyby nenalezeny.",
         _ => $"Kontrola dokončena (návratový kód {_lastOutcome.ExitCode}). Zkontrolujte výstup níže.",
+    };
+
+    public string? RepairSummary => _lastRepairOutcome switch
+    {
+        null => null,
+        { Started: false } => _lastRepairOutcome.FailureReason,
+        { AppearsClean: true } => "Oprava dokončena.",
+        _ => $"Oprava dokončena (návratový kód {_lastRepairOutcome.ExitCode}). Zkontrolujte výstup níže.",
     };
 
     private void RefreshDirtyState()
@@ -168,4 +208,51 @@ public sealed class IntegrityViewModel : ViewModelBase
         Math.Clamp((stage - 1) * (100.0 / TotalStages), 0, 100);
 
     private void CancelScan() => _scanCts?.Cancel();
+
+    /// <summary>
+    /// Na rozdíl od <see cref="StartScanAsync"/> (needestruktivní, jen čte) tahle akce
+    /// SKUTEČNĚ ZAPISUJE opravy na disk - proto vlastní explicitní potvrzení PŘED
+    /// zavoláním služby, přesně jak slibuje popisek v okně Kontrola integrity.
+    /// </summary>
+    private async Task RunSpotFixAsync()
+    {
+        // MessageBoxResult.No jako výchozí tlačítko - náhodný Enter/mezerník (nebo focus
+        // zděděný z předchozího dialogu) tak nemůže omylem potvrdit akci, která SKUTEČNĚ
+        // zapisuje na disk. "Ano" musí být vždy vědomá volba myší/šipkami+Enter.
+        var confirmed = MessageBox.Show(
+            $"Spotfix se pokusí opravit běžné problémy na svazku {VolumeName} (poškozené indexy, " +
+            "osiřelé soubory, bezpečnostní deskriptory) bez nutnosti svazek odpojit - na rozdíl od " +
+            "kontroly „jen čtení“ výše ale tahle akce SKUTEČNĚ ZAPISUJE opravy na disk. " +
+            "Ve vzácných případech si i spotfix může vyžádat restart počítače. Pokračovat?",
+            "Potvrdit opravu (spotfix)",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No) == MessageBoxResult.Yes;
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        OutputLines.Clear();
+        _lastRepairOutcome = null;
+        OnPropertyChanged(nameof(RepairSummary));
+        IsRepairing = true;
+        _repairCts = new CancellationTokenSource();
+
+        var progress = new Progress<string>(line => OutputLines.Add(line));
+
+        try
+        {
+            _lastRepairOutcome = await _service.RunSpotFixAsync(_driveLetter, progress, _repairCts.Token);
+        }
+        finally
+        {
+            IsRepairing = false;
+            OnPropertyChanged(nameof(RepairSummary));
+            RefreshDirtyState();
+        }
+    }
+
+    private void CancelSpotFix() => _repairCts?.Cancel();
 }
