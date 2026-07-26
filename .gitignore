@@ -20,6 +20,9 @@ app/**/obj/
 *.pdb
 /BUILD/
 
+# Portable build výstup (app/publish-portable.ps1) - generuje se čerstvě, necommituje se
+/dist/
+
 # Test results
 [Tt]est[Rr]esult*/
 *.trx
