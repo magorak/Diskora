@@ -108,6 +108,12 @@
                     </Border>
                 </TabItem>
 
+                <TabItem Header="Mapa">
+                    <Border Style="{StaticResource CardBorderStyle}" ClipToBounds="True">
+                        <Canvas x:Name="TreemapCanvas" Background="Transparent" SizeChanged="TreemapCanvas_SizeChanged" />
+                    </Border>
+                </TabItem>
+
                 <TabItem Header="Největší soubory">
                     <Border Style="{StaticResource CardBorderStyle}">
                         <DataGrid ItemsSource="{Binding LargestFiles}" IsReadOnly="True" AutoGenerateColumns="False">

@@ -23,6 +23,13 @@
     <SolidColorBrush x:Key="SeriesBrush4" Color="#EDA100" />
     <SolidColorBrush x:Key="SeriesBrush5" Color="#E87BA4" />
 
+    <!-- Sekvenční modrá (velikost/magnituda) pro treemapu zaplněnosti - jedna barva,
+         světlá/tmavá dle podílu (viz skill dataviz - sequential, ne kategoriální,
+         protože buňky treemapy nejsou pojmenované kategorie). Nejsvětlejší krok
+         zůstává nad prahem 2:1 vůči podkladu, aby i nejmenší buňka byla vidět. -->
+    <SolidColorBrush x:Key="TreemapCellLowBrush" Color="#86B6EF" />
+    <SolidColorBrush x:Key="TreemapCellHighBrush" Color="#0D366B" />
+
     <!--
         Windows odvozuje výchozí (nestylované) části vestavěných ovládacích prvků
         (DataGridRow, Menu, ScrollBar, ...) z těchto systémových barev. Pokud je

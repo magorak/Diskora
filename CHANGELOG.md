@@ -6,6 +6,18 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Treemapa zaplněnosti (Fáze 4): nová záložka „Mapa" v okně Analýza zaplněnosti
+  vedle Složek/Největší souborů/Nejstarší souborů/Duplicit -
+  `Diskora.Core.Layout.SquarifiedTreemapLayout` (čistě geometrický port
+  algoritmu Bruls/Huizing/van Wijk 2000, 11 testů) vykreslený jako Canvas v
+  `DiskUsageWindow`. Barva buňky kóduje velikost sekvenčně (jedna barva,
+  světlá→tmavá dle podílu - viz skill dataviz), klik na buňku = drill-down.
+  Živě ověřeno (UI Automation + screenshoty, `app/src` → `Diskora.App` →
+  `bin`) včetně resize okna. Live testování odhalilo skutečný bug sdílený s
+  existujícím kompozičním pruhem - obě vizualizace počítaly barvu jako
+  statický `SolidColorBrush` místo `DynamicResource`, takže při přepnutí
+  světlé/tmavé téma za běhu zůstávaly zamrzlé ve starém tématu; opraveno
+  novým `ThemeService.ThemeChanged` eventem.
 - Upozornění na osiřelé připojené virtuální disky (Fáze 6): Diskora připojuje
   VHD/VHDX s `ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME` (viz oprava níže),
   takže disk zůstává připojený i po pádu aplikace nebo zavření bez ručního

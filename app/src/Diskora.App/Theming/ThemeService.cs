@@ -15,6 +15,15 @@ public sealed class ThemeService(Application application)
 
     public AppTheme Current { get; private set; } = AppTheme.System;
 
+    /// <summary>
+    /// Vyvoláno po přepnutí tématu. Prvky, které si barvu z motivu ukládají jako
+    /// vypočtenou (ne přes DynamicResource v XAML - typicky interpolované barvy
+    /// v kódu, např. buňky treemapy zaplněnosti), se bez tohoto signálu nepřekreslí
+    /// a zůstanou vizuálně "zamrzlé" ve starém tématu, dokud je nevynutí jiná událost
+    /// (změna dat, resize).
+    /// </summary>
+    public event Action? ThemeChanged;
+
     public void Apply(AppTheme theme)
     {
         Current = theme;
@@ -35,6 +44,7 @@ public sealed class ThemeService(Application application)
 
         application.Resources.MergedDictionaries.Insert(0, dictionary);
         _activeThemeDictionary = dictionary;
+        ThemeChanged?.Invoke();
     }
 
     private static bool DetectSystemThemeIsLight()

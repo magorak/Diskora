@@ -129,7 +129,27 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       (bez alokace na soubor, neškáluje pamětí s počtem souborů). Okno Analýza zaplněnosti
       má nové záložky „Největší soubory“/„Nejstarší soubory“ vedle „Složky“ - živě ověřeno
       na reálném svazku E:\ (správné řazení sestupně dle velikosti / vzestupně dle data)
-- [ ] Vlastní treemap control (squarified algoritmus) / sunburst jako alternativní zobrazení
+- [x] Vlastní treemap control (squarified algoritmus): `Diskora.Core.Layout.SquarifiedTreemapLayout`
+      - čistě geometrický port široce používaného referenčního algoritmu (Bruls/Huizing/
+      van Wijk 2000, "squarify"), žádná závislost na WPF, 11 testů (zachování celkové
+      plochy, žádné překryvy, zachování pořadí vstupu, hraniční případy). Nová záložka
+      „Mapa" v okně Analýza zaplněnosti - Canvas vykreslovaný v kódu (`DiskUsageWindow.
+      RebuildTreemap`), přepočítává se při změně dat i při změně velikosti okna.
+      Barva buňky je sekvenční (jedna barva, světlá→tmavá dle podílu na celkové
+      velikosti - viz skill dataviz: buňky nejsou pojmenované kategorie, kategoriální
+      paleta by neseděla), dvě nové barvy motivu `TreemapCellLowBrush`/`HighBrush`
+      (Light/Dark.xaml). Popisek se renderuje přímo do buňky (skillem zmíněná výjimka
+      z "text nikdy nenese barvu dat") s barvou textu (bílá/tmavá) dle jasu výplně.
+      Klik na buňku = drill-down (sdílí `NavigateInto` s tabulkovým zobrazením).
+      Živě ověřeno (UI Automation + screenshoty, reálný scan `app/src` a drill-down do
+      `Diskora.App`): rozvržení, barvy, popisky, klik-drilldown i resize okna fungují.
+      Živé testování při té příležitosti odhalilo a opravilo skutečný bug: barvy
+      buněk (i existujícího kompozičního pruhu) se počítaly v kódu jako statický
+      `SolidColorBrush`, ne přes `DynamicResource` - při přepnutí světlé/tmavé téma
+      za běhu (bez zavření okna) tak zůstávaly "zamrzlé" ve starém tématu. Přidán
+      `ThemeService.ThemeChanged` event, `DiskUsageWindow` na něj přehraje oba
+      výpočty - live ověřeno, že přepnutí tématu teď obě vizualizace okamžitě
+      přebarví.
 - [x] Hledač duplicit (hash-based): `Diskora.Core.Services.DuplicateFileFinder` - dvoufázově
       (seskupí podle velikosti souboru zdarma z metadat, teprve kandidáty se shodnou
       velikostí hashuje SHA-256, paralelně přes `Parallel.ForEachAsync`). Procházení stromu

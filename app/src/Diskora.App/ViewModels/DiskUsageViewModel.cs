@@ -41,6 +41,8 @@ public sealed class DiskUsageViewModel : ViewModelBase
 
     public ObservableCollection<CompositionSegmentViewModel> CompositionSegments { get; } = [];
 
+    public ObservableCollection<TreemapCellViewModel> TreemapCells { get; } = [];
+
     public ObservableCollection<FileUsageRowViewModel> LargestFiles { get; } = [];
 
     public ObservableCollection<FileUsageRowViewModel> OldestFiles { get; } = [];
@@ -236,8 +238,49 @@ public sealed class DiskUsageViewModel : ViewModelBase
         }
 
         UpdateCompositionSegments(current);
+        UpdateTreemapCells(current);
 
         OnPropertyChanged(nameof(CanNavigateUp));
+    }
+
+    /// <summary>
+    /// Na rozdíl od <see cref="UpdateCompositionSegments"/> (top 5 + "Ostatní" pro čitelný
+    /// pruh) treemapa zvládne zobrazit desítky položek najednou čitelně - žádný strop na
+    /// počet, celý seznam Items (+ souhrn přímých souborů, pokud nějaké jsou).
+    /// </summary>
+    private void UpdateTreemapCells(DirectoryUsageNode current)
+    {
+        TreemapCells.Clear();
+
+        if (current.SizeBytes <= 0)
+        {
+            return;
+        }
+
+        foreach (var row in Items)
+        {
+            TreemapCells.Add(new TreemapCellViewModel
+            {
+                Name = row.Name,
+                SizeBytes = row.Node.SizeBytes,
+                SizeDisplay = row.SizeDisplay,
+                PercentOfParent = row.PercentOfParent,
+                Row = row,
+            });
+        }
+
+        var directFilesSize = current.SizeBytes - current.Subdirectories.Sum(s => s.SizeBytes);
+        if (directFilesSize > 0)
+        {
+            TreemapCells.Add(new TreemapCellViewModel
+            {
+                Name = "Soubory v této složce",
+                SizeBytes = directFilesSize,
+                SizeDisplay = ByteSizeFormatter.Format(directFilesSize),
+                PercentOfParent = directFilesSize * 100.0 / current.SizeBytes,
+                Row = null,
+            });
+        }
     }
 
     /// <summary>

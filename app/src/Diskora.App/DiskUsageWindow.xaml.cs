@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Diskora.App.ViewModels;
 using Diskora.Core.Export;
+using Diskora.Core.Layout;
 using Diskora.Core.Services;
 
 namespace Diskora.App;
@@ -19,7 +20,21 @@ public partial class DiskUsageWindow : Window
         InitializeComponent();
         var viewModel = new DiskUsageViewModel(new DiskUsageScanner(), new DuplicateFileFinder(), rootPath);
         viewModel.CompositionSegments.CollectionChanged += (_, _) => RebuildCompositionBar(viewModel);
+        viewModel.TreemapCells.CollectionChanged += (_, _) => RebuildTreemap(viewModel);
         DataContext = viewModel;
+
+        // Barvy obou prvků (kompoziční pruh i treemapa) se počítají v kódu, ne přes
+        // DynamicResource v XAML, takže se samy nepřekreslí při přepnutí tématu za běhu -
+        // bez tohoto se signálem zůstanou "zamrzlé" ve starém tématu (živě odhaleno).
+        var theme = ((App)Application.Current).Theme;
+        void OnThemeChanged()
+        {
+            RebuildCompositionBar(viewModel);
+            RebuildTreemap(viewModel);
+        }
+
+        theme.ThemeChanged += OnThemeChanged;
+        Closed += (_, _) => theme.ThemeChanged -= OnThemeChanged;
     }
 
     private void ItemsGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -217,4 +232,100 @@ public partial class DiskUsageWindow : Window
             CompositionBarGrid.Children.Add(border);
         }
     }
+
+    private void TreemapCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (DataContext is DiskUsageViewModel viewModel)
+        {
+            RebuildTreemap(viewModel);
+        }
+    }
+
+    private static readonly Color TreemapDarkInk = Color.FromRgb(0x0B, 0x0B, 0x0B);
+
+    /// <summary>
+    /// Barva buňky kóduje velikost (sekvenční jedna barva, světlá→tmavá dle podílu -
+    /// viz skill dataviz: buňky nejsou pojmenované kategorie, takže kategoriální paleta
+    /// by sem neseděla). Popisek se vykresluje přímo do vyplněné buňky - podle skillu
+    /// je "label uvnitř barevné výplně" jediná výjimka z pravidla "text nikdy nenese
+    /// barvu dat": barva textu (bílá/tmavá) se volí podle jasu výplně, aby vždy byla čitelná.
+    /// </summary>
+    private void RebuildTreemap(DiskUsageViewModel viewModel)
+    {
+        TreemapCanvas.Children.Clear();
+
+        var width = TreemapCanvas.ActualWidth;
+        var height = TreemapCanvas.ActualHeight;
+        var cells = viewModel.TreemapCells;
+        if (width <= 0 || height <= 0 || cells.Count == 0)
+        {
+            return;
+        }
+
+        var weights = cells.Select(c => (double)c.SizeBytes).ToList();
+        var rects = SquarifiedTreemapLayout.Layout(weights, 0, 0, width, height);
+
+        var minSize = cells.Min(c => c.SizeBytes);
+        var maxSize = cells.Max(c => c.SizeBytes);
+        var lowColor = ((SolidColorBrush)FindResource("TreemapCellLowBrush")).Color;
+        var highColor = ((SolidColorBrush)FindResource("TreemapCellHighBrush")).Color;
+
+        const double gap = 2;
+
+        for (var i = 0; i < cells.Count; i++)
+        {
+            var rect = rects[i];
+            if (rect.Width <= gap || rect.Height <= gap)
+            {
+                continue;
+            }
+
+            var cell = cells[i];
+            var ratio = maxSize > minSize ? (double)(cell.SizeBytes - minSize) / (maxSize - minSize) : 1.0;
+            var fillColor = LerpColor(lowColor, highColor, ratio);
+
+            var border = new Border
+            {
+                Width = rect.Width - gap,
+                Height = rect.Height - gap,
+                Background = new SolidColorBrush(fillColor),
+                CornerRadius = new CornerRadius(2),
+                ToolTip = cell.TooltipText,
+                Cursor = cell.IsNavigable ? Cursors.Hand : Cursors.Arrow,
+            };
+
+            if (border.Width >= 36 && border.Height >= 20)
+            {
+                border.Child = new TextBlock
+                {
+                    Text = cell.Name,
+                    Foreground = new SolidColorBrush(RelativeLuminance(fillColor) > 0.55 ? TreemapDarkInk : Colors.White),
+                    FontSize = 11,
+                    Margin = new Thickness(4, 2, 4, 2),
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                };
+            }
+
+            if (cell.IsNavigable)
+            {
+                border.MouseLeftButtonUp += (_, _) => viewModel.NavigateInto(cell.Row!);
+            }
+
+            Canvas.SetLeft(border, rect.X + gap / 2);
+            Canvas.SetTop(border, rect.Y + gap / 2);
+            TreemapCanvas.Children.Add(border);
+        }
+    }
+
+    private static Color LerpColor(Color a, Color b, double t)
+    {
+        t = Math.Clamp(t, 0, 1);
+        return Color.FromRgb(
+            (byte)(a.R + (b.R - a.R) * t),
+            (byte)(a.G + (b.G - a.G) * t),
+            (byte)(a.B + (b.B - a.B) * t));
+    }
+
+    private static double RelativeLuminance(Color color) =>
+        (0.299 * color.R + 0.587 * color.G + 0.114 * color.B) / 255.0;
 }

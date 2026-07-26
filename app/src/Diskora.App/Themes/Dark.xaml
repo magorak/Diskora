@@ -19,6 +19,11 @@
     <SolidColorBrush x:Key="SeriesBrush4" Color="#C98500" />
     <SolidColorBrush x:Key="SeriesBrush5" Color="#D55181" />
 
+    <!-- Viz komentář v Light.xaml - stejná sekvenční modrá, ale s obráceným
+         směrem (v tmavém režimu má velké položky zvýrazňovat jas, ne tmavost). -->
+    <SolidColorBrush x:Key="TreemapCellLowBrush" Color="#184F95" />
+    <SolidColorBrush x:Key="TreemapCellHighBrush" Color="#86B6EF" />
+
     <!-- Viz komentář v Light.xaml - sjednocuje výchozí chrome vestavěných prvků s tématem. -->
     <SolidColorBrush x:Key="{x:Static SystemColors.WindowBrushKey}" Color="#222327" />
     <SolidColorBrush x:Key="{x:Static SystemColors.WindowTextBrushKey}" Color="#F1F2F4" />
