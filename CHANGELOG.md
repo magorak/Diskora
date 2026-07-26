@@ -5,6 +5,15 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Opraveno
+- `TabControl`/`TabItem` (okno Analýza zaplněnosti): stejná třída bugu jako
+  dřív u Menu/DataGrid - výchozí šablona nebere Background/Foreground z
+  DynamicResource, takže hlavičky záložek ("Složky"/"Největší soubory"/
+  "Nejstarší soubory") zůstávaly bílé a nečitelné i v tmavém tématu. Nahlásil
+  uživatel po vyzkoušení přebuildované aplikace. Opraveno vlastní "underline"
+  šablonou (vybraná záložka má spodní pruh v AccentBrush) - živě ověřeno
+  v tmavém i světlém režimu.
+
 ### Přidáno
 - Výběr libovolné složky ke skenování (Fáze 4): menu Soubor → „Analyzovat
   složku..." otevírá `Microsoft.Win32.OpenFolderDialog` a spustí Analýzu
