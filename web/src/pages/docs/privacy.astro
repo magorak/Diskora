@@ -1,0 +1,70 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+	title="Ochrana soukromí"
+	description="Jaká data Diskora ukládá, kam a proč - a co neukládá ani neposílá nikam."
+>
+	<h1 class="text-3xl font-bold">Ochrana soukromí</h1>
+	<p class="mt-4 text-neutral-400">
+		Krátká verze: Diskora nikam nic neposílá. Běží celá lokálně na vašem počítači a jediná data,
+		která ukládá, zůstávají na stejném disku, který zrovna kontrolujete.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Žádná telemetrie, žádná síťová komunikace</h2>
+	<p class="mt-4 text-neutral-400">
+		Diskora neobsahuje žádný kód, který by navazoval síťové spojení - žádné analytické SDK, žádné
+		"phone home" při startu, žádnou kontrolu aktualizací na pozadí. Aplikace funguje stejně
+		v odpojené síti i s aktivním připojením k internetu, protože na síti vůbec nezávisí. Jediné
+		místo, kde se Diskora "dotkne" internetu, je tenhle produktový web, který si prohlížíte teď -
+		ten je čistě informační a nesbírá žádná data o návštěvnících (žádné trackery, žádná analytika).
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Co se ukládá lokálně a proč</h2>
+	<ul class="mt-4 list-disc space-y-3 pl-6 text-neutral-400">
+		<li>
+			<strong class="text-neutral-200">Historie S.M.A.R.T. a kontrol integrity</strong> - SQLite databáze
+			v <code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">%LocalAppData%\Diskora\diskora.db</code
+			>. Obsahuje jen technická metadata o discích (sériová čísla, atributy zdraví, výsledky
+			kontrol a jejich časová razítka) - žádné osobní dokumenty ani obsah souborů. Slouží k
+			zobrazení trendu v čase v oknech S.M.A.R.T. a Kontrola integrity.
+		</li>
+		<li>
+			<strong class="text-neutral-200">Uživatelské předvolby</strong> - obyčejný JSON soubor v
+			<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">%LocalAppData%\Diskora\settings.json</code
+			>
+			(zvolené téma, práh upozornění na zhoršení zdraví disku, volba, zda nabízet restart s právy
+			administrátora).
+		</li>
+		<li>
+			<strong class="text-neutral-200">Evidence připojených virtuálních disků</strong> - ve stejné
+			SQLite databázi, jen cesty k souborům VHD/VHDX/ISO, které jste přes Diskoru připojili, aby
+			vás appka mohla upozornit na zapomenuté připojení po restartu.
+		</li>
+	</ul>
+	<p class="mt-4 text-neutral-400">
+		Nic z toho se nikam neodesílá - zůstává výhradně na vašem stroji. Smazání
+		<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">%LocalAppData%\Diskora</code>
+		celou historii i předvolby vymaže; Diskora si při dalším spuštění jednoduše vytvoří výchozí stav
+		znovu.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Data, ke kterým se Diskora dostane, ale neukládá je</h2>
+	<p class="mt-4 text-neutral-400">
+		Analýza zaplněnosti disku, hledání duplicit a povrchový sken čtou metadata souborů (cesty,
+		velikosti, data změny) a v případě duplicit i obsah souborů kvůli výpočtu SHA-256 hashe - to
+		vše zůstává jen v paměti běžící aplikace po dobu zobrazení výsledků a nikam se needukládá. Export
+		do CSV/JSON je jediný způsob, jak se tahle data dostanou do souboru navíc - a ten soubor
+		vytváříte vy sami přes standardní dialog Uložit jako, na místo, které vyberete.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Otevřený zdrojový kód</h2>
+	<p class="mt-4 text-neutral-400">
+		Diskora je open-source pod licencí GPLv3 - tvrzení na téhle stránce si můžete ověřit přímo ve
+		zdrojovém kódu, ne jen věřit prohlášení. Bezpečnostní návrhové principy (nejnižší nutná
+		oprávnění, žádné skládání shell příkazů ze stringů apod.) jsou popsané na stránce
+		<a href="/docs/security/" class="text-blue-300 hover:text-blue-200">Bezpečnost a oprávnění</a
+		>.
+	</p>
+</DocsLayout>

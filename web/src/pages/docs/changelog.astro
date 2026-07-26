@@ -1,0 +1,131 @@
+---
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+// Stránka se generuje přímo z kořenového CHANGELOG.md při každém buildu - žádná
+// ruční kopie textu, která by se dřív nebo později rozjela s realitou. Parser
+// níže rozumí jen tvaru, který CHANGELOG.md skutečně používá (Keep a Changelog:
+// "## [verze] - datum" / "### kategorie" / "- položka" s odsazenými pokračovacími
+// řádky) - není to obecný markdown engine, jen tolik, kolik tenhle jeden soubor
+// potřebuje.
+const changelogPath = fileURLToPath(new URL('../../../../CHANGELOG.md', import.meta.url));
+const raw = fs.readFileSync(changelogPath, 'utf-8');
+
+interface Section {
+	category: string;
+	items: string[];
+}
+
+interface Release {
+	title: string;
+	intro?: string;
+	sections: Section[];
+}
+
+const releases: Release[] = [];
+let current: Release | null = null;
+let currentSection: Section | null = null;
+let currentItem: string[] | null = null;
+
+function flushItem() {
+	if (currentItem !== null && currentSection) {
+		currentSection.items.push(currentItem.join(' ').trim());
+	}
+	currentItem = null;
+}
+
+for (const line of raw.split('\n')) {
+	if (line.startsWith('## ')) {
+		flushItem();
+		current = { title: line.slice(3).trim(), sections: [] };
+		releases.push(current);
+		currentSection = null;
+	} else if (line.startsWith('### ')) {
+		flushItem();
+		currentSection = { category: line.slice(4).trim(), items: [] };
+		current?.sections.push(currentSection);
+	} else if (/^- /.test(line)) {
+		flushItem();
+		currentItem = [line.slice(2).trim()];
+	} else if (currentItem && /^\s+\S/.test(line)) {
+		currentItem.push(line.trim());
+	} else if (line.trim() === '') {
+		flushItem();
+	} else {
+		flushItem();
+		if (current && !currentSection) {
+			current.intro = current.intro ? `${current.intro} ${line.trim()}` : line.trim();
+		}
+	}
+}
+flushItem();
+
+function escapeHtml(value: string): string {
+	return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatInline(value: string): string {
+	return escapeHtml(value).replace(
+		/`([^`]+)`/g,
+		'<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">$1</code>',
+	);
+}
+
+function releaseLabel(title: string): string {
+	const match = title.match(/^\[(.+?)\](?:\s*-\s*(.+))?$/);
+	if (!match) {
+		return title;
+	}
+	const [, version, date] = match;
+	if (version === 'Unreleased') {
+		return 'Nevydáno (aktuální vývoj)';
+	}
+	return date ? `Verze ${version} — ${date}` : `Verze ${version}`;
+}
+---
+
+<DocsLayout
+	title="Changelog"
+	description="Co se v Diskoře změnilo mezi verzemi - generováno přímo z CHANGELOG.md v repozitáři."
+>
+	<h1 class="text-3xl font-bold">Changelog</h1>
+	<p class="mt-4 text-neutral-400">
+		Tahle stránka se generuje přímo z <code class="rounded bg-white/10 px-1.5 py-0.5 text-sm"
+			>CHANGELOG.md</code
+		> v repozitáři při každém buildu webu - je to skutečně totéž, co vidí vývojáři, včetně toho, co
+		bylo živě ověřeno na reálném hardwaru a co ne. Formát vychází z
+		<a
+			href="https://keepachangelog.com/en/1.1.0/"
+			class="text-blue-300 hover:text-blue-200"
+			target="_blank"
+			rel="noreferrer">Keep a Changelog</a
+		>, verzování dle <a
+			href="https://semver.org/"
+			class="text-blue-300 hover:text-blue-200"
+			target="_blank"
+			rel="noreferrer">Semantic Versioning</a
+		>.
+	</p>
+
+	{
+		releases.map((release) => (
+			<section class="mt-12">
+				<h2 class="text-2xl font-semibold text-blue-300">{releaseLabel(release.title)}</h2>
+				{release.intro && <p class="mt-3 text-neutral-400" set:html={formatInline(release.intro)} />}
+				{release.sections.map((section) => (
+					<div class="mt-6">
+						<h3 class="text-sm font-semibold tracking-wide text-neutral-500 uppercase">
+							{section.category}
+						</h3>
+						<ul class="mt-3 list-disc space-y-3 pl-6 text-neutral-400">
+							{section.items.map((item) => (
+								<li set:html={formatInline(item)} />
+							))}
+						</ul>
+					</div>
+				))}
+			</section>
+		))
+	}
+</DocsLayout>
