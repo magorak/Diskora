@@ -4,12 +4,14 @@ using System.Windows.Controls;
 using Diskora.App.Tray;
 using Diskora.App.ViewModels;
 using Diskora.Core.Services;
+using Diskora.Data;
 
 namespace Diskora.App;
 
 public partial class MainWindow : Window
 {
     private readonly TrayIconService _trayIcon;
+    private readonly DiskHealthNotifier _diskHealthNotifier;
     private bool _hasShownMinimizeHint;
 
     public MainWindow()
@@ -20,7 +22,20 @@ public partial class MainWindow : Window
         _trayIcon = new TrayIconService(this);
         _trayIcon.Show();
         StateChanged += MainWindow_StateChanged;
-        Closed += (_, _) => _trayIcon.Dispose();
+
+        var historyStore = new SqliteDiskHistoryStore();
+        _diskHealthNotifier = new DiskHealthNotifier(
+            new DiskEnumerationService(),
+            new DiskHealthMonitor(new SmartService(historyStore), historyStore),
+            _trayIcon,
+            interval: TimeSpan.FromMinutes(30));
+        _ = _diskHealthNotifier.CheckNowAsync();
+
+        Closed += (_, _) =>
+        {
+            _diskHealthNotifier.Dispose();
+            _trayIcon.Dispose();
+        };
     }
 
     /// <summary>

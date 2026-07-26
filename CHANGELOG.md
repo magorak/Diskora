@@ -6,6 +6,13 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- Upozornění na zhoršení zdraví disku (Fáze 2): `DiskHealthChangeDetector` +
+  `DiskHealthMonitor` (porovnají nový SMART výsledek s posledním záznamem
+  historie, 19 testů) a `DiskHealthNotifier`, který v `MainWindow` periodicky
+  (30 min, hned i po startu) kontroluje disky na pozadí (`Task.Run`, neblokuje
+  UI) a při zhoršení zobrazí balónek přes tray ikonu. Živě ověřeno jen
+  zapojení - v tomto vývojovém prostředí SMART bez admin práv vůbec nejde
+  číst, takže samotné zobrazení balónku při reálné degradaci ověřit nešlo.
 - Tray ikona (Fáze 7): `Diskora.App.Tray.TrayIconService` (`System.Windows.Forms.
   NotifyIcon` přes `UseWindowsForms`, bez externí závislosti). Ikona vidět po celou
   dobu běhu, kontextové menu „Zobrazit Diskoru"/„Konec", dvojklik obnoví okno;

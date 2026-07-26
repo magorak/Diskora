@@ -45,7 +45,21 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] Minimální SMART UI (tlačítko u disku → okno s atributy, rizikem a celkovým verdiktem)
 - [x] `Diskora.Data`: SQLite historie SMART hodnot (`SqliteDiskHistoryStore`, tabulka historie
       v okně S.M.A.R.T.) - živě ověřeno; grafické trendy (graf v čase) zatím ne, jen tabulka
-- [ ] Upozornění/notifikace při zhoršení zdraví (návaznost na Fázi 7 - tray)
+- [x] Upozornění/notifikace při zhoršení zdraví (návaznost na Fázi 7 - tray):
+      `DiskHealthChangeDetector` (čistá funkce, porovná pořadí Healthy &lt;
+      Warning &lt; Critical, ignoruje Unknown a první kontrolu bez historie) +
+      `DiskHealthMonitor` (pro každý disk přečte historii PŘED novým SMART
+      čtením, aby se nesrovnávalo čerstvé čtení samo se sebou) - 19 testů
+      (detektor i monitor s fake `ISmartService`/`IDiskHistoryStore`).
+      `Diskora.App.Tray.DiskHealthNotifier` v `MainWindow` spouští kontrolu
+      hned po startu a pak periodicky (`DispatcherTimer`, 30 min), SMART I/O
+      běží přes `Task.Run` mimo UI vlákno; při zhoršení zavolá `TrayIconService.
+      ShowBalloonTip`. Živě ověřeno jen zapojení (app čistě nastartuje a běží
+      dál i bez admin práv, kdy SMART všude selže a kontrola se tiše
+      přeskočí, žádný pád) - samotné zobrazení balónku při reálném zhoršení
+      nebylo živě ověřeno: v tomto prostředí nejde SMART vůbec číst bez
+      elevace (`Win32 chyba 5`) a žádný fyzický disk tu navíc reálně
+      nedegraduje, stejné omezení jako u netestovaných cest v Fázích 3 a 5.
 
 ## Fáze 3 — Kontrola a oprava integrity
 - [x] `FSCTL_IS_VOLUME_DIRTY` kontrola (`Diskora.Native.Fsctl.VolumeDirtyChecker`) - živě
