@@ -5,6 +5,20 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Opraveno
+- `Diskora.VirtualDisks.VirtualDiskAttacher`: `Attach` neposílal
+  `ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME`, takže se připojený VHD/VHDX
+  tiše zase odpojil hned po volání, jakmile se zavřel handle použitý pro
+  samotný `AttachVirtualDisk` (`Success=True`, ale svazek/disk se ve
+  skutečnosti nikdy nezpřístupnil). Dřív se to nedalo odhalit - živě ověřená
+  byla jen cesta selhání bez admin práv (Win32 chyba 1314), ne skutečné
+  připojení. Odhaleno a opraveno až s elevovaným živým testem: po přidání
+  flagu disk zůstává připojený, dostane písmeno a jde znovu odpojit. Zároveň
+  živě ověřeno, že nad takto připojeným virtuálním diskem beze změny fungují
+  `IntegrityCheckService` (dirty bit i celý `chkdsk /scan`), `DiskUsageScanner`
+  a `SmartService` (korektně a srozumitelně hlásí, že SMART na virtuálním
+  disku není k dispozici).
+
 ### Přidáno
 - CLI společník `diskora.exe` (Fáze 7): nový projekt `Diskora.Cli`, headless
   doplněk ke GUI pro skriptování a automatizaci. Příkazy `list`, `smart

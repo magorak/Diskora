@@ -7,9 +7,14 @@ namespace Diskora.VirtualDisks;
 /// Připojuje/odpojuje VHD/VHDX jako svazek se souborovým systémem. Na rozdíl
 /// od <see cref="VirtualDiskReader"/> vyžaduje práva administrátora - to je
 /// očekávané omezení Windows (stejné jako u Mount-VHD), ne chyba Diskory.
-/// Handle se po úspěšném i neúspěšném volání vždy zavře - připojení VHD
-/// je stav sledovaný systémem nezávisle na životnosti handle (stejně jako
-/// u Mount-VHD/Dismount-VHD).
+/// Handle se po úspěšném i neúspěšném volání vždy zavře - proto Attach musí
+/// použít <see cref="AttachVirtualDiskFlagPermanentLifetime"/>: bez něj Windows
+/// váže připojení na životnost handlu z volání AttachVirtualDisk a při zavření
+/// handlu (viz finally ve <see cref="WithOpenHandle"/>) svazek okamžitě zase
+/// tiše odpojí - API přitom vrátí úspěch, takže se to bez elevovaného živého
+/// testu (Fáze 6 v TODO.md) neprojevilo. Ověřeno elevovaně: bez tohoto flagu
+/// AttachVirtualDisk vrátí 0, ale `diskpart detail vdisk` hned poté ukáže
+/// "Associated disk#: Not found." - disk se nikdy fakticky nezpřístupní.
 /// </summary>
 public static class VirtualDiskAttacher
 {
@@ -18,6 +23,7 @@ public static class VirtualDiskAttacher
     private const int VirtualDiskAccessDetach = 0x00040000;
     private const int VirtualDiskAccessGetInfo = 0x00080000;
     private const int AttachVirtualDiskFlagReadOnly = 0x00000001;
+    private const int AttachVirtualDiskFlagPermanentLifetime = 0x00000004;
 
     public static VirtualDiskAttachResult Attach(string path, bool readOnly)
     {
@@ -29,7 +35,7 @@ public static class VirtualDiskAttacher
             var attachParamsHandle = GCHandle.Alloc(attachParams, GCHandleType.Pinned);
             try
             {
-                var flags = readOnly ? AttachVirtualDiskFlagReadOnly : 0;
+                var flags = AttachVirtualDiskFlagPermanentLifetime | (readOnly ? AttachVirtualDiskFlagReadOnly : 0);
                 var result = VirtDiskNativeMethods.AttachVirtualDisk(
                     handle, IntPtr.Zero, flags, 0, attachParamsHandle.AddrOfPinnedObject(), IntPtr.Zero);
 

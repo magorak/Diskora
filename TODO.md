@@ -51,9 +51,17 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] Srozumitelný český průběh nad anglickým výstupem chkdsk (`ChkdskOutputParser` -
       parsuje "Stage N:"/"N percent complete", mapuje na české popisky fází, pohání
       grafický progress bar; syrový anglický log zůstává jako doplňkový detail, protože
-      chkdsk vypisuje pevně anglicky bez ohledu na jazyk Windows) - 15 testů, UI ověřeno
-      živě (bez adminu chkdsk padne před fází 1, takže reálné plnění baru přes fáze
-      nebylo možné vizuálně ověřit v tomto prostředí)
+      chkdsk vypisuje pevně anglicky bez ohledu na jazyk Windows) - 15 testů. S admin
+      právy živě doověřeno izolovaným harness nad `ChkdskRunner` + `ChkdskOutputParser`
+      (reálný `chkdsk /scan` na E:\): tam, kde bez elevace proces padal ještě před
+      fází 1, teď proběhne `Started=True`, `ExitCode=0` a korektně detekuje průchod
+      všemi třemi fázemi (Stage 1 → 2 → 3), takže výpočet `ProgressPercent` v
+      `IntegrityViewModel` (baseline dle fáze + podíl v rámci fáze) dostává reálná
+      data přes celý rozsah 0-100 %, ne jen "spadlo hned na startu". Pixelové
+      screenshoty samotného okna nebylo možné pořídit v tomto vývojovém prostředí
+      (nemá přístup k reálné interaktivní ploše - selhává i obecné GDI
+      `Graphics.CopyFromScreen`, nezávisle na admin právech), vizuální kontrola
+      progress baru v běžícím GUI proto zůstává na živém spuštění mimo tento nástroj
 - [ ] Skutečná oprava (`/f`, `/spotfix`) - záměrně zatím nepropojeno, potřebuje vlastní
       potvrzovací UI (riziko naplánovaného restartu na systémovém svazku)
 - [x] Čtení Event Logu (`Diskora.Native.EventLog.DiskEventLogReader` přes
@@ -142,7 +150,16 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] VHD/VHDX: čtení metadat přes `virtdisk.dll` (`OpenVirtualDisk`/`GetVirtualDiskInformation`,
       funguje bez admin práv) - nový projekt `Diskora.VirtualDisks`
 - [x] VHD/VHDX: připojení/odpojení (`AttachVirtualDisk`/`DetachVirtualDisk`) - vyžaduje admin
-      práva (ověřeno: Win32 chyba 1314 bez elevace, srozumitelně zobrazeno v UI)
+      práva (ověřeno: Win32 chyba 1314 bez elevace, srozumitelně zobrazeno v UI). S admin
+      právy živě odhalen a opraven skutečný bug: `Attach` neposílal
+      `ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME`, takže Windows vázal připojení na
+      životnost handlu z `AttachVirtualDisk` - a `WithOpenHandle` ten handle hned po
+      volání zavírá (`CloseHandle` ve `finally`), takže se disk vteřinu po "úspěšném"
+      připojení tiše zase odpojil (`diskpart detail vdisk` pak ukazoval "Associated
+      disk#: Not found."). Bez elevovaného testu se tohle nedalo odhalit - dřív ověřená
+      byla jen cesta selhání bez admin práv, ne skutečné připojení. Po přidání flagu
+      živě ověřeno na testovacím VHDX (vytvořen/naformátován přes diskpart): disk
+      zůstává připojený, přidělí se mu písmeno, `Detach` funguje
 - [x] ISO: mount/dismount přes orchestraci `Mount-DiskImage`/`Dismount-DiskImage`
       (`Diskora.Repair.IsoMounter`) - živě ověřeno, funguje bez admin práv (na rozdíl od
       VHD/VHDX). Přímé `AttachVirtualDisk` s VIRTUAL_STORAGE_TYPE_DEVICE_ISO sice vrátí
@@ -150,8 +167,13 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       zdokumentováno v kódu, proto orchestrace přes ověřený cmdlet místo P/Invoke
 - [ ] IMG/raw: mount jako virtuální disk nebo read-only sektorová inspekce
 - [ ] Bezpečný unmount/cleanup (i při pádu aplikace)
-- [ ] Znovupoužití integrity/SMART/TreeSize logiky nad připojenými virtuálními disky
-      (až bude k dispozici elevovaný test)
+- [x] Znovupoužití integrity/SMART/TreeSize logiky nad připojenými virtuálními disky -
+      živě ověřeno izolovaným harness nad připojeným testovacím VHDX (fyzický disk
+      správně rozpoznán jako `BusType=FileBackedVirtual`): `IntegrityCheckService`
+      (dirty bit i celý `chkdsk /scan` přes 3 fáze) i `DiskUsageScanner` fungují nad
+      připojeným svazkem beze změny. `SmartService` korektně a srozumitelně degraduje
+      (SMART na virtuálním disku není dostupné - stejná cesta jako u USB mostů/NVMe,
+      žádná speciální větev navíc potřeba)
 
 ## Fáze 7 — Plánování a CLI companion
 - [ ] Integrace s Windows Task Scheduler (periodické kontroly zdraví)
