@@ -118,11 +118,11 @@
                     <TextBlock DockPanel.Dock="Top" Text="Svazky" Style="{StaticResource HeadingTextStyle}" />
                     <DataGrid ItemsSource="{Binding Volumes}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Jednotka" Binding="{Binding Name}" Width="80" />
-                            <DataGridTextColumn Header="Název" Binding="{Binding Label}" Width="140" />
-                            <DataGridTextColumn Header="Systém souborů" Binding="{Binding FileSystem}" Width="120" />
-                            <DataGridTextColumn Header="Typ" Binding="{Binding DriveTypeDisplay}" Width="100" />
-                            <DataGridTemplateColumn Header="Typ disku" Width="90">
+                            <DataGridTextColumn Header="Jednotka" Binding="{Binding Name}" Width="60" />
+                            <DataGridTextColumn Header="Název" Binding="{Binding Label}" Width="*" MinWidth="80" />
+                            <DataGridTextColumn Header="Systém souborů" Binding="{Binding FileSystem}" Width="90" />
+                            <DataGridTextColumn Header="Typ" Binding="{Binding DriveTypeDisplay}" Width="90" />
+                            <DataGridTemplateColumn Header="Typ disku" Width="85">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border Background="{Binding DiskMediaType, Converter={StaticResource DiskMediaTypeToBrushConverter}}"
@@ -132,7 +132,7 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="Zaplněnost" Width="180">
+                            <DataGridTemplateColumn Header="Zaplněnost" Width="140">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <ProgressBar Value="{Binding UsedPercent, Mode=OneWay}"
@@ -142,9 +142,9 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Volno" Binding="{Binding FreeSpaceDisplay}" Width="100" />
-                            <DataGridTextColumn Header="Celkem" Binding="{Binding TotalSizeDisplay}" Width="100" />
-                            <DataGridTemplateColumn Header="" Width="320">
+                            <DataGridTextColumn Header="Volno" Binding="{Binding FreeSpaceDisplay}" Width="85" />
+                            <DataGridTextColumn Header="Celkem" Binding="{Binding TotalSizeDisplay}" Width="85" />
+                            <DataGridTemplateColumn Header="" Width="300">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
