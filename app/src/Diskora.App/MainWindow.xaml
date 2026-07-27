@@ -146,10 +146,13 @@
                             </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Volno" Binding="{Binding FreeSpaceDisplay}" Width="85" />
                             <DataGridTextColumn Header="Celkem" Binding="{Binding TotalSizeDisplay}" Width="85" />
-                            <DataGridTemplateColumn Header="" Width="300">
+                            <DataGridTemplateColumn Header="" Width="390">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
+                                            <Button Content="Disk Doctor" Padding="8,3" FontSize="11" Margin="0,0,6,0"
+                                                    FontWeight="SemiBold"
+                                                    Click="ShowDiskDoctor_Click" Tag="{Binding}" />
                                             <Button Content="Zkontrolovat" Padding="8,3" FontSize="11" Margin="0,0,6,0"
                                                     Click="ShowIntegrity_Click" Tag="{Binding}" />
                                             <Button Content="Analyzovat" Padding="8,3" FontSize="11" Margin="0,0,6,0"

@@ -70,6 +70,26 @@ public static class DiskDisplayFormatting
         _ => "?",
     };
 
+    public static string ToDisplayText(this DiskDoctorSeverity severity) => severity switch
+    {
+        DiskDoctorSeverity.Ok => "V pořádku",
+        DiskDoctorSeverity.Info => "Informace",
+        DiskDoctorSeverity.Warning => "Pozor",
+        DiskDoctorSeverity.Critical => "Kritické",
+        _ => "?",
+    };
+
+    /// <summary>Text tlačítka, které zjištění nabízí. Prázdný = akce nemá kam vést, jen radu v textu.</summary>
+    public static string ToButtonText(this DiskDoctorAction action) => action switch
+    {
+        DiskDoctorAction.RunIntegrityScan => "Zkontrolovat integritu...",
+        DiskDoctorAction.RunSpotFix => "Otevřít opravu...",
+        DiskDoctorAction.RunSurfaceScan => "Povrchový sken...",
+        DiskDoctorAction.RunTrim => "Optimalizace disku...",
+        DiskDoctorAction.RunDefragment => "Optimalizace disku...",
+        _ => string.Empty,
+    };
+
     public static string ToDisplayText(this VolumeDirtyState state) => state switch
     {
         VolumeDirtyState.Clean => "V pořádku",

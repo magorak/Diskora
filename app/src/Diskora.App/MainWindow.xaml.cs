@@ -98,6 +98,25 @@ public partial class MainWindow : Window
         surfaceScanWindow.Show();
     }
 
+    private void ShowDiskDoctor_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: VolumeRowViewModel volume })
+        {
+            return;
+        }
+
+        var doctorWindow = new DiskDoctorWindow(
+            volume.Name,
+            $"{volume.Name} ({volume.Label}) na disku {volume.PhysicalDiskName}",
+            volume.PhysicalDiskIndex,
+            volume.PhysicalDiskName,
+            volume.PhysicalDiskSizeBytes)
+        {
+            Owner = this,
+        };
+        doctorWindow.Show();
+    }
+
     private void ShowIntegrity_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: VolumeRowViewModel volume })

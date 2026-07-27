@@ -96,10 +96,10 @@ public sealed class DashboardViewModel : ViewModelBase
             Volumes.Clear();
             foreach (var volume in _diskEnumerationService.GetVolumes())
             {
-                var diskMediaType = volume.PhysicalDiskIndex is int diskIndex
-                    ? physicalDisks.FirstOrDefault(d => d.Index == diskIndex)?.MediaType
+                var physicalDisk = volume.PhysicalDiskIndex is int diskIndex
+                    ? physicalDisks.FirstOrDefault(d => d.Index == diskIndex)
                     : null;
-                Volumes.Add(new VolumeRowViewModel(volume, diskMediaType));
+                Volumes.Add(new VolumeRowViewModel(volume, physicalDisk));
             }
         }
         catch (Exception ex) when (ex is System.Management.ManagementException or UnauthorizedAccessException)

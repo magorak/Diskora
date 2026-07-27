@@ -608,7 +608,35 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       s aplikací, 3× `<strong>`, 0× doslovné `**`).
 
 ## Nápady na budoucí odlišení (backlog, needvidí se hned)
-- [ ] "Disk Doctor" wizard (jedno tlačítko: SMART + chkdsk + TRIM/defrag rozhodnutí)
+- [x] "Disk Doctor" wizard (jedno tlačítko: SMART + chkdsk + TRIM/defrag rozhodnutí):
+      tlačítko „Disk Doctor" u každého svazku v dashboardu + CLI `diskora doctor
+      <písmeno>`. Rozhodovací logika je čistá funkce `DiskDoctorAdvisor.Diagnose`
+      nad `DiskDoctorInputs` (S.M.A.R.T. + dirty bit + zjištěný typ disku +
+      informace o elevaci), takže jde otestovat bez disků, bez elevace a bez
+      čekání - 16 testů. `DiskDoctorService` jen posbírá data z už existujících
+      ověřených služeb; žádná nová cesta k datům nevzniká.
+      Doctor je vědomě POUZE diagnostický - sám nic nespouští. Akce jen nabízí a
+      tlačítko otevře příslušné existující okno, kde má akce vlastní potvrzení
+      (spotfix a defragmentace skutečně zapisují na disk, viz Fáze 3). Při
+      nejistém typu disku nenabízí ani TRIM, ani defragmentaci - stejné pravidlo
+      jako v okně Optimalizace.
+      Odlišující prvek proti pouhému „disk je v pořádku": nález se vytáhne i tam,
+      kde ho souhrnný verdikt skrývá. Živě potvrzeno na reálném 4TB HDD (F:) -
+      S.M.A.R.T. hlásí „v pořádku", ale Doctor navíc upozorní na 2426 chyb
+      přenosu (atribut 199), vysvětlí, že jde skoro vždy o vadný SATA kabel a ne
+      o vadný disk, a dodá, že číslo je součet za celý život disku a nikdy
+      neklesá. Atribut 199 totiž nezhoršuje normalizovanou hodnotu, takže by
+      jinak zapadl.
+      Živě ověřeno na 4 reálných svazcích, s elevací i bez: NVMe systémový C:
+      (zdravý, čistý, SSD → TRIM), 4TB HDD F: (kabel + defragmentace), SATA SSD
+      E: a USB disk H:. Bez elevace korektně hlásí „bez práv administrátora je
+      tahle část kontroly slepá" a doporučí elevaci; s elevací u USB mostu
+      elevaci UŽ nenavrhuje a místo toho vysvětlí, že disk data neposkytuje.
+      Ověřeno CLI i skutečnou instancí `DiskDoctorWindow` v izolovaném harness
+      (počty zjištění, závažnosti a viditelnost akčních tlačítek).
+      Živé testování zároveň odhalilo chybu v novém CLI příkazu: `VolumeInfo.Name`
+      má tvar `E:\`, ale `NormalizeDriveLetter` dává `E:`, takže porovnání
+      nenašlo ŽÁDNÝ svazek - opraveno.
 - [x] Portable mód (single-exe bez instalace) - viz Fáze 9, `app/publish-portable.ps1`
 - [ ] Plugin architektura pro další filesystémy (ReFS, exFAT, ext4 přes WSL disky)
 - [ ] Instalátor (Inno Setup/MSIX) - vědomě odsunuto z aktivních fází do backlogu

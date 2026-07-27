@@ -6,6 +6,7 @@ using Diskora.Core.Models;
 using Diskora.Core.Services;
 using Diskora.Core.Smart;
 using Diskora.Data;
+using Diskora.Native;
 using Diskora.Repair;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -38,6 +39,7 @@ try
         "integrity" => await RunIntegrityAsync(rest, json, cts.Token),
         "usage" => await RunUsageAsync(rest, json, cts.Token),
         "duplicates" => await RunDuplicatesAsync(rest, json, cts.Token),
+        "doctor" => await RunDoctorAsync(rest, json, cts.Token),
         "healthcheck" => RunHealthCheck(json),
         "schedule" => await RunScheduleAsync(rest, json, cts.Token),
         "help" or "-h" or "--help" => PrintUsage(),
@@ -64,6 +66,10 @@ static int PrintUsage()
                                          Dirty-bit kontrola svazku; --scan navíc
                                          spustí needestruktivní chkdsk /scan
                                          (vyžaduje administrátorská práva).
+          doctor <písmeno>[:]           Souhrnná kontrola svazku a disku pod ním
+                                         (S.M.A.R.T. + stav souborového systému +
+                                         doporučená údržba) s doporučeními. Jen čte,
+                                         nic nespouští ani nemění.
           usage <cesta> [--top N]       Analýza zaplněnosti složky (výchozí top 10).
           duplicates <cesta>            Hledání duplicitních souborů (SHA-256).
           healthcheck                   S.M.A.R.T. přes všechny fyzické disky najednou
@@ -259,6 +265,61 @@ static async Task<int> RunScheduleAsync(string[] rest, bool json, CancellationTo
     }
 
     return result.ExitCode == 0 ? 0 : 2;
+}
+
+static async Task<int> RunDoctorAsync(string[] rest, bool json, CancellationToken cancellationToken)
+{
+    if (rest.Length < 1)
+    {
+        Console.Error.WriteLine("Použití: diskora doctor <písmeno>[:] [--json]");
+        return 1;
+    }
+
+    var driveLetter = NormalizeDriveLetter(rest[0]);
+
+    // Svazek → fyzický disk, ať jde přečíst i S.M.A.R.T. (stejné mapování jako v GUI).
+    // VolumeInfo.Name má tvar "E:\", kdežto NormalizeDriveLetter dává "E:" - porovnává
+    // se proto až po odříznutí koncového zpětného lomítka.
+    var volume = new DiskEnumerationService().GetVolumes()
+        .FirstOrDefault(v => string.Equals(v.Name.TrimEnd('\\'), driveLetter, StringComparison.OrdinalIgnoreCase));
+
+    if (volume is null)
+    {
+        Console.Error.WriteLine($"Svazek {driveLetter} nebyl nalezen.");
+        return 1;
+    }
+
+    var doctor = new DiskDoctorService(
+        new SmartService(new SqliteDiskHistoryStore()),
+        new IntegrityCheckService(new SqliteDiskHistoryStore()),
+        new DiskOptimizationService(),
+        ElevationHelper.IsRunningAsAdministrator);
+
+    var report = await doctor.RunAsync(driveLetter, volume.PhysicalDiskIndex, driveLetter, cancellationToken);
+
+    if (json)
+    {
+        PrintJson(report);
+    }
+    else
+    {
+        Console.WriteLine($"{report.Subject} - celkový verdikt: {report.Overall}");
+        Console.WriteLine();
+        foreach (var finding in report.Findings)
+        {
+            Console.WriteLine($"[{finding.Severity,-8}] {finding.Title}");
+            Console.WriteLine($"           {finding.Detail}");
+            if (finding.RecommendedAction != DiskDoctorAction.None)
+            {
+                Console.WriteLine($"           → doporučeno: {finding.RecommendedAction}");
+            }
+
+            Console.WriteLine();
+        }
+    }
+
+    // Stejná konvence jako u ostatních příkazů: 2 = "něco jsem našel".
+    return report.Overall is DiskDoctorSeverity.Warning or DiskDoctorSeverity.Critical ? 2 : 0;
 }
 
 static async Task<int> RunIntegrityAsync(string[] rest, bool json, CancellationToken cancellationToken)

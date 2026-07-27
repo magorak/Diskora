@@ -6,8 +6,13 @@ namespace Diskora.App.ViewModels;
 
 public sealed class VolumeRowViewModel
 {
-    public VolumeRowViewModel(VolumeInfo info, DiskMediaType? diskMediaType)
+    public VolumeRowViewModel(VolumeInfo info, PhysicalDiskInfo? physicalDisk)
     {
+        var diskMediaType = physicalDisk?.MediaType;
+        PhysicalDiskIndex = info.PhysicalDiskIndex;
+        PhysicalDiskName = physicalDisk?.FriendlyName ?? "(neznámý disk)";
+        PhysicalDiskSizeBytes = (long)(physicalDisk?.SizeBytes ?? 0);
+
         Name = info.Name;
         Label = string.IsNullOrWhiteSpace(info.Label) ? "(bez názvu)" : info.Label;
         FileSystem = info.FileSystem ?? "—";
@@ -41,4 +46,11 @@ public sealed class VolumeRowViewModel
     public DiskMediaType? DiskMediaType { get; }
 
     public string DiskMediaTypeDisplay { get; }
+
+    /// <summary>Fyzický disk pod svazkem - null, když se mapování nepodařilo (svazek přes víc disků, síťová jednotka).</summary>
+    public int? PhysicalDiskIndex { get; }
+
+    public string PhysicalDiskName { get; }
+
+    public long PhysicalDiskSizeBytes { get; }
 }

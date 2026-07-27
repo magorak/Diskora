@@ -5,6 +5,35 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Přidáno
+- Disk Doctor: jedno tlačítko u každého svazku v dashboardu (a `diskora doctor
+  <písmeno>` v CLI), které projde S.M.A.R.T., stav souborového systému i typ
+  disku a dá jeden srozumitelný verdikt s doporučeními. Rozhodování je čistá
+  funkce `DiskDoctorAdvisor.Diagnose` nad `DiskDoctorInputs`, takže se dá
+  otestovat bez disků, bez elevace a bez čekání (16 testů); `DiskDoctorService`
+  jen posbírá data z už existujících ověřených služeb a žádnou novou cestu
+  k datům nevytváří.
+  Doctor je vědomě pouze diagnostický - sám nic nespouští. Akce jen nabízí a
+  tlačítko otevře příslušné existující okno, kde má akce vlastní potvrzení
+  (spotfix a defragmentace na disk skutečně zapisují). Při nejistém typu disku
+  nenabídne ani TRIM, ani defragmentaci - stejné pravidlo jako v okně Optimalizace,
+  protože doporučit defragmentaci SSD je horší než mlčet.
+  Přínos proti pouhému „disk je v pořádku" se ukázal hned při živém testu na
+  reálném 4TB HDD: S.M.A.R.T. hlásí zdravý disk, ale Doctor navíc vytáhne
+  2426 chyb přenosu (atribut 199) a vysvětlí, že jde skoro vždy o vadný SATA
+  kabel, ne o vadný disk. Tenhle atribut nezhoršuje normalizovanou hodnotu,
+  takže by v souhrnném verdiktu zapadl.
+  Živě ověřeno na 4 reálných svazcích s elevací i bez (NVMe systémový, 4TB HDD,
+  SATA SSD, USB disk) - přes CLI i přes skutečnou instanci `DiskDoctorWindow`.
+  Bez elevace hlásí, že je tahle část kontroly slepá, a doporučí elevaci;
+  s elevací u USB mostu elevaci už nenavrhuje a vysvětlí, že disk data
+  neposkytuje.
+
+### Opraveno
+- `diskora doctor` nenacházel žádný svazek: `VolumeInfo.Name` má tvar `E:\`,
+  kdežto `NormalizeDriveLetter` vrací `E:`, takže porovnání selhalo pro všechna
+  písmena. Odhaleno prvním živým spuštěním nového příkazu.
+
 ## [0.2.0] - 2026-07-27
 
 ### Opraveno
