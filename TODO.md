@@ -625,6 +625,43 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       (`astro build` → `dist/docs/changelog/index.html`: 5 nadpisů `h3` shodně
       s aplikací, 3× `<strong>`, 0× doslovné `**`).
 
+## Zpětná vazba z živého používání (2026-07-28, nahlásil uživatel)
+Vzniklo z reálného vyzkoušení portable buildu `0.2.0+7f2d64b`. Řazeno podle
+závažnosti, ne podle pořadí nahlášení.
+
+- [ ] **Povrchový sken zamrzá UI** (chyba, ne kosmetika): `PhysicalDiskSurfaceScanner`
+      otevírá `new FileStream(handle, FileAccess.Read)` BEZ `isAsync: true`. U takového
+      streamu se `ReadAsync` provede synchronně na volajícím vlákně - a protože
+      `SurfaceScanViewModel.StartScanAsync` se volá rovnou z příkazu bez `Task.Run`,
+      běží celý sken na UI vlákně. Projeví se to nejvíc při zrušení, protože to musí
+      počkat na dočtení rozpracovaného 4MiB bloku, ale zamrzá to po celou dobu skenu.
+      Oprava: otevřít stream s `FileOptions.Asynchronous` (a ověřit, že zarovnávací
+      požadavky přímého I/O to nerozbijí - viz komentář v tom souboru o
+      `FILE_FLAG_NO_BUFFERING`), případně navíc obalit `Task.Run`.
+- [ ] **Diskora nenabídne nic u disku, se kterým Windows pracovat umí**: u USB disku
+      (svazek H:) vrací `DeviceSeekPenaltyProperty` null, takže se podle pravidla „při
+      nejistotě nenabízet nic" schová TRIM i defragmentace - a to i s admin právy.
+      Jenže Windows ve svém „Optimalizovat jednotky" ten disk analyzovat i defragmentovat
+      nabízí. Že to není omezení systému, je ověřené: `defrag.exe /D` na H: reálně
+      proběhl přes `DiskOptimizationService` (`ExitCode=0`, kompletní Pre i Post report).
+      Takže operace funguje, jen ji UI odmítá nabídnout. Návrh: při nezjištěném typu
+      nenabízet mlčení, ale zeptat se disku jinak (WMI `MSFT_PhysicalDisk.MediaType`,
+      `defrag /A` analýza) a teprve když ani to nepomůže, nabídnout obě akce
+      s upozorněním, že typ se nepodařilo určit. Rozhodně nesmí zůstat stav
+      „Diskora neumí nic, Windows umí".
+- [ ] **Okno kontroly integrity se má samo posouvat na poslední řádek** (uživatelský
+      komfort): výstup `chkdsk` přibývá, ale pohled zůstává nahoře. Auto-scroll na konec,
+      ideálně s tím, že se vypne, jakmile uživatel odroluje nahoru (aby si mohl v klidu
+      číst starší řádky), a zase zapne po odrolování zpět dolů.
+- [ ] **České výstupy z orchestrovaných nástrojů**: `chkdsk`/`defrag` píšou anglicky bez
+      ohledu na jazyk Windows. `ChkdskOutputParser` už dnes mapuje fáze na české popisky
+      pro progress bar; rozšířit stejný princip i na samotný výpis - překládat známé řádky
+      (souhrny, „The operation completed successfully", tabulky Pre/Post reportu defragu)
+      a neznámé nechávat v původním znění. Syrový anglický log ponechat jako přepínatelný
+      detail, ať jde dohledat původní text. Souvisí s položkou „Lokalizace" ve Fázi 8,
+      ale je použitelná i samostatně - appka je celá česky, takže anglický výpis uprostřed
+      je nekonzistence, i když pochází z cizího nástroje.
+
 ## Nápady na budoucí odlišení (backlog, needvidí se hned)
 - [x] "Disk Doctor" wizard (jedno tlačítko: SMART + chkdsk + TRIM/defrag rozhodnutí):
       tlačítko „Disk Doctor" u každého svazku v dashboardu + CLI `diskora doctor
@@ -656,6 +693,30 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       má tvar `E:\`, ale `NormalizeDriveLetter` dává `E:`, takže porovnání
       nenašlo ŽÁDNÝ svazek - opraveno.
 - [x] Portable mód (single-exe bez instalace) - viz Fáze 9, `app/publish-portable.ps1`
+- [ ] **Test skutečné kapacity (falešné USB disky)**: zapsat po celém disku ověřitelný
+      vzor a přečíst zpátky - odhalí přeznačené flashky, které hlásí 1 TB a fyzicky mají
+      32 GB (dnes to řeší H2testw/FakeFlashTest, tedy anglické jednoúčelové nástroje bez
+      údržby). Diskora na to má skoro všechno hotové: `PhysicalDiskSurfaceScanner` už umí
+      sekvenčně projít celý disk po blocích s postupem a zrušením, stačí doplnit zápisovou
+      větev. DESTRUKTIVNÍ (přepíše obsah), takže by to chtělo stejné potvrzení jako
+      spotfix, plus výslovné vypsání, co se smaže. Nejsilnější kandidát na odlišení -
+      je to reálný problém, který lidi hledají, a nikdo to nenabízí v češtině a jako
+      součást normálního diskového nástroje.
+- [ ] **„Kolik času disku zbývá"**: z SQLite historie (už se plní) spočítat tempo
+      zhoršování a přeložit ho do věty, které rozumí i laik - u NVMe je to přímočaré
+      (`PercentageUsed` v čase → odhad, kdy dosáhne 100 %), u SSD přes atribut 233,
+      u HDD přes přírůstek přemapovaných/čekajících sektorů. Konkurence (CrystalDiskInfo
+      apod.) ukáže číslo a mlčí; tohle je přesně to, co uživatel opravdu chce vědět.
+      Musí být poctivé - u disku bez trendu nebo s krátkou historií raději říct „zatím
+      nemám dost dat" než vymýšlet číslo.
+- [ ] **Graf trendu zdraví v čase**: historie v SQLite existuje od Fáze 2, ale zobrazuje
+      se jen jako tabulka. Graf udělá z „bylo Healthy, je Warning" viditelný příběh.
+      Vlastní vykreslování do Canvasu stejným způsobem jako treemapa (žádná nová
+      závislost), paleta dle skillu dataviz.
+- [ ] **Report pro člověka (HTML/PDF), ne jen CSV/JSON**: jedna stránka „stav mých disků"
+      se srozumitelným shrnutím a doporučeními, kterou jde poslat příbuznému nebo
+      ITčkaři. Exporty dnes míří na skriptování; tohle míří na komunikaci. Navazuje
+      přímo na Disk Doctora - ten už ta doporučení umí sestavit.
 - [ ] Plugin architektura pro další filesystémy (ReFS, exFAT, ext4 přes WSL disky)
 - [ ] Instalátor (Inno Setup/MSIX) - vědomě odsunuto z aktivních fází do backlogu
       (rozhodnutí uživatele): portable single-exe build (Fáze 9) pokrývá hlavní
