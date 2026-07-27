@@ -42,17 +42,22 @@ public static class ChkdskRunner
         // $ErrorActionPreference = 'Stop' uvnitř try bloku je nutné navíc k -ErrorAction Stop
         // na samotném volání - živě zjištěno, že bez práv administrátora Repair-Volume
         // někdy selže jen jako NEterminating chyba (do error streamu, ne výjimka) a $result
-        // zůstane null; bez tohohle by se to tiše prohlásilo za úspěch (exit 0, prázdný
-        // HealthStatus). Explicitní kontrola $result níže je obrana do hloubky pro
-        // stejný scénář.
+        // zůstane null; bez tohohle by se to tiše prohlásilo za úspěch. Explicitní kontrola
+        // $result níže je obrana do hloubky pro stejný scénář.
+        //
+        // POZOR na tvar výsledku: Repair-Volume vrací PŘÍMO hodnotu typu RepairStatus
+        // (např. "NoErrorsFound"), ne objekt s vlastností HealthStatus. Původní verze
+        // kontrolovala $result.HealthStatus, což je vždycky prázdné - a protože je to
+        // uvnitř try bloku, každá úspěšná oprava skončila vyhozenou výjimkou a exit 1.
+        // Odhaleno až prvním živým spuštěním s právy administrátora.
         const string script = """
             try {
                 $ErrorActionPreference = 'Stop'
                 $result = Repair-Volume -DriveLetter $env:DISKORA_DRIVE_LETTER -SpotFix -ErrorAction Stop
-                if (-not $result -or [string]::IsNullOrEmpty($result.HealthStatus)) {
-                    throw "Repair-Volume nevrátil platný výsledek (chybí oprávnění administrátora?)."
+                if ($null -eq $result -or [string]::IsNullOrWhiteSpace([string]$result)) {
+                    throw "Repair-Volume nevrátil žádný výsledek (chybí oprávnění administrátora?)."
                 }
-                Write-Output "HealthStatus: $($result.HealthStatus)"
+                Write-Output "Stav opravy: $result"
             } catch {
                 Write-Error $_.Exception.Message
                 exit 1

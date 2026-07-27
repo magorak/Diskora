@@ -5,6 +5,19 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Ověřeno (živý test na uvolněném svazku H:)
+- Úspěšný běh opravy integrity (`Repair-Volume -SpotFix`) s právy administrátora -
+  do teď byla ověřená jen cesta selhání bez elevace. Rovnou odhalil chybu popsanou
+  níže v „Opraveno".
+- Defragmentace na skutečném mechanickém disku (`defrag.exe /D`, USB WDC WD32,
+  298 GB) - `ExitCode=0`, kompletní Pre-Optimization i Post Defragmentation report
+  (296 978 přesouvatelných souborů, MFT 393,75 MB), ~3 s. Kód sice sdílel ověřenou
+  cestu s TRIM, ale na talířovém disku do teď nikdy neběžel.
+- Zjištěno přitom, že přes USB most nejde určit `DeviceSeekPenaltyProperty` (vrací
+  null), takže Diskora u takového disku defragmentaci vůbec nenabídne - správné
+  chování podle pravidla „při nejistotě nenabízet nic". Interní 4TB SATA HDD se
+  naproti tomu rozpozná správně.
+
 ### Přidáno
 - Disk Doctor: jedno tlačítko u každého svazku v dashboardu (a `diskora doctor
   <písmeno>` v CLI), které projde S.M.A.R.T., stav souborového systému i typ
@@ -30,6 +43,23 @@ verzování dle [Semantic Versioning](https://semver.org/).
   neposkytuje.
 
 ### Opraveno
+- **Oprava integrity (spotfix) hlásila selhání i po úspěšném průběhu** (Fáze 3):
+  PowerShell skript kontroloval `$result.HealthStatus`, jenže `Repair-Volume`
+  vrací PŘÍMO hodnotu typu `RepairStatus` (např. `NoErrorsFound`) a žádnou
+  vlastnost `HealthStatus` nemá. Kontrola je uvnitř `try` bloku, takže i naprosto
+  úspěšná oprava skončila vyhozenou výjimkou a `ExitCode=1`. Chyba přežila proto,
+  že tahle cesta do teď nikdy neběžela s právy administrátora - bez elevace
+  selhala dřív z jiného důvodu. Odhaleno prvním živým spuštěním na svazku, který
+  uživatel k destruktivním testům výslovně uvolnil; tvar výsledku ověřen
+  samostatnou sondou přímo nad `Repair-Volume`. Po opravě: `ExitCode=0`,
+  výstup „Stav opravy: NoErrorsFound", dirty bit před i po `Clean`.
+- `ProcessOutputRunner`: `OutputDataReceived` a `ErrorDataReceived` se vyvolávají
+  každý ze svého vlákna, ale oba přidávaly do sdíleného `List<string>` bez
+  synchronizace - souběžný `List.Add` může ztratit nebo zdvojit řádky, případně
+  trefit zvětšování pole. Přidán zámek (hlášení průběhu zůstává mimo něj, ať se
+  nedrží zámek přes marshalling na UI vlákno). Latentní chyba nalezená při
+  čtení kódu; projevila by se jen u procesů, které skutečně píšou do obou
+  streamů zároveň.
 - `diskora doctor` nenacházel žádný svazek: `VolumeInfo.Name` má tvar `E:\`,
   kdežto `NormalizeDriveLetter` vrací `E:`, takže porovnání selhalo pro všechna
   písmena. Odhaleno prvním živým spuštěním nového příkazu.

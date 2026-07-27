@@ -156,7 +156,17 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
       mohla cokoliv zapsat - živě ověřeno výpisem obsahu E:\ před/po). Cestou deliberátně
       NEBYLO živě ověřeno: úspěšný běh spotfix s admin právy (tenhle krok automatický
       classifier prostředí zablokoval jako riziková akce - správně, jde o akci se skutečným
-      zápisem na disk - takže zůstává na vědomé manuální ověření uživatelem).
+      zápisem na disk).
+      DOPLNĚNO 2026-07-28: úspěšný běh spotfixu s admin právy ŽIVĚ OVĚŘEN na svazku H:
+      (uživatel ho k destruktivním testům výslovně uvolnil) - a hned odhalil, že celá
+      tahle cesta byla rozbitá. Skript kontroloval `$result.HealthStatus`, jenže
+      `Repair-Volume` vrací PŘÍMO hodnotu typu `RepairStatus` (např. `NoErrorsFound`)
+      a žádnou vlastnost `HealthStatus` nemá - kontrola tedy uvnitř try bloku vždycky
+      vyhodila výjimku a i naprosto úspěšná oprava skončila jako `ExitCode=1`. Ověřeno
+      samostatnou sondou přímo nad `Repair-Volume` (typ `RepairStatus`, hodnota
+      `NoErrorsFound`, `HealthStatus` prázdný). Po opravě: `Started=True`, `ExitCode=0`,
+      `AppearsClean=True`, výstup „Stav opravy: NoErrorsFound", 3,5 s, dirty bit před
+      i po `Clean`.
 - [x] Čtení Event Logu (`Diskora.Native.EventLog.DiskEventLogReader` přes
       `System.Diagnostics.Eventing.Reader.EventLogReader`, filtrováno na providery
       Ntfs/Disk/Volsnap/Virtual Disk Service/FilterManager/Wininit v protokolech
@@ -267,8 +277,16 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [x] Ruční TRIM přes orchestraci `defrag.exe /L` (`Diskora.Repair.DefragRunner`) - živě
       ověřeno, vč. opravy mojibake v OEM-kódovaném výstupu (CP852)
 - [x] Defragmentace HDD přes orchestraci `defrag.exe /D` (stejný `DefragRunner`) - kód
-      sdílí ověřenou cestu s TRIM, nebylo živě testováno na skutečném HDD (žádný
-      k dispozici v testovacím prostředí)
+      sdílí ověřenou cestu s TRIM.
+      DOPLNĚNO 2026-07-28: ŽIVĚ OVĚŘENO na skutečném mechanickém disku (USB WDC WD32,
+      298 GB, svazek H:) - `Started=True`, `ExitCode=0`, 92 řádků výstupu s kompletním
+      Pre-Optimization i Post Defragmentation reportem (296 978 přesouvatelných souborů,
+      MFT 393,75 MB), doba ~3 s. Zjištěno i to, že přes USB most nejde určit
+      `DeviceSeekPenaltyProperty` (vrací null), takže Diskora u takového disku
+      defragmentaci vůbec nenabídne - správné chování dle pravidla „při nejistotě
+      nenabízet nic", ale znamená to, že tenhle konkrétní disk jde defragmentovat jen
+      přes službu přímo, ne z UI. Interní 4TB SATA HDD (F:) se naproti tomu rozpozná
+      správně (`HasSeekPenalty=True`, `SupportsTrim=False`).
 - [x] Vlastní analýza fragmentace (`FSCTL_GET_RETRIEVAL_POINTERS`) pro report před spuštěním:
       `Diskora.Native.Storage.FileFragmentationReader` čte počet fragmentů (nesouvislých
       rozsahů clusterů) jednoho souboru - na rozdíl od SMART/povrchového skenu stačí

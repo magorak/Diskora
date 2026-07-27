@@ -23,6 +23,14 @@ internal static class ProcessOutputRunner
     {
         var outputLines = new List<string>();
 
+        // OutputDataReceived a ErrorDataReceived se vyvolávají KAŽDÝ ZE SVÉHO vlákna
+        // (jedno čtecí vlákno na stream), takže se do seznamu přidává souběžně.
+        // List<T>.Add souběh nesnáší - dvě vlákna mohou zapsat na stejný index nebo
+        // trefit zvětšování pole a část řádků se ztratí či zdvojí. Projeví se to jen
+        // u procesů, které skutečně píšou do obou streamů (PowerShell orchestrace při
+        // chybě, chkdsk), takže je to tichá a nepravidelná chyba.
+        var outputLock = new Lock();
+
         void OnLine(string? line)
         {
             if (line is null)
@@ -30,7 +38,14 @@ internal static class ProcessOutputRunner
                 return;
             }
 
-            outputLines.Add(line);
+            lock (outputLock)
+            {
+                outputLines.Add(line);
+            }
+
+            // Hlášení se schválně dělá MIMO zámek - IProgress.Report u GUI
+            // marshalluje na UI vlákno a držet přitom zámek by zbytečně blokovalo
+            // druhý stream.
             onOutputLine?.Report(line);
         }
 
