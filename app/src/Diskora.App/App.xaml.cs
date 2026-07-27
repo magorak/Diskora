@@ -23,6 +23,37 @@ public partial class App : Application
 
         Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, WarnAboutLeftoverAttachments);
         Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, OfferElevationRestartIfRequested);
+        Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, ShowWhatsNewAfterUpdate);
+    }
+
+    /// <summary>
+    /// Po aktualizaci na novou verzi ukáže jednou okno „Co je nového" a zapamatuje
+    /// si to. Rozhoduje se podle uložené <see cref="AppSettings.LastSeenVersion"/>,
+    /// ne podle data - přeinstalace té samé verze uživatele znovu neobtěžuje.
+    /// Kdykoli později je okno dostupné z menu Nápověda.
+    /// </summary>
+    private void ShowWhatsNewAfterUpdate()
+    {
+        var settings = SettingsStore.Load();
+        var currentVersion = WhatsNewWindow.CurrentVersion;
+
+        if (string.Equals(settings.LastSeenVersion, currentVersion, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        // Uloží se PŘED zobrazením: kdyby okno spadlo nebo appka skončila zavřením
+        // křížkem, nemá se otravovat při každém dalším startu dokola.
+        settings.LastSeenVersion = currentVersion;
+        SettingsStore.Save(settings);
+
+        var window = new WhatsNewWindow();
+        if (MainWindow is not null)
+        {
+            window.Owner = MainWindow;
+        }
+
+        window.ShowDialog();
     }
 
     /// <summary>

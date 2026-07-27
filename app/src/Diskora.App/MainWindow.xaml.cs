@@ -197,6 +197,11 @@ public partial class MainWindow : Window
         settingsWindow.ShowDialog();
     }
 
+    private void ShowWhatsNew_Click(object sender, RoutedEventArgs e)
+    {
+        new WhatsNewWindow { Owner = this }.ShowDialog();
+    }
+
     private void ShowAbout_Click(object sender, RoutedEventArgs e)
     {
         var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.1.0";

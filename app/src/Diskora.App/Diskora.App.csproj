@@ -21,6 +21,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Okno „Co je nového" čte přímo kořenový CHANGELOG.md, aby nemohlo dojít
+         k rozjetí s realitou - stejný princip jako stránka changelogu na webu,
+         která tentýž soubor parsuje při buildu. Zabalený je jako embedded
+         resource, ať funguje i v portable single-file buildu (Fáze 9). -->
+    <EmbeddedResource Include="..\..\..\CHANGELOG.md" LogicalName="Diskora.App.CHANGELOG.md" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- UseWindowsForms (kvůli tray ikoně) automaticky přidá tyto dvě jako global
          using, což koliduje s WPF (Application, Color existují v obou) napříč
          celým projektem - odstraněno, WinForms typy se používají plně

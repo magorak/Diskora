@@ -43,8 +43,18 @@ for (const line of raw.split('\n')) {
 		currentSection = null;
 	} else if (line.startsWith('### ')) {
 		flushItem();
-		currentSection = { category: line.slice(4).trim(), items: [] };
-		current?.sections.push(currentSection);
+		const category = line.slice(4).trim();
+		// Jedna verze má běžně víc bloků téže kategorie (každý commit si přidá
+		// vlastní "### Přidáno") - pro čtenáře je to jedna kategorie, ne deset.
+		// Stejné slévání dělá i ChangelogParser v aplikaci, ať se obě verze
+		// changelogu chovají shodně.
+		const existing = current?.sections.find((section) => section.category === category);
+		if (existing) {
+			currentSection = existing;
+		} else {
+			currentSection = { category, items: [] };
+			current?.sections.push(currentSection);
+		}
 	} else if (/^- /.test(line)) {
 		flushItem();
 		currentItem = [line.slice(2).trim()];
@@ -66,10 +76,9 @@ function escapeHtml(value: string): string {
 }
 
 function formatInline(value: string): string {
-	return escapeHtml(value).replace(
-		/`([^`]+)`/g,
-		'<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">$1</code>',
-	);
+	return escapeHtml(value)
+		.replace(/`([^`]+)`/g, '<code class="rounded bg-white/10 px-1.5 py-0.5 text-sm">$1</code>')
+		.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-neutral-200">$1</strong>');
 }
 
 function releaseLabel(title: string): string {

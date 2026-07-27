@@ -39,6 +39,8 @@
                 <MenuItem Header="N_astavení..." Click="ShowSettings_Click" />
             </MenuItem>
             <MenuItem Header="_Nápověda">
+                <MenuItem Header="_Co je nového..." Click="ShowWhatsNew_Click" />
+                <Separator />
                 <MenuItem Header="_O aplikaci Diskora" Click="ShowAbout_Click" />
             </MenuItem>
         </Menu>

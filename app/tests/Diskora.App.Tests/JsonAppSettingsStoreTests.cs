@@ -69,6 +69,39 @@ public sealed class JsonAppSettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_FileDoesNotExist_LastSeenVersionIsEmpty()
+    {
+        // Prázdná hodnota = úplně první spuštění, na které App.ShowWhatsNewAfterUpdate
+        // reaguje zobrazením okna „Co je nového".
+        var settings = new JsonAppSettingsStore(_filePath).Load();
+
+        Assert.Equal(string.Empty, settings.LastSeenVersion);
+    }
+
+    [Fact]
+    public void Save_ThenLoad_RoundTripsLastSeenVersion()
+    {
+        var store = new JsonAppSettingsStore(_filePath);
+
+        store.Save(new AppSettings { LastSeenVersion = "0.1.0" });
+
+        Assert.Equal("0.1.0", new JsonAppSettingsStore(_filePath).Load().LastSeenVersion);
+    }
+
+    [Fact]
+    public void Load_OlderFileWithoutNewFields_KeepsDefaults()
+    {
+        // Soubor uložený starší verzí Diskory nezná LastSeenVersion - nesmí to
+        // shodit načtení ani přepsat ostatní volby.
+        File.WriteAllText(_filePath, """{"Theme":"Dark"}""");
+
+        var settings = new JsonAppSettingsStore(_filePath).Load();
+
+        Assert.Equal("Dark", settings.Theme);
+        Assert.Equal(string.Empty, settings.LastSeenVersion);
+    }
+
+    [Fact]
     public void NewStoreInstance_ReusesExistingFile()
     {
         var store = new JsonAppSettingsStore(_filePath);

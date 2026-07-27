@@ -24,4 +24,12 @@ public sealed class AppSettings
     /// Výchozí false, ať appka nikoho nenutí do UAC promptu, kdo o to nestojí.
     /// </summary>
     public bool PromptForElevationAtStartup { get; set; }
+
+    /// <summary>
+    /// Verze, pro kterou už uživatel viděl okno „Co je nového". Když se liší od
+    /// aktuální verze sestavení, ukáže se okno jednou po startu a hodnota se
+    /// přepíše - viz <c>App.ShowWhatsNewAfterUpdate</c>. Prázdná hodnota znamená
+    /// úplně první spuštění.
+    /// </summary>
+    public string LastSeenVersion { get; set; } = string.Empty;
 }

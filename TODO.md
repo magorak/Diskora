@@ -569,7 +569,28 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 ## Fáze 11 — Průběžná dokumentace a verzování
 - [ ] Udržovat `docs/ARCHITECTURE.md`, `docs/CONTRIBUTING.md` aktuální
 - [ ] SemVer tagy + `CHANGELOG.md` per release
-- [ ] In-app "Co je nového" propojené s webovou dokumentací per verze
+- [x] In-app "Co je nového" propojené s webovou dokumentací per verze: nové okno
+      (menu Nápověda → „Co je nového...") čte kořenový `CHANGELOG.md` zabalený jako
+      embedded resource (funguje i v portable single-file buildu z Fáze 9).
+      `Diskora.Core.Changelog.ChangelogParser` je záměrně stejná pravidla jako
+      parser ve `web/src/pages/docs/changelog.astro` - obě verze changelogu čtou
+      týž soubor, takže se nemůžou rozejít. Po aktualizaci na novou verzi se okno
+      ukáže jednou samo (`AppSettings.LastSeenVersion`, porovnává se verze
+      sestavení, ne datum - přeinstalace téže verze neotravuje); hodnota se uloží
+      PŘED zobrazením, ať se okno neotvírá dokola, kdyby appka skončila zavřením
+      křížkem. Tlačítko „Otevřít na webu..." předá adresu prohlížeči (Diskora sama
+      žádné spojení nenavazuje - stránka o soukromí na webu na to nově upozorňuje).
+      13 nových testů. Živě ověřeno izolovaným harness nad skutečnou instancí
+      `WhatsNewWindow` nad reálným `CHANGELOG.md` (2 verze, 48 + 19 položek,
+      282 úseků kódu vysázených monospace, zvýraznění správně, žádné doslovné
+      `**` v textu). Živé testování při té příležitosti odhalilo dvě věci, které
+      měl stejně špatně i web, a opravilo je na obou stranách: (1) `**tučný text**`
+      se sázel doslova včetně hvězdiček, (2) jedna verze měla tolik nadpisů
+      kategorií, kolik commitů do ní přispělo (Unreleased 10 místo 2), protože
+      každý commit přidával vlastní blok „### Přidáno" - položky se teď slévají
+      do prvního výskytu kategorie. Ověřeno i na vygenerovaném webu
+      (`astro build` → `dist/docs/changelog/index.html`: 5 nadpisů `h3` shodně
+      s aplikací, 3× `<strong>`, 0× doslovné `**`).
 
 ## Nápady na budoucí odlišení (backlog, needvidí se hned)
 - [ ] "Disk Doctor" wizard (jedno tlačítko: SMART + chkdsk + TRIM/defrag rozhodnutí)

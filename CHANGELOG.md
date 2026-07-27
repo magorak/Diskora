@@ -6,6 +6,13 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Opraveno
+- Sázení changelogu (aplikace i web): `**tučný text**` se zobrazoval doslova
+  včetně hvězdiček a jedna verze měla tolik nadpisů kategorií, kolik commitů do
+  ní přispělo (sekce „Nevydáno" jich měla 10 místo 2), protože si každý commit
+  přidával vlastní blok „### Přidáno"/„### Opraveno". Položky téže kategorie se
+  teď v rámci jedné verze slévají do jejího prvního výskytu a zvýraznění se sází
+  jako zvýraznění. Opraveno v obou parserech naráz, ať se aplikace a web chovají
+  shodně - odhaleno při živém testování nového okna „Co je nového".
 - **S.M.A.R.T. nefungoval na žádném ATA/SATA disku** (Fáze 2): legacy cesta
   `IOCTL_SMART_RCV_DRIVE_DATA` počítala hlavičku `SENDCMDOUTPARAMS` na 8 bajtů,
   ale skutečná je 16 (`cBufferSize` 4 + `DRIVERSTATUS` 12, tedy `bDriverError` 1
@@ -34,6 +41,22 @@ verzování dle [Semantic Versioning](https://semver.org/).
   aktivní položky v menu nápovědy.
 
 ### Přidáno
+- Okno „Co je nového" (Fáze 11): menu Nápověda → „Co je nového...". Čte kořenový
+  `CHANGELOG.md` zabalený jako embedded resource, takže funguje i v portable
+  single-file buildu a bez připojení k internetu. `Diskora.Core.Changelog.
+  ChangelogParser` používá záměrně stejná pravidla jako parser ve
+  `web/src/pages/docs/changelog.astro` - obě verze changelogu (v aplikaci i na
+  webu) čtou týž soubor, takže se nemůžou rozejít s realitou.
+  Po aktualizaci na novou verzi se okno ukáže jednou samo
+  (`AppSettings.LastSeenVersion`; porovnává se verze sestavení, ne datum, takže
+  přeinstalace téže verze uživatele znovu neobtěžuje). Hodnota se ukládá PŘED
+  zobrazením - kdyby appka skončila zavřením křížkem, okno se nemá otvírat dokola.
+  Tlačítko „Otevřít na webu..." předá adresu výchozímu prohlížeči; Diskora sama
+  žádné spojení nenavazuje (stránka o soukromí na webu na tuhle jedinou výjimku
+  nově výslovně upozorňuje). 13 nových testů.
+  Živě ověřeno izolovaným harness nad skutečnou instancí `WhatsNewWindow` nad
+  reálným `CHANGELOG.md`: 2 verze, 48 + 19 položek, 282 úseků kódu vysázených
+  monospace, zvýraznění správně, žádné doslovné `**` v textu.
 - ATA pass-through jako hlavní cesta k S.M.A.R.T. (Fáze 2): nový
   `AtaPassThroughSmartReader` posílá SMART příkazy přes `IOCTL_ATA_PASS_THROUGH`
   (`ATA_PASS_THROUGH_EX` s datovým bufferem hned za strukturou). Na rozdíl od
