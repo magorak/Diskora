@@ -71,6 +71,13 @@ for (const line of raw.split('\n')) {
 }
 flushItem();
 
+// Prázdná verze (typicky čerstvě otevřená sekce "Unreleased" hned po vydání) by
+// byla jen osamocený nadpis bez obsahu. Stejný filtr má i ChangelogParser
+// v aplikaci, ať se obě verze changelogu chovají shodně.
+const visibleReleases = releases.filter((release) =>
+	release.sections.some((section) => section.items.length > 0),
+);
+
 function escapeHtml(value: string): string {
 	return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
@@ -118,7 +125,7 @@ function releaseLabel(title: string): string {
 	</p>
 
 	{
-		releases.map((release) => (
+		visibleReleases.map((release) => (
 			<section class="mt-12">
 				<h2 class="text-2xl font-semibold text-blue-300">{releaseLabel(release.title)}</h2>
 				{release.intro && <p class="mt-3 text-neutral-400" set:html={formatInline(release.intro)} />}

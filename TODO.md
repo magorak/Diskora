@@ -568,7 +568,22 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 
 ## Fáze 11 — Průběžná dokumentace a verzování
 - [ ] Udržovat `docs/ARCHITECTURE.md`, `docs/CONTRIBUTING.md` aktuální
-- [ ] SemVer tagy + `CHANGELOG.md` per release
+- [x] SemVer tagy + `CHANGELOG.md` per release: první skutečné vydání proběhlo
+      2026-07-27 jako `v0.2.0`. Do té doby měl projekt 43 commitů, nula tagů,
+      `Version` pořád na `0.1.0` a v sekci „Nevydáno" leželo 50 položek - což se
+      naplno projevilo až u okna „Co je nového", které uživateli jako první
+      ukazovalo právě tu vývojářskou hromadu. Minor bump podle SemVer (samé
+      přírůstky funkcí, žádná breaking změna). Při té příležitosti uklizen i
+      syrový CHANGELOG.md: sekce měla 10 střídajících se nadpisů kategorií,
+      protože každý commit přidával vlastní blok - přeskládáno skriptem na jedno
+      `### Opraveno` (21) a jedno `### Přidáno` (29) s ověřením, že počet položek
+      před i po je shodný (50), takže se nic neztratilo. Prázdná sekce
+      „Nevydáno" se nově nezobrazuje ani v aplikaci, ani na webu (dřív by
+      zbyl osamocený nadpis bez obsahu). Živě ověřeno: aplikace hlásí
+      `0.2.0` a okno „Co je nového" má nahoře `[0.2.0] - 2026-07-27`
+      (21 + 29 položek), vygenerovaný web ukazuje „Verze 0.2.0 — 2026-07-27"
+      se shodným počtem kategorií, a portable single-file build z Fáze 9
+      se z otagovaného kódu sestavil a spustil.
 - [x] In-app "Co je nového" propojené s webovou dokumentací per verze: nové okno
       (menu Nápověda → „Co je nového...") čte kořenový `CHANGELOG.md` zabalený jako
       embedded resource (funguje i v portable single-file buildu z Fáze 9).

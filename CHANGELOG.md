@@ -5,6 +5,8 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-27
+
 ### Opraveno
 - Sázení changelogu (aplikace i web): `**tučný text**` se zobrazoval doslova
   včetně hvězdiček a jedna verze měla tolik nadpisů kategorií, kolik commitů do
@@ -39,6 +41,130 @@ verzování dle [Semantic Versioning](https://semver.org/).
   obsloužená obyčejným HTTP serverem pod cestou `/diskora/`) - HTML, CSS,
   obrázky i interní odkazy vracely HTTP 200 správně, včetně zvýraznění
   aktivní položky v menu nápovědy.
+- `ChkdskRunner.RunSpotFixAsync`: bez admin práv `Repair-Volume` selhával jen
+  jako NEterminating chyba, takže skript to tiše prohlásil za úspěch (prázdný
+  `HealthStatus`, exit 0) - opraveno explicitní kontrolou výsledku. Živě
+  odhaleno při testování - jeden běh nechtěně skutečně proběhl (dopad ověřen
+  jako nulový, bez admin práv Windows operaci zablokoval dřív, než mohla
+  cokoliv zapsat), což zároveň odhalilo, že „Ano" bylo výchozí tlačítko
+  potvrzovacího dialogu - přepnuto na „Ne" jako výchozí.
+- `Diskora.VirtualDisks.VirtualDiskAttacher`: `Attach` neposílal
+  `ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME`, takže se připojený VHD/VHDX
+  tiše zase odpojil hned po volání, jakmile se zavřel handle použitý pro
+  samotný `AttachVirtualDisk` (`Success=True`, ale svazek/disk se ve
+  skutečnosti nikdy nezpřístupnil). Dřív se to nedalo odhalit - živě ověřená
+  byla jen cesta selhání bez admin práv (Win32 chyba 1314), ne skutečné
+  připojení. Odhaleno a opraveno až s elevovaným živým testem: po přidání
+  flagu disk zůstává připojený, dostane písmeno a jde znovu odpojit. Zároveň
+  živě ověřeno, že nad takto připojeným virtuálním diskem beze změny fungují
+  `IntegrityCheckService` (dirty bit i celý `chkdsk /scan`), `DiskUsageScanner`
+  a `SmartService` (korektně a srozumitelně hlásí, že SMART na virtuálním
+  disku není k dispozici).
+- `Diskora.VirtualDisks.VirtualDiskAttacher`: opětovné připojení již připojeného
+  VHD/VHDX (typicky po pádu/zavření Diskory bez explicitního odpojení) vracelo
+  jen syrové "Win32 chyba 32" - přidán srozumitelný český popis
+  (ERROR_SHARING_VIOLATION → disk je už otevřený/připojený jinde, nejdřív ho
+  odpojte). Živě ověřeno dvojím připojením stejného testovacího VHDX.
+- `TabControl`/`TabItem` (okno Analýza zaplněnosti): stejná třída bugu jako
+  dřív u Menu/DataGrid - výchozí šablona nebere Background/Foreground z
+  DynamicResource, takže hlavičky záložek ("Složky"/"Největší soubory"/
+  "Nejstarší soubory") zůstávaly bílé a nečitelné i v tmavém tématu. Nahlásil
+  uživatel po vyzkoušení přebuildované aplikace. Opraveno vlastní "underline"
+  šablonou (vybraná záložka má spodní pruh v AccentBrush) - živě ověřeno
+  v tmavém i světlém režimu.
+- `DiskUsageScanner`: první verze paralelizace držela permit ze semaforu i během
+  čekání na potomky, což je prioritní inverze (rodič čeká na potomka, který ale
+  potřebuje permit ze stejné fronty) - hluboké větve stromu se tak uměly zaseknout
+  na řádově minuty navíc, hůř než bez jakékoli paralelizace. Opraveno: permit se
+  drží jen po dobu synchronního I/O jedné složky, uvolní se PŘED rekurzí do potomků.
+- `DiskUsageScanner`: i po výše uvedené opravě GUI sken velkého svazku (na rozdíl
+  od izolovaného testu přímo nad Diskora.Core) trval přes 3 minuty navíc PO
+  dokončení skutečné I/O práce - hlášení postupu pro každou z 150 tisíc+ navštívených
+  složek zaplavovalo UI vlákno (každé volání skrz binding spouští drahé globální
+  `CommandManager.InvalidateRequerySuggested()`). Opraveno prahováním hlášení na
+  max. 10x/s (`ThrottledProgressReporter`).
+- `ThrottledProgressReporter`: throttler inicializovaný na `long.MinValue` přetékal
+  při prvním porovnání (`Environment.TickCount64 - long.MinValue` přesahuje
+  `long.MaxValue` a wrapne se na zápornou hodnotu), takže by tiše zahodil úplně
+  všechna hlášení postupu navždy - odhaleno existujícím regresním testem
+  (`ScanAsync_ReportsProgressForEachDirectoryVisited`), opraveno inicializací na
+  bezpečnou hodnotu odvozenou od aktuálního tick countu.
+- Hledač velkých a starých souborů (Fáze 4): `DiskUsageScanner` nyní během skenu
+  zároveň sleduje 20 největších a 20 nejstarších souborů v celém stromu přes nový
+  `BoundedTopTracker` (udržuje jen N položek seřazených podle komparátoru, žádná
+  alokace na soubor navíc - paměť neškáluje s počtem souborů na disku). Okno
+  Analýza zaplněnosti dostalo záložky „Největší soubory“ a „Nejstarší soubory“
+  vedle stávající „Složky“ (`FileUsageRowViewModel`, nové modely `FileUsageEntry`/
+  `DiskUsageScanResult` v Diskora.Core). Živě ověřeno na reálném svazku E:\ -
+  správné řazení (100 MB → 129 B sestupně; nejstarší → nejnovější vzestupně).
+  Zjištěno i empiricky potvrzeno, že jednovláknový sken neškáluje na velké svazky
+  (sken celého C:\ v tomto prostředí neskončil ani po 4 minutách) - zapsáno do
+  TODO.md jako prioritní položka pro vícevláknové zrychlení.
+- Čtení Event Logu (Fáze 3): nový `Diskora.Native.EventLog.DiskEventLogReader`
+  (`System.Diagnostics.Eventing.Reader.EventLogReader`, dotazuje protokoly System
+  a Application XPath filtrem na providery Ntfs/Disk/Volsnap/Virtual Disk Service/
+  FilterManager/Wininit) a `Diskora.Core.Services.DiskEventLogService`, které
+  namapuje `EventRecord.Level` na doménový `DiskEventLevel` (7 nových testů
+  `DiskEventLevelMapperTests`). Nové okno „Systémový protokol" (menu Nástroje →
+  Systémový protokol (disky)...) zobrazuje posledních 50 relevantních událostí
+  s barevným odznakem úrovně. Read-only, žádná elevace potřeba - živě ověřeno:
+  otevřené okno na tomto stroji skutečně ukázalo reálné události (Ntfs event 98
+  "Svazek E: je v pořádku" vzniklý přímo z vlastní dirty-bit kontroly Diskory,
+  Volsnap 33, Virtual Disk Service 3/4), správně česky lokalizované díky cs-CZ
+  systémové locale (na rozdíl od chkdsk, který je natvrdo anglicky).
+- Oprava kolidující přístupové klávesy v horním menu - „Nástroje" a „Nápověda"
+  obě používaly podtržené N, což způsobovalo nejednoznačnou mnemoniku (Alt+N
+  nešlo spolehlivě otevřít přes klávesnici); opraveno na „Nás_troje" (T).
+- Produktový web (Fáze 10, první řez): nový podprojekt `web/` (Astro 7 + Tailwind v4),
+  bez telemetrie/trackerů, `noindex` dokud nebude veřejné vydání. Landing page se
+  čtyřmi pilíři (skutečné screenshoty ze živého testování, ne makety), upřímným
+  hero (verze 0.1.0, žádné falešné tlačítko ke stažení) a sekcí o bezpečnostní
+  filozofii. Nápověda (`/docs/`) jako vlastní lehké Astro stránky se sdíleným
+  `DocsLayout` (sidebar navigace) místo plného Starlight - pro aktuální rozsah
+  obsahu jednodušší a vizuálně konzistentní s landing page; tři reálné podstránky
+  (Kontrola integrity, Analýza zaplněnosti, Bezpečnost a oprávnění), každá se
+  screenshotem a odkazem na živě ověřené chování z appky. Favicon/logo sdílené
+  s ikonou `Diskora.App`. Živě ověřeno: `npm run build` (5 stránek, bez chyb) a
+  `astro preview` (všech 5 cest vrací HTTP 200).
+- ISO podpora (Fáze 6): `Diskora.Repair.IsoMounter` orchestruje `Mount-DiskImage`/
+  `Dismount-DiskImage` (cesta k souboru jde přes proměnnou prostředí, ne interpolaci
+  do příkazu). Okno Virtuální disk teď rozpozná i `.iso` a nabídne Připojit/Odpojit
+  obraz - live ověřeno, funguje bez admin práv (na rozdíl od VHD/VHDX). Přímé
+  `AttachVirtualDisk` s VIRTUAL_STORAGE_TYPE_DEVICE_ISO bylo živě otestováno a
+  zdokumentováno jako nefunkční (vrátí úspěch, ale bez souborového systému), proto
+  orchestrace přes ověřený cmdlet.
+- Dokončení Fáze 1: mapování svazek → fyzický disk (WMI asociátorový řetězec
+  Win32_LogicalDisk → ... → Win32_DiskDrive, živě ověřeno) a barevné odznaky
+  typu disku (SSD/HDD/vyměnitelný/virtuální) u fyzických disků i svazků
+  v dashboardu - nový sloupec "Typ disku" u svazků.
+- Lokální historie (Fáze 2 a 3 - dokončení): nový projekt `Diskora.Data` se
+  `SqliteDiskHistoryStore` (SQLite v `%LocalAppData%\Diskora\diskora.db`, žádný
+  cloud/účet). `SmartService` a `IntegrityCheckService` teď volitelně zapisují
+  každé čtení/kontrolu do historie; okna S.M.A.R.T. a Kontrola integrity zobrazují
+  posledních 20 záznamů (barevně odlišený stav, u kontrol i výsledek skenu).
+  10 nových testů (`Diskora.Data.Tests`), živě ověřeno na reálném svazku E: i
+  fyzickém disku - historie se persistentně ukládá a znovu načítá napříč spuštěními.
+- UI vylepšení (drobnosti na žádost uživatele):
+  - `ChkdskOutputParser` (Diskora.App) rozpoznává "Stage N:"/"N percent complete"
+    v anglickém výstupu chkdsk (ten je pevně anglický bez ohledu na jazyk Windows -
+    ověřeno živě) a pohání český popisek fáze + grafický progress bar v okně
+    Kontrola integrity; syrový log zůstává jako doplňkový detail. 15 nových testů
+    (`Diskora.App.Tests`, nový projekt).
+  - Kompoziční pruh + legenda v okně Analýza zaplněnosti - vodorovný segmentovaný
+    pruh s ověřenou kategoriální paletou (skill dataviz), místo koláčového grafu
+    (part-to-whole se u mnoha/dlouhých názvů složek lépe čte jako pruh než koláč);
+    top 5 podílů + souhrnná položka "Ostatní", barevné dlaždice v legendě, tooltip
+    s přesnou velikostí. Živě ověřeno na reálných datech.
+- Tlačítka navázaná přes `RelayCommand` chvíli po dokončení async operace (mount,
+  scan, TRIM...) zůstávala zdánlivě needostupná - `CommandManager.RequerySuggested`
+  se spoléhá na běžné vstupní události, ne na změny vlastností z async pokračování.
+  Opraveno voláním `CommandManager.InvalidateRequerySuggested()` v `ViewModelBase.
+  SetField`, živě ověřeno (mount ISO → okamžité odpojení).
+- `Diskora.Data`: výchozí verze `Microsoft.Data.Sqlite` 9.0.0 táhla transitivní
+  závislost `SQLitePCLRaw.lib.e_sqlite3` 2.1.10/2.1.11 se známou bezpečnostní
+  chybou (GHSA-2m69-gcr7-jv3q, paměťová korupce v SQLite < 3.50.2) - opraveno
+  explicitním přepisem na `SQLitePCLRaw.bundle_e_sqlite3` 3.0.4, ověřeno běžícími
+  testy (žádné varování při buildu).
 
 ### Přidáno
 - Okno „Co je nového" (Fáze 11): menu Nápověda → „Co je nového...". Čte kořenový
@@ -178,17 +304,6 @@ verzování dle [Semantic Versioning](https://semver.org/).
   v okně Kontrola integrity s vlastním potvrzovacím dialogem PŘED zápisem -
   `MessageBoxResult.No` je záměrně výchozí, aby náhodný Enter/mezerník
   nemohl omylem potvrdit akci, která skutečně zapisuje na disk.
-
-### Opraveno
-- `ChkdskRunner.RunSpotFixAsync`: bez admin práv `Repair-Volume` selhával jen
-  jako NEterminating chyba, takže skript to tiše prohlásil za úspěch (prázdný
-  `HealthStatus`, exit 0) - opraveno explicitní kontrolou výsledku. Živě
-  odhaleno při testování - jeden běh nechtěně skutečně proběhl (dopad ověřen
-  jako nulový, bez admin práv Windows operaci zablokoval dřív, než mohla
-  cokoliv zapsat), což zároveň odhalilo, že „Ano" bylo výchozí tlačítko
-  potvrzovacího dialogu - přepnuto na „Ne" jako výchozí.
-
-### Přidáno
 - Export do CSV/JSON napříč okny (Fáze 8): dřív mělo export jen okno Analýza
   zaplněnosti. Přidáno do S.M.A.R.T., Kontrola integrity, Povrchový sken a
   Systémový protokol - sdílené přes nový `Diskora.App.Export.ExportHelper`
@@ -283,27 +398,6 @@ verzování dle [Semantic Versioning](https://semver.org/).
   funguje čistě. Cestu se skutečně nalezenou vadnou oblastí se nepodařilo
   živě ověřit - žádný disk s reálně vadnými sektory není v tomto prostředí
   k dispozici.
-
-### Opraveno
-- `Diskora.VirtualDisks.VirtualDiskAttacher`: `Attach` neposílal
-  `ATTACH_VIRTUAL_DISK_FLAG_PERMANENT_LIFETIME`, takže se připojený VHD/VHDX
-  tiše zase odpojil hned po volání, jakmile se zavřel handle použitý pro
-  samotný `AttachVirtualDisk` (`Success=True`, ale svazek/disk se ve
-  skutečnosti nikdy nezpřístupnil). Dřív se to nedalo odhalit - živě ověřená
-  byla jen cesta selhání bez admin práv (Win32 chyba 1314), ne skutečné
-  připojení. Odhaleno a opraveno až s elevovaným živým testem: po přidání
-  flagu disk zůstává připojený, dostane písmeno a jde znovu odpojit. Zároveň
-  živě ověřeno, že nad takto připojeným virtuálním diskem beze změny fungují
-  `IntegrityCheckService` (dirty bit i celý `chkdsk /scan`), `DiskUsageScanner`
-  a `SmartService` (korektně a srozumitelně hlásí, že SMART na virtuálním
-  disku není k dispozici).
-- `Diskora.VirtualDisks.VirtualDiskAttacher`: opětovné připojení již připojeného
-  VHD/VHDX (typicky po pádu/zavření Diskory bez explicitního odpojení) vracelo
-  jen syrové "Win32 chyba 32" - přidán srozumitelný český popis
-  (ERROR_SHARING_VIOLATION → disk je už otevřený/připojený jinde, nejdřív ho
-  odpojte). Živě ověřeno dvojím připojením stejného testovacího VHDX.
-
-### Přidáno
 - CLI společník `diskora.exe` (Fáze 7): nový projekt `Diskora.Cli`, headless
   doplněk ke GUI pro skriptování a automatizaci. Příkazy `list`, `smart
   <index>`, `integrity <písmeno> [--scan]`, `usage <cesta> [--top N]`,
@@ -320,17 +414,6 @@ verzování dle [Semantic Versioning](https://semver.org/).
   `JavaScriptEncoder` omezeným na Basic Latin + Latin-1 Supplement + Latin
   Extended-A, aby česká diakritika zůstala v souboru čitelná místo `\uXXXX`
   escapů. Živě ověřeno reálným exportem se skutečnými daty.
-
-### Opraveno
-- `TabControl`/`TabItem` (okno Analýza zaplněnosti): stejná třída bugu jako
-  dřív u Menu/DataGrid - výchozí šablona nebere Background/Foreground z
-  DynamicResource, takže hlavičky záložek ("Složky"/"Největší soubory"/
-  "Nejstarší soubory") zůstávaly bílé a nečitelné i v tmavém tématu. Nahlásil
-  uživatel po vyzkoušení přebuildované aplikace. Opraveno vlastní "underline"
-  šablonou (vybraná záložka má spodní pruh v AccentBrush) - živě ověřeno
-  v tmavém i světlém režimu.
-
-### Přidáno
 - Hledač duplicit (Fáze 4): `Diskora.Core.Services.DuplicateFileFinder` -
   dvoufázový hash-based přístup (nejdřív zdarma seskupí podle velikosti
   souboru, teprve kandidáty se shodnou velikostí hashuje SHA-256 paralelně).
@@ -357,103 +440,6 @@ verzování dle [Semantic Versioning](https://semver.org/).
   (`Environment.ProcessorCount * 2` souběžných I/O operací). Sken celého `C:\`
   (437 311 souborů, 150 579 složek, 101 GB) teď doběhne za ~48-76 s - dřív se
   jednovláknová verze na tomto svazku nedokončila ani po 4 minutách.
-
-### Opraveno
-- `DiskUsageScanner`: první verze paralelizace držela permit ze semaforu i během
-  čekání na potomky, což je prioritní inverze (rodič čeká na potomka, který ale
-  potřebuje permit ze stejné fronty) - hluboké větve stromu se tak uměly zaseknout
-  na řádově minuty navíc, hůř než bez jakékoli paralelizace. Opraveno: permit se
-  drží jen po dobu synchronního I/O jedné složky, uvolní se PŘED rekurzí do potomků.
-- `DiskUsageScanner`: i po výše uvedené opravě GUI sken velkého svazku (na rozdíl
-  od izolovaného testu přímo nad Diskora.Core) trval přes 3 minuty navíc PO
-  dokončení skutečné I/O práce - hlášení postupu pro každou z 150 tisíc+ navštívených
-  složek zaplavovalo UI vlákno (každé volání skrz binding spouští drahé globální
-  `CommandManager.InvalidateRequerySuggested()`). Opraveno prahováním hlášení na
-  max. 10x/s (`ThrottledProgressReporter`).
-- `ThrottledProgressReporter`: throttler inicializovaný na `long.MinValue` přetékal
-  při prvním porovnání (`Environment.TickCount64 - long.MinValue` přesahuje
-  `long.MaxValue` a wrapne se na zápornou hodnotu), takže by tiše zahodil úplně
-  všechna hlášení postupu navždy - odhaleno existujícím regresním testem
-  (`ScanAsync_ReportsProgressForEachDirectoryVisited`), opraveno inicializací na
-  bezpečnou hodnotu odvozenou od aktuálního tick countu.
-- Hledač velkých a starých souborů (Fáze 4): `DiskUsageScanner` nyní během skenu
-  zároveň sleduje 20 největších a 20 nejstarších souborů v celém stromu přes nový
-  `BoundedTopTracker` (udržuje jen N položek seřazených podle komparátoru, žádná
-  alokace na soubor navíc - paměť neškáluje s počtem souborů na disku). Okno
-  Analýza zaplněnosti dostalo záložky „Největší soubory“ a „Nejstarší soubory“
-  vedle stávající „Složky“ (`FileUsageRowViewModel`, nové modely `FileUsageEntry`/
-  `DiskUsageScanResult` v Diskora.Core). Živě ověřeno na reálném svazku E:\ -
-  správné řazení (100 MB → 129 B sestupně; nejstarší → nejnovější vzestupně).
-  Zjištěno i empiricky potvrzeno, že jednovláknový sken neškáluje na velké svazky
-  (sken celého C:\ v tomto prostředí neskončil ani po 4 minutách) - zapsáno do
-  TODO.md jako prioritní položka pro vícevláknové zrychlení.
-- Čtení Event Logu (Fáze 3): nový `Diskora.Native.EventLog.DiskEventLogReader`
-  (`System.Diagnostics.Eventing.Reader.EventLogReader`, dotazuje protokoly System
-  a Application XPath filtrem na providery Ntfs/Disk/Volsnap/Virtual Disk Service/
-  FilterManager/Wininit) a `Diskora.Core.Services.DiskEventLogService`, které
-  namapuje `EventRecord.Level` na doménový `DiskEventLevel` (7 nových testů
-  `DiskEventLevelMapperTests`). Nové okno „Systémový protokol" (menu Nástroje →
-  Systémový protokol (disky)...) zobrazuje posledních 50 relevantních událostí
-  s barevným odznakem úrovně. Read-only, žádná elevace potřeba - živě ověřeno:
-  otevřené okno na tomto stroji skutečně ukázalo reálné události (Ntfs event 98
-  "Svazek E: je v pořádku" vzniklý přímo z vlastní dirty-bit kontroly Diskory,
-  Volsnap 33, Virtual Disk Service 3/4), správně česky lokalizované díky cs-CZ
-  systémové locale (na rozdíl od chkdsk, který je natvrdo anglicky).
-- Oprava kolidující přístupové klávesy v horním menu - „Nástroje" a „Nápověda"
-  obě používaly podtržené N, což způsobovalo nejednoznačnou mnemoniku (Alt+N
-  nešlo spolehlivě otevřít přes klávesnici); opraveno na „Nás_troje" (T).
-- Produktový web (Fáze 10, první řez): nový podprojekt `web/` (Astro 7 + Tailwind v4),
-  bez telemetrie/trackerů, `noindex` dokud nebude veřejné vydání. Landing page se
-  čtyřmi pilíři (skutečné screenshoty ze živého testování, ne makety), upřímným
-  hero (verze 0.1.0, žádné falešné tlačítko ke stažení) a sekcí o bezpečnostní
-  filozofii. Nápověda (`/docs/`) jako vlastní lehké Astro stránky se sdíleným
-  `DocsLayout` (sidebar navigace) místo plného Starlight - pro aktuální rozsah
-  obsahu jednodušší a vizuálně konzistentní s landing page; tři reálné podstránky
-  (Kontrola integrity, Analýza zaplněnosti, Bezpečnost a oprávnění), každá se
-  screenshotem a odkazem na živě ověřené chování z appky. Favicon/logo sdílené
-  s ikonou `Diskora.App`. Živě ověřeno: `npm run build` (5 stránek, bez chyb) a
-  `astro preview` (všech 5 cest vrací HTTP 200).
-- ISO podpora (Fáze 6): `Diskora.Repair.IsoMounter` orchestruje `Mount-DiskImage`/
-  `Dismount-DiskImage` (cesta k souboru jde přes proměnnou prostředí, ne interpolaci
-  do příkazu). Okno Virtuální disk teď rozpozná i `.iso` a nabídne Připojit/Odpojit
-  obraz - live ověřeno, funguje bez admin práv (na rozdíl od VHD/VHDX). Přímé
-  `AttachVirtualDisk` s VIRTUAL_STORAGE_TYPE_DEVICE_ISO bylo živě otestováno a
-  zdokumentováno jako nefunkční (vrátí úspěch, ale bez souborového systému), proto
-  orchestrace přes ověřený cmdlet.
-- Dokončení Fáze 1: mapování svazek → fyzický disk (WMI asociátorový řetězec
-  Win32_LogicalDisk → ... → Win32_DiskDrive, živě ověřeno) a barevné odznaky
-  typu disku (SSD/HDD/vyměnitelný/virtuální) u fyzických disků i svazků
-  v dashboardu - nový sloupec "Typ disku" u svazků.
-- Lokální historie (Fáze 2 a 3 - dokončení): nový projekt `Diskora.Data` se
-  `SqliteDiskHistoryStore` (SQLite v `%LocalAppData%\Diskora\diskora.db`, žádný
-  cloud/účet). `SmartService` a `IntegrityCheckService` teď volitelně zapisují
-  každé čtení/kontrolu do historie; okna S.M.A.R.T. a Kontrola integrity zobrazují
-  posledních 20 záznamů (barevně odlišený stav, u kontrol i výsledek skenu).
-  10 nových testů (`Diskora.Data.Tests`), živě ověřeno na reálném svazku E: i
-  fyzickém disku - historie se persistentně ukládá a znovu načítá napříč spuštěními.
-- UI vylepšení (drobnosti na žádost uživatele):
-  - `ChkdskOutputParser` (Diskora.App) rozpoznává "Stage N:"/"N percent complete"
-    v anglickém výstupu chkdsk (ten je pevně anglický bez ohledu na jazyk Windows -
-    ověřeno živě) a pohání český popisek fáze + grafický progress bar v okně
-    Kontrola integrity; syrový log zůstává jako doplňkový detail. 15 nových testů
-    (`Diskora.App.Tests`, nový projekt).
-  - Kompoziční pruh + legenda v okně Analýza zaplněnosti - vodorovný segmentovaný
-    pruh s ověřenou kategoriální paletou (skill dataviz), místo koláčového grafu
-    (part-to-whole se u mnoha/dlouhých názvů složek lépe čte jako pruh než koláč);
-    top 5 podílů + souhrnná položka "Ostatní", barevné dlaždice v legendě, tooltip
-    s přesnou velikostí. Živě ověřeno na reálných datech.
-
-### Opraveno
-- Tlačítka navázaná přes `RelayCommand` chvíli po dokončení async operace (mount,
-  scan, TRIM...) zůstávala zdánlivě needostupná - `CommandManager.RequerySuggested`
-  se spoléhá na běžné vstupní události, ne na změny vlastností z async pokračování.
-  Opraveno voláním `CommandManager.InvalidateRequerySuggested()` v `ViewModelBase.
-  SetField`, živě ověřeno (mount ISO → okamžité odpojení).
-- `Diskora.Data`: výchozí verze `Microsoft.Data.Sqlite` 9.0.0 táhla transitivní
-  závislost `SQLitePCLRaw.lib.e_sqlite3` 2.1.10/2.1.11 se známou bezpečnostní
-  chybou (GHSA-2m69-gcr7-jv3q, paměťová korupce v SQLite < 3.50.2) - opraveno
-  explicitním přepisem na `SQLitePCLRaw.bundle_e_sqlite3` 3.0.4, ověřeno běžícími
-  testy (žádné varování při buildu).
 
 ## [0.1.0] - 2026-07-25
 
