@@ -6,7 +6,7 @@ const base = import.meta.env.BASE_URL;
 
 <DocsLayout
 	title="Nápověda"
-	description="Podrobná nápověda k Diskoře — kontrola integrity, S.M.A.R.T., analýza zaplněnosti, TRIM a defragmentace, virtuální disky."
+	description="Podrobná nápověda k Diskoře — Disk Doctor, test skutečné kapacity, kontrola integrity, S.M.A.R.T., analýza zaplněnosti, TRIM a defragmentace."
 >
 	<h1 class="text-3xl font-bold">Nápověda</h1>
 	<p class="mt-4 text-neutral-400">
@@ -16,6 +16,24 @@ const base = import.meta.env.BASE_URL;
 	</p>
 
 	<div class="mt-10 grid gap-6 sm:grid-cols-2">
+		<a
+			href={`${base}docs/disk-doctor/`}
+			class="rounded-xl border border-white/10 p-6 transition hover:border-blue-400/40 hover:bg-white/[0.03]"
+		>
+			<h2 class="font-semibold text-blue-300">Disk Doctor</h2>
+			<p class="mt-2 text-sm text-neutral-400">
+				Jedno tlačítko, jeden srozumitelný verdikt a doporučení, co s diskem dělat.
+			</p>
+		</a>
+		<a
+			href={`${base}docs/capacity-test/`}
+			class="rounded-xl border border-white/10 p-6 transition hover:border-blue-400/40 hover:bg-white/[0.03]"
+		>
+			<h2 class="font-semibold text-blue-300">Test skutečné kapacity</h2>
+			<p class="mt-2 text-sm text-neutral-400">
+				Odhalí flash disky, které hlásí víc, než fyzicky mají.
+			</p>
+		</a>
 		<a
 			href={`${base}docs/integrity/`}
 			class="rounded-xl border border-white/10 p-6 transition hover:border-blue-400/40 hover:bg-white/[0.03]"

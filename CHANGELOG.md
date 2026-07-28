@@ -5,6 +5,15 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Změněno
+- **Web dohnal aplikaci** (nahlásil uživatel): landing page hlásila „Verze 0.1.0 —
+  rané vývojové stádium", zatímco vydaná byla 0.3.0, a žádná z nových funkcí nebyla
+  na webu ani v nápovědě zmíněná. Opraveno číslo verze i popis stavu, mezi odlišující
+  prvky přidány Disk Doctor, odhad zbývající životnosti, test skutečné kapacity
+  a překlad výstupů nástrojů. Nápověda dostala dvě nové stránky (Disk Doctor,
+  Test skutečné kapacity) včetně odkazů v postranním menu a dlaždic na rozcestníku.
+  `docs/ARCHITECTURE.md` doplněn o nové podsložky `Diskora.Core`.
+
 ### Opraveno
 - **Analýza fragmentace vypadala zaseknutě** (nahlásil uživatel): postup se hlásil
   jen během procházení složek, ale ne během samotného čtení fragmentace, což je

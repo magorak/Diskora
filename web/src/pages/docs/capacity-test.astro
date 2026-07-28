@@ -1,0 +1,66 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+	title="Test skutečné kapacity"
+	description="Odhalí přeznačené flash disky, které hlásí větší kapacitu, než fyzicky mají."
+>
+	<h1 class="text-3xl font-bold">Test skutečné kapacity</h1>
+	<p class="mt-4 text-neutral-400">
+		Na trhu se dají koupit flash disky, které se tváří jako 1TB, ale fyzicky mají třeba 32 GB. Systém
+		i Průzkumník na ně data „zapíšou“ bez chyby — jenže cokoli nad skutečnou kapacitu se tiše přepíše
+		přes data zapsaná dřív. Přijdete na to typicky až ve chvíli, kdy zálohu potřebujete.
+	</p>
+	<p class="mt-4 text-neutral-400">
+		Tenhle test to odhalí dřív.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Jak to funguje</h2>
+	<p class="mt-4 text-neutral-400">
+		Diskora zaplní volné místo vzorem, ve kterém se hodnota každého bajtu počítá z jeho pozice na
+		disku, a pak ho přečte zpátky a porovná. Nic se nemusí ukládat stranou — ověření si správnou
+		hodnotu spočítá znovu.
+	</p>
+	<p class="mt-4 text-neutral-400">
+		Právě tahle závislost na pozici je proti přeznačeným diskům podstatná. Takový disk adresy nad svou
+		skutečnou kapacitou „zabalí“ zpátky na začátek, takže se na dané pozici čtou data patřící jinam —
+		a to je okamžitě vidět. U vzoru ze samých nul nebo z jednoho opakujícího se řetězce by takový disk
+		prošel jako zdravý.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Vaše data zůstanou</h2>
+	<ul class="mt-4 list-disc space-y-2 pl-6 text-neutral-400">
+		<li>Zapisuje se jen do <strong class="text-neutral-200">volného místa</strong>, existující soubory se nemažou.</li>
+		<li>Testovací data se na konci smažou — <strong class="text-neutral-200">i po zrušení nebo chybě</strong>.</li>
+		<li>Oddíly ani souborový systém se nijak neupravují.</li>
+		<li>Nepotřebuje práva administrátora.</li>
+	</ul>
+	<p class="mt-4 text-neutral-400">
+		Cenou je, že se netestuje část kapacity zabraná existujícími daty. Pro odhalení přeznačeného disku
+		to ale stačí — ten se prozradí i na zlomku své deklarované velikosti. Chcete-li otestovat celou
+		kapacitu, disk nejdřív naformátujte.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Počítejte s časem</h2>
+	<p class="mt-4 text-neutral-400">
+		Test zapisuje a pak čte celé volné místo, takže u velkých nebo pomalých disků trvá desítky minut.
+		Pro představu: ověření 14,6 GB na USB flash disku zabralo přibližně 11 minut. Průběh je vidět
+		a test jde kdykoli zrušit.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Jak číst výsledek</h2>
+	<p class="mt-4 text-neutral-400">
+		<strong class="text-neutral-200">Disk obstál</strong> znamená, že všechno zapsané se dalo přečíst
+		zpátky beze změny — v testované části tedy skutečně pojme to, co tvrdí.
+	</p>
+	<p class="mt-4 text-neutral-400">
+		<strong class="text-neutral-200">Data se změnila po…</strong> znamená problém: disk hlásí víc
+		kapacity, než má, nebo je vadný. Uvedená hodnota zhruba odpovídá jeho skutečné použitelné velikosti.
+		Na takový disk nespoléhejte.
+	</p>
+
+	<p class="mt-10 text-sm text-neutral-500">
+		Dostupné i z příkazové řádky: <code class="rounded bg-white/10 px-1.5 py-0.5">diskora capacity I:</code>
+	</p>
+</DocsLayout>

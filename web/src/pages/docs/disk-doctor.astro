@@ -1,0 +1,64 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+	title="Disk Doctor"
+	description="Jedno tlačítko projde zdraví disku, stav souborového systému i typ disku a dá jeden srozumitelný verdikt s doporučeními."
+>
+	<h1 class="text-3xl font-bold">Disk Doctor</h1>
+	<p class="mt-4 text-neutral-400">
+		Většina diskových nástrojů vám ukáže tabulku čísel a nechá na vás, abyste si ji přeložili.
+		Disk Doctor jde opačnou cestou: jedním tlačítkem projde všechno podstatné a odpoví na otázku,
+		kterou opravdu máte — <em>je s tím diskem něco v nepořádku, a co s tím mám dělat?</em>
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Co projde</h2>
+	<ul class="mt-4 list-disc space-y-2 pl-6 text-neutral-400">
+		<li><strong class="text-neutral-200">Zdraví disku</strong> — S.M.A.R.T. u ATA/SATA disků, health log u NVMe.</li>
+		<li><strong class="text-neutral-200">Zbývající životnost</strong> — odhad, jak dlouho disk při současném používání vydrží.</li>
+		<li><strong class="text-neutral-200">Stav souborového systému</strong> — jestli na svazku nezůstala nedokončená změna.</li>
+		<li><strong class="text-neutral-200">Doporučená údržba</strong> — TRIM u SSD, defragmentace u talířových disků.</li>
+	</ul>
+
+	<h2 class="mt-10 text-2xl font-semibold">Vytáhne i to, co souhrnný verdikt skryje</h2>
+	<p class="mt-4 text-neutral-400">
+		Ukázkový příklad z reálného testování: 4TB pevný disk hlásil, že je zdravý — a byla to pravda,
+		žádná sledovaná hodnota nepřekračovala výrobcem daný práh. Disk Doctor k tomu ale přidal, že disk
+		zaznamenal <strong class="text-neutral-200">2426 chyb přenosu po kabelu</strong>, a vysvětlil, že
+		skoro vždy jde o vadný nebo špatně dosedající SATA kabel, ne o vadný disk.
+	</p>
+	<p class="mt-4 text-neutral-400">
+		Tenhle údaj nezhoršuje normalizovanou hodnotu, takže v souhrnném verdiktu zapadne — a přesně
+		takové věci hledá Disk Doctor za vás.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Sám nic nespouští</h2>
+	<p class="mt-4 text-neutral-400">
+		Disk Doctor je záměrně pouze diagnostický. Akce jen nabízí a tlačítko otevře příslušné okno, kde
+		má akce vlastní potvrzení — oprava souborového systému i defragmentace na disk skutečně zapisují
+		a takové věci se v Diskoře nikdy nespouští „samy od sebe“.
+	</p>
+	<p class="mt-4 text-neutral-400">
+		Když typ disku nejde spolehlivě určit, nedoporučí ani TRIM, ani defragmentaci. Doporučit
+		defragmentaci SSD je horší než mlčet.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Zpráva, kterou můžete poslat dál</h2>
+	<p class="mt-4 text-neutral-400">
+		Tlačítko <strong class="text-neutral-200">Uložit zprávu…</strong> vytvoří jednu přehlednou stránku
+		se závěry a doporučeními a otevře ji v prohlížeči. Je celá soběstačná — žádné obrázky ani skripty
+		zvenčí, takže funguje offline a dá se poslat e-mailem jako jediný soubor.
+	</p>
+
+	<h2 class="mt-10 text-2xl font-semibold">Bez práv administrátora</h2>
+	<p class="mt-4 text-neutral-400">
+		Disk Doctor funguje i bez zvýšených oprávnění, ale část kontroly je pak slepá — čtení S.M.A.R.T.
+		u ATA/SATA disků elevaci vyžaduje. Diskora to v takovém případě řekne nahlas a nabídne kontrolu
+		zopakovat. U NVMe disků se zdraví přečte i bez elevace.
+	</p>
+
+	<p class="mt-10 text-sm text-neutral-500">
+		Dostupné i z příkazové řádky: <code class="rounded bg-white/10 px-1.5 py-0.5">diskora doctor C:</code>
+	</p>
+</DocsLayout>

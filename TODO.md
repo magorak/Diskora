@@ -694,7 +694,13 @@ závažnosti, ne podle pořadí nahlášení.
       zasekla se na souboru drženém antivirem a nepřepínala na svou záložku -
       všechno opraveno, živě ověřeno (postup „X z Y", zrušení zabírá, časový
       limit 5 s na soubor).
-- [ ] **Web a dokumentace jsou pozadu za aplikací** - ověřeno grepem: landing page
+- [x] **Web a dokumentace dohnány k aplikaci** - opraveno číslo verze na landing
+      page (hlásila 0.1.0 u vydané 0.3.0), doplněny nové odlišující prvky, nápověda
+      dostala stránky Disk Doctor a Test skutečné kapacity včetně navigace a dlaždic,
+      `docs/ARCHITECTURE.md` zná nové podsložky. Ověřeno `astro build` (9 stránek)
+      a kontrolou vygenerovaného HTML. ZBÝVÁ: screenshoty nových oken (stávající
+      jsou z Fáze 10) a stránky pro odhad životnosti a zprávu pro člověka.
+      Původní zjištění znělo: - ověřeno grepem: landing page
       hlásí „Verze 0.1.0 — rané vývojové stádium", zatímco vydaná je 0.3.0, a ani
       jedna z nových funkcí (Disk Doctor, test kapacity, odhad životnosti, zpráva
       pro člověka, české výstupy) není zmíněná nikde v `web/src/pages/` ani

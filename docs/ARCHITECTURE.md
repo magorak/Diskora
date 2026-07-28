@@ -28,7 +28,7 @@ Diskora je monorepo se dvěma hlavními částmi:
 | Projekt | Zodpovědnost |
 |---|---|
 | `Diskora.App` | WPF UI — views, viewmodely (MVVM), theming, DI bootstrap |
-| `Diskora.Core` | Doménové modely a služby nezávislé na UI (enumerace disků, health skóre, treemap výpočty) |
+| `Diskora.Core` | Doménové modely a služby nezávislé na UI (enumerace disků, health skóre, treemap výpočty). Podsložky: `Diagnostics` (Disk Doctor, odhad životnosti, vzor pro test kapacity), `Output` (překlad výstupů chkdsk/defrag), `Export` (CSV a HTML zpráva), `Changelog` |
 | `Diskora.Native` | P/Invoke wrappery pro Win32/IOCTL API (ATA SMART i NVMe health log, TRIM, geometrie disku, elevace) |
 | `Diskora.Repair` | Orchestrace `chkdsk`/`defrag`, parsování výstupu, čtení Event Logu |
 | `Diskora.VirtualDisks` | VHD/VHDX (`virtdisk.dll`), ISO (IMAPI2), IMG mount/inspekce |
