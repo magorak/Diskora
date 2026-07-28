@@ -5,6 +5,8 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-28
+
 ### Přidáno
 - **Zpráva o stavu disku pro člověka (HTML)** - tlačítko „Uložit zprávu..." v okně
   Disk Doctor uloží jednu přehlednou stránku se závěry a doporučeními a rovnou ji
@@ -18,8 +20,6 @@ verzování dle [Semantic Versioning](https://semver.org/).
   nerozbije) - pokryto testem. 9 testů.
   Živě ověřeno vygenerováním zprávy ze tří reálných svazků: 3 sekce, 0 externích
   zdrojů, 0 skriptů, správná čeština i doporučení.
-
-### Přidáno
 - **Odhad zbývající životnosti disku** - Disk Doctor nově místo pouhého čísla
   „spotřebováno 6 %" řekne, co to znamená: „Při stejném způsobu používání vydrží
   disk odhadem ještě 7 let." Přesně tohle uživatele zajímá, a konkurence
@@ -47,8 +47,6 @@ verzování dle [Semantic Versioning](https://semver.org/).
   7 let), Crucial MX500 přes atribut 202 (1 % za 9727 h → „opotřebení zápisy pro
   vás není to, co disk omezí"), Verbatim s atributem 177 (zatím neměřitelné
   opotřebení) a talířový disk (ukazatel nemá vůbec).
-
-### Přidáno
 - **Test skutečné kapacity disku** - odhalí přeznačené flash disky, které hlásí
   víc, než fyzicky mají. Tlačítko „Test kapacity" u každého svazku v dashboardu
   a `diskora capacity <písmeno>` v CLI. Dnes na to lidé sahají po H2testw nebo
@@ -69,8 +67,6 @@ verzování dle [Semantic Versioning](https://semver.org/).
   smazala. Ověřeno i přes GUI okno včetně zrušení uprostřed (0,2 s) a úklidu.
   Cesta „přeznačený disk" živě ověřená není - takový disk k dispozici nebyl,
   pokrytá je jen testy nad vzorem.
-
-### Přidáno
 - Výstupy `chkdsk` a `defrag` se zobrazují česky (nahlásil uživatel): nový
   `Diskora.Core.Output.ToolOutputTranslator` překládá rozpoznané řádky, neznámé
   nechává beze změny (nová verze Windows tak nikdy nezpůsobí ztrátu informace)
@@ -80,6 +76,28 @@ verzování dle [Semantic Versioning](https://semver.org/).
   ne náhrada. 31 testů, jejichž vstupy jsou doslovné řádky ze skutečných běhů.
   Živě ověřeno na reálném `chkdsk H: /scan`: ze 220 řádků výstupu zůstane
   54 čitelných, zbytek je odfiltrovaná záplava průběžných hlášení.
+- Disk Doctor: jedno tlačítko u každého svazku v dashboardu (a `diskora doctor
+  <písmeno>` v CLI), které projde S.M.A.R.T., stav souborového systému i typ
+  disku a dá jeden srozumitelný verdikt s doporučeními. Rozhodování je čistá
+  funkce `DiskDoctorAdvisor.Diagnose` nad `DiskDoctorInputs`, takže se dá
+  otestovat bez disků, bez elevace a bez čekání (16 testů); `DiskDoctorService`
+  jen posbírá data z už existujících ověřených služeb a žádnou novou cestu
+  k datům nevytváří.
+  Doctor je vědomě pouze diagnostický - sám nic nespouští. Akce jen nabízí a
+  tlačítko otevře příslušné existující okno, kde má akce vlastní potvrzení
+  (spotfix a defragmentace na disk skutečně zapisují). Při nejistém typu disku
+  nenabídne ani TRIM, ani defragmentaci - stejné pravidlo jako v okně Optimalizace,
+  protože doporučit defragmentaci SSD je horší než mlčet.
+  Přínos proti pouhému „disk je v pořádku" se ukázal hned při živém testu na
+  reálném 4TB HDD: S.M.A.R.T. hlásí zdravý disk, ale Doctor navíc vytáhne
+  2426 chyb přenosu (atribut 199) a vysvětlí, že jde skoro vždy o vadný SATA
+  kabel, ne o vadný disk. Tenhle atribut nezhoršuje normalizovanou hodnotu,
+  takže by v souhrnném verdiktu zapadl.
+  Živě ověřeno na 4 reálných svazcích s elevací i bez (NVMe systémový, 4TB HDD,
+  SATA SSD, USB disk) - přes CLI i přes skutečnou instanci `DiskDoctorWindow`.
+  Bez elevace hlásí, že je tahle část kontroly slepá, a doporučí elevaci;
+  s elevací u USB mostu elevaci už nenavrhuje a vysvětlí, že disk data
+  neposkytuje.
 
 ### Opraveno
 - Průběh kontroly integrity se hýbal jen po fázích: `ChkdskOutputParser` hledal
@@ -96,6 +114,26 @@ verzování dle [Semantic Versioning](https://semver.org/).
 - Záplava průběžných hlášení ve výpisu: chkdsk vypíše stovky řádků „Progress: ..."
   a řádků samých mezer, kterými maže předchozí řádek. Do výpisu se už nedostanou,
   ale pořád se z nich čte postup.
+- **Oprava integrity (spotfix) hlásila selhání i po úspěšném průběhu** (Fáze 3):
+  PowerShell skript kontroloval `$result.HealthStatus`, jenže `Repair-Volume`
+  vrací PŘÍMO hodnotu typu `RepairStatus` (např. `NoErrorsFound`) a žádnou
+  vlastnost `HealthStatus` nemá. Kontrola je uvnitř `try` bloku, takže i naprosto
+  úspěšná oprava skončila vyhozenou výjimkou a `ExitCode=1`. Chyba přežila proto,
+  že tahle cesta do teď nikdy neběžela s právy administrátora - bez elevace
+  selhala dřív z jiného důvodu. Odhaleno prvním živým spuštěním na svazku, který
+  uživatel k destruktivním testům výslovně uvolnil; tvar výsledku ověřen
+  samostatnou sondou přímo nad `Repair-Volume`. Po opravě: `ExitCode=0`,
+  výstup „Stav opravy: NoErrorsFound", dirty bit před i po `Clean`.
+- `ProcessOutputRunner`: `OutputDataReceived` a `ErrorDataReceived` se vyvolávají
+  každý ze svého vlákna, ale oba přidávaly do sdíleného `List<string>` bez
+  synchronizace - souběžný `List.Add` může ztratit nebo zdvojit řádky, případně
+  trefit zvětšování pole. Přidán zámek (hlášení průběhu zůstává mimo něj, ať se
+  nedrží zámek přes marshalling na UI vlákno). Latentní chyba nalezená při
+  čtení kódu; projevila by se jen u procesů, které skutečně píšou do obou
+  streamů zároveň.
+- `diskora doctor` nenacházel žádný svazek: `VolumeInfo.Name` má tvar `E:\`,
+  kdežto `NormalizeDriveLetter` vrací `E:`, takže porovnání selhalo pro všechna
+  písmena. Odhaleno prvním živým spuštěním nového příkazu.
 
 ### Změněno
 - Optimalizace disku u disků s nezjištěným typem (nahlásil uživatel): u disku za USB
@@ -125,52 +163,6 @@ verzování dle [Semantic Versioning](https://semver.org/).
   null), takže Diskora u takového disku defragmentaci vůbec nenabídne - správné
   chování podle pravidla „při nejistotě nenabízet nic". Interní 4TB SATA HDD se
   naproti tomu rozpozná správně.
-
-### Přidáno
-- Disk Doctor: jedno tlačítko u každého svazku v dashboardu (a `diskora doctor
-  <písmeno>` v CLI), které projde S.M.A.R.T., stav souborového systému i typ
-  disku a dá jeden srozumitelný verdikt s doporučeními. Rozhodování je čistá
-  funkce `DiskDoctorAdvisor.Diagnose` nad `DiskDoctorInputs`, takže se dá
-  otestovat bez disků, bez elevace a bez čekání (16 testů); `DiskDoctorService`
-  jen posbírá data z už existujících ověřených služeb a žádnou novou cestu
-  k datům nevytváří.
-  Doctor je vědomě pouze diagnostický - sám nic nespouští. Akce jen nabízí a
-  tlačítko otevře příslušné existující okno, kde má akce vlastní potvrzení
-  (spotfix a defragmentace na disk skutečně zapisují). Při nejistém typu disku
-  nenabídne ani TRIM, ani defragmentaci - stejné pravidlo jako v okně Optimalizace,
-  protože doporučit defragmentaci SSD je horší než mlčet.
-  Přínos proti pouhému „disk je v pořádku" se ukázal hned při živém testu na
-  reálném 4TB HDD: S.M.A.R.T. hlásí zdravý disk, ale Doctor navíc vytáhne
-  2426 chyb přenosu (atribut 199) a vysvětlí, že jde skoro vždy o vadný SATA
-  kabel, ne o vadný disk. Tenhle atribut nezhoršuje normalizovanou hodnotu,
-  takže by v souhrnném verdiktu zapadl.
-  Živě ověřeno na 4 reálných svazcích s elevací i bez (NVMe systémový, 4TB HDD,
-  SATA SSD, USB disk) - přes CLI i přes skutečnou instanci `DiskDoctorWindow`.
-  Bez elevace hlásí, že je tahle část kontroly slepá, a doporučí elevaci;
-  s elevací u USB mostu elevaci už nenavrhuje a vysvětlí, že disk data
-  neposkytuje.
-
-### Opraveno
-- **Oprava integrity (spotfix) hlásila selhání i po úspěšném průběhu** (Fáze 3):
-  PowerShell skript kontroloval `$result.HealthStatus`, jenže `Repair-Volume`
-  vrací PŘÍMO hodnotu typu `RepairStatus` (např. `NoErrorsFound`) a žádnou
-  vlastnost `HealthStatus` nemá. Kontrola je uvnitř `try` bloku, takže i naprosto
-  úspěšná oprava skončila vyhozenou výjimkou a `ExitCode=1`. Chyba přežila proto,
-  že tahle cesta do teď nikdy neběžela s právy administrátora - bez elevace
-  selhala dřív z jiného důvodu. Odhaleno prvním živým spuštěním na svazku, který
-  uživatel k destruktivním testům výslovně uvolnil; tvar výsledku ověřen
-  samostatnou sondou přímo nad `Repair-Volume`. Po opravě: `ExitCode=0`,
-  výstup „Stav opravy: NoErrorsFound", dirty bit před i po `Clean`.
-- `ProcessOutputRunner`: `OutputDataReceived` a `ErrorDataReceived` se vyvolávají
-  každý ze svého vlákna, ale oba přidávaly do sdíleného `List<string>` bez
-  synchronizace - souběžný `List.Add` může ztratit nebo zdvojit řádky, případně
-  trefit zvětšování pole. Přidán zámek (hlášení průběhu zůstává mimo něj, ať se
-  nedrží zámek přes marshalling na UI vlákno). Latentní chyba nalezená při
-  čtení kódu; projevila by se jen u procesů, které skutečně píšou do obou
-  streamů zároveň.
-- `diskora doctor` nenacházel žádný svazek: `VolumeInfo.Name` má tvar `E:\`,
-  kdežto `NormalizeDriveLetter` vrací `E:`, takže porovnání selhalo pro všechna
-  písmena. Odhaleno prvním živým spuštěním nového příkazu.
 
 ## [0.2.0] - 2026-07-27
 
