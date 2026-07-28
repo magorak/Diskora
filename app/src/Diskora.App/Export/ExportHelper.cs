@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -43,6 +44,36 @@ public static class ExportHelper
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             MessageBox.Show(owner, $"Export se nepodařilo uložit: {ex.Message}", "Export CSV",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    /// <summary>
+    /// Uloží zprávu pro člověka a rovnou ji otevře v prohlížeči - jinak by
+    /// uživatel musel soubor hledat na disku, aby zjistil, co vlastně uložil.
+    /// </summary>
+    public static void SaveHtmlReport(Window owner, string html, string suggestedName)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Uložit zprávu o stavu disku",
+            Filter = "Webová stránka (*.html)|*.html|Všechny soubory (*.*)|*.*",
+            FileName = suggestedName,
+        };
+
+        if (dialog.ShowDialog(owner) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            File.WriteAllText(dialog.FileName, html, Encoding.UTF8);
+            Process.Start(new ProcessStartInfo(dialog.FileName) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            MessageBox.Show(owner, $"Zprávu se nepodařilo uložit nebo otevřít: {ex.Message}", "Uložení zprávy",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }

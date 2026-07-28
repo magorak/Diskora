@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using Diskora.App.Export;
 using Diskora.App.ViewModels;
+using Diskora.Core.Export;
 using Diskora.Core.Models;
 using Diskora.Core.Services;
 using Diskora.Data;
@@ -39,6 +41,26 @@ public partial class DiskDoctorWindow : Window
         // Kontrola je needestruktivní, takže se spustí sama - uživatel chtěl
         // "jedno tlačítko", ne "otevřít okno a pak ještě někde kliknout".
         Loaded += async (_, _) => await viewModel.RunAsync();
+    }
+
+    private void SaveReport_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not DiskDoctorViewModel viewModel || !viewModel.HasRun)
+        {
+            return;
+        }
+
+        var report = new DiskDoctorReport(
+            viewModel.Subject,
+            viewModel.Overall,
+            viewModel.Findings
+                .Select(f => new DiskDoctorFinding(f.Title, f.Detail, f.Severity, f.Action))
+                .ToList());
+
+        ExportHelper.SaveHtmlReport(
+            this,
+            HtmlReportBuilder.Build([report], DateTimeOffset.Now),
+            $"diskora-zprava-{_driveLetter.Trim(':')}.html");
     }
 
     private void Action_Click(object sender, RoutedEventArgs e)

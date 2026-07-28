@@ -758,7 +758,15 @@ závažnosti, ne podle pořadí nahlášení.
       se jen jako tabulka. Graf udělá z „bylo Healthy, je Warning" viditelný příběh.
       Vlastní vykreslování do Canvasu stejným způsobem jako treemapa (žádná nová
       závislost), paleta dle skillu dataviz.
-- [ ] **Report pro člověka (HTML/PDF), ne jen CSV/JSON**: jedna stránka „stav mých disků"
+- [x] **Report pro člověka (HTML), ne jen CSV/JSON** - HOTOVO: `HtmlReportBuilder`
+      v `Diskora.Core.Export` + tlačítko „Uložit zprávu..." v okně Disk Doctor
+      (uloží a rovnou otevře v prohlížeči). Soběstačné HTML - vložené styly, žádné
+      externí zdroje ani skripty, takže funguje offline a odpovídá zásadě „žádná
+      síťová komunikace"; uživatelem zadané popisky svazků se ošetřují proti
+      rozbití stránky. 9 testů, živě ověřeno na třech reálných svazcích.
+      PDF zatím ne - vyžadovalo by externí knihovnu, což jde proti filozofii
+      minima závislostí; z HTML se dá vytisknout do PDF přímo v prohlížeči.
+      Původní zadání znělo: jedna stránka „stav mých disků"
       se srozumitelným shrnutím a doporučeními, kterou jde poslat příbuznému nebo
       ITčkaři. Exporty dnes míří na skriptování; tohle míří na komunikaci. Navazuje
       přímo na Disk Doctora - ten už ta doporučení umí sestavit.

@@ -6,6 +6,20 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- **Zpráva o stavu disku pro člověka (HTML)** - tlačítko „Uložit zprávu..." v okně
+  Disk Doctor uloží jednu přehlednou stránku se závěry a doporučeními a rovnou ji
+  otevře v prohlížeči. Na rozdíl od exportů CSV/JSON, které míří na skriptování,
+  tenhle výstup míří na člověka: srozumitelné věty, barevné odlišení závažnosti,
+  doporučení - něco, co se dá poslat příbuznému nebo ITčkaři.
+  HTML je zcela soběstačné: vložené styly, žádné obrázky, písma ani skripty zvenčí.
+  Odpovídá to zásadě „žádná síťová komunikace" - otevřená zpráva si nikam nesáhne,
+  funguje offline a je to jediný soubor do přílohy e-mailu. Popisky svazků zadává
+  uživatel, takže se do HTML vkládají ošetřené (název jako `<script>` stránku
+  nerozbije) - pokryto testem. 9 testů.
+  Živě ověřeno vygenerováním zprávy ze tří reálných svazků: 3 sekce, 0 externích
+  zdrojů, 0 skriptů, správná čeština i doporučení.
+
+### Přidáno
 - **Odhad zbývající životnosti disku** - Disk Doctor nově místo pouhého čísla
   „spotřebováno 6 %" řekne, co to znamená: „Při stejném způsobu používání vydrží
   disk odhadem ještě 7 let." Přesně tohle uživatele zajímá, a konkurence

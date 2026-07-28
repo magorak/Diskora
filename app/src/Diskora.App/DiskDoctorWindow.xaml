@@ -34,8 +34,12 @@
                 <TextBlock Text="{Binding StatusText}" Style="{StaticResource MutedTextStyle}" Margin="0,4,0,0" TextWrapping="Wrap" />
             </StackPanel>
 
-            <Button Grid.Column="1" Content="Zkontrolovat znovu" VerticalAlignment="Top"
-                    Command="{Binding RunCommand}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                <Button Margin="0,0,8,0" Content="Uložit zprávu..." Click="SaveReport_Click"
+                        ToolTip="Uloží přehlednou stránku se závěry a doporučeními, kterou můžete poslat dál."
+                        IsEnabled="{Binding HasRun}" />
+                <Button Content="Zkontrolovat znovu" Command="{Binding RunCommand}" />
+            </StackPanel>
         </Grid>
 
         <ProgressBar Grid.Row="1" Height="4" IsIndeterminate="True" Margin="0,0,0,12"
