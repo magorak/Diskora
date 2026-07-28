@@ -713,9 +713,24 @@ závažnosti, ne podle pořadí nahlášení.
       hlavní body. Návrh: v `CHANGELOG.md` označit vybrané položky jako hlavní
       (např. `**tučným úvodem**`, což se už teď u důležitých používá) a v okně
       i na webu je zobrazovat jako shrnutí s možností rozbalit celý výpis.
+- [x] **Snímky oken JDOU pořídit** - dřívější poznámky v tomhle souboru tvrdily
+      opak („nepodařilo se pořídit, prostředí nemá přístup k reálné ploše").
+      Nešlo o prostředí, ale o metodu: `Graphics.CopyFromScreen` zachytí, co je
+      zrovna na obrazovce (u okna na pozadí tedy něco úplně jiného), kdežto
+      `PrintWindow` s `PW_RENDERFULLCONTENT` vykreslí přímo cílové okno i když
+      je překryté - a nesáhne přitom na zbytek plochy uživatele. Skript je
+      v `tools/capture-window.ps1`, ověřen na hlavním okně (1100×720).
 - [ ] **Vzhled aplikace** - uživatel označil okna za strohá a postrádá ikony
-      a živější grafiku. Viz úvaha níže v „Nápadech"; není to malá práce a stojí
-      za samostatné rozhodnutí, kam až jít.
+      a živější grafiku. Na prvním skutečném snímku hlavního okna je vidět
+      i pár konkrétních vad, které se od stolu nedaly poznat:
+      - Záhlaví sloupců jsou uříznutá: „Systém s" místo „Systém souborů",
+        „Typ disk" místo „Typ disku", „Jed" místo „Jednotka".
+      - Sloupec s tlačítky u fyzických disků přetéká a překrývá se se svislým
+        posuvníkem tabulky; tlačítka u svazků na sebe navazují bez mezer
+        a tvoří souvislý modrý pruh.
+      - Tabulka svazků je dole uříznutá v půlce řádku.
+      Tohle jsou levné opravy s velkým dopadem a měly by jít před jakoukoli
+      grafickou nadstavbou - viz úvaha níže v „Nápadech".
 
 ## Nápady na budoucí odlišení (backlog, needvidí se hned)
 - [x] "Disk Doctor" wizard (jedno tlačítko: SMART + chkdsk + TRIM/defrag rozhodnutí):
