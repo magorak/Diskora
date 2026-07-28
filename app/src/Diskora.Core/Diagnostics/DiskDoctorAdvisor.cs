@@ -91,6 +91,18 @@ public static class DiskDoctorAdvisor
                 DiskDoctorAction.None),
         };
 
+        // Zbývající životnost je to, co uživatele opravdu zajímá - proto hned
+        // za celkovým verdiktem, ne schované mezi jednotlivými atributy.
+        var lifetime = DiskLifetimeEstimator.Estimate(report);
+        yield return new DiskDoctorFinding(
+            lifetime.IsAvailable ? "Odhad zbývající životnosti" : "Zbývající životnost nelze odhadnout",
+            lifetime.Describe(),
+            // Ok, ne Info: odhad životnosti není problém, jen informace. S úrovní
+            // Info by každý zdravý disk skončil s celkovým verdiktem „Informace"
+            // místo „V pořádku", což by ten verdikt znehodnotilo.
+            DiskDoctorSeverity.Ok,
+            DiskDoctorAction.None);
+
         foreach (var finding in DiagnoseAtaAttributes(report))
         {
             yield return finding;

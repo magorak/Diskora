@@ -6,6 +6,26 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- **Odhad zbývající životnosti disku** - Disk Doctor nově místo pouhého čísla
+  „spotřebováno 6 %" řekne, co to znamená: „Při stejném způsobu používání vydrží
+  disk odhadem ještě 7 let." Přesně tohle uživatele zajímá, a konkurence
+  (CrystalDiskInfo a spol.) u toho čísla mlčí.
+  Počítá se z JEDNOHO čtení, ne z historie: opotřebení za dosavadní dobu provozu
+  dá tempo, tempo dá odhad zbytku - není tedy potřeba čekat týdny na nasbíraná
+  data. Cenou je předpoklad, že se disk bude používat jako dosud, což text říká
+  nahlas („odhad z dosavadního tempa, ne záruka").
+  Zásada „raději mlčet než hádat": když disk ukazatel opotřebení nemá, když je
+  opotřebení ještě neměřitelné (dělení nulou), nebo když je doba provozu pod
+  100 h, vrací se místo čísla vysvětlení proč. 12 testů.
+  Živě ověřeno na třech typech disků: NVMe (6 % za 3948 h → 7 let), 4TB talířový
+  disk (správně odmítne s vysvětlením, že se u něj životnost takhle neměří)
+  a SATA SSD (odmítne - nehlásí atribut 233).
+  Známé omezení: pokrytý je NVMe a SATA SSD s atributem 233. Disky, které
+  opotřebení hlásí jinými atributy (177, 202, 231), zatím spadnou do „nelze
+  odhadnout" - vědomě, protože špatně přečtený vendor-specifický atribut by dal
+  smyšlené číslo, a to je u tvrzení „disk vydrží ještě X let" horší než mlčení.
+
+### Přidáno
 - **Test skutečné kapacity disku** - odhalí přeznačené flash disky, které hlásí
   víc, než fyzicky mají. Tlačítko „Test kapacity" u každého svazku v dashboardu
   a `diskora capacity <písmeno>` v CLI. Dnes na to lidé sahají po H2testw nebo

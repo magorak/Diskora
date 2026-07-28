@@ -738,7 +738,16 @@ závažnosti, ne podle pořadí nahlášení.
       spotfix, plus výslovné vypsání, co se smaže. Nejsilnější kandidát na odlišení -
       je to reálný problém, který lidi hledají, a nikdo to nenabízí v češtině a jako
       součást normálního diskového nástroje.
-- [ ] **„Kolik času disku zbývá"**: z SQLite historie (už se plní) spočítat tempo
+- [x] **„Kolik času disku zbývá"** - HOTOVO: `DiskLifetimeEstimator` počítá z jednoho
+      čtení (opotřebení za dobu provozu → tempo → odhad zbytku), takže nečeká na
+      historii. Zobrazuje se jako nález v Disk Doctorovi. Drží se zásady „raději
+      mlčet než hádat" - u disku bez ukazatele opotřebení, s neměřitelným
+      opotřebením nebo s provozem pod 100 h vrací vysvětlení místo čísla.
+      12 testů. Živě ověřeno na NVMe (6 % za 3948 h → 7 let), 4TB HDD i SATA SSD
+      (oba správně odmítnou). ZBÝVÁ: pokrýt SSD, které opotřebení hlásí atributy
+      177/202/231 místo 233 - vědomě neuděláno hned, protože špatně přečtený
+      vendor-specifický atribut by dal smyšlený počet let.
+      Původní zadání znělo: z SQLite historie (už se plní) spočítat tempo
       zhoršování a přeložit ho do věty, které rozumí i laik - u NVMe je to přímočaré
       (`PercentageUsed` v čase → odhad, kdy dosáhne 100 %), u SSD přes atribut 233,
       u HDD přes přírůstek přemapovaných/čekajících sektorů. Konkurence (CrystalDiskInfo
