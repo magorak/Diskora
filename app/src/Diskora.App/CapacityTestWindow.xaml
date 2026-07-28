@@ -1,0 +1,58 @@
+<Window x:Class="Diskora.App.CapacityTestWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:conv="clr-namespace:Diskora.App.Converters"
+        mc:Ignorable="d"
+        Title="Test skutečné kapacity" Height="420" Width="720" MinWidth="520" MinHeight="340"
+        WindowStartupLocation="CenterOwner"
+        Icon="Assets/AppIcon.ico">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <conv:BooleanToBrushConverter x:Key="ResultBrushConverter" />
+        <conv:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{Binding VolumeName}" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12" />
+
+        <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,16" Style="{StaticResource MutedTextStyle}"
+                   Text="Test zaplní volné místo vzorem, přečte ho zpátky a porovná. Odhalí tím disky, které hlásí větší kapacitu, než mají - typicky levné USB klíčenky. Vaše data zůstanou nedotčená: zapisuje se jen do volného místa a testovací soubor se na konci smaže. Počítejte s tím, že u velkých nebo pomalých disků to trvá desítky minut." />
+
+        <Grid Grid.Row="2" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Margin="0,0,8,0" Content="Spustit test"
+                    Command="{Binding StartCommand}"
+                    Visibility="{Binding IsRunning, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
+            <Button Grid.Column="1" Margin="0,0,8,0" Content="Zrušit" Command="{Binding CancelCommand}"
+                    Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding PhaseText}" TextWrapping="Wrap" />
+        </Grid>
+
+        <ProgressBar Grid.Row="3" Height="12" Minimum="0" Maximum="100" Margin="0,0,0,16"
+                     Value="{Binding ProgressPercent, Mode=OneWay}"
+                     AutomationProperties.Name="{Binding ProgressPercent, StringFormat='Průběh testu kapacity {0:F0} procent'}"
+                     Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+        <Border Grid.Row="4" CornerRadius="6" Padding="14" VerticalAlignment="Top"
+                Background="{Binding ResultIsGood, Converter={StaticResource ResultBrushConverter}}"
+                Visibility="{Binding HasResult, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Text="{Binding ResultText}" Foreground="White" TextWrapping="Wrap" FontWeight="SemiBold" />
+        </Border>
+    </Grid>
+</Window>

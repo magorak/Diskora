@@ -6,6 +6,28 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Přidáno
+- **Test skutečné kapacity disku** - odhalí přeznačené flash disky, které hlásí
+  víc, než fyzicky mají. Tlačítko „Test kapacity" u každého svazku v dashboardu
+  a `diskora capacity <písmeno>` v CLI. Dnes na to lidé sahají po H2testw nebo
+  FakeFlashTest - anglických jednoúčelových nástrojích bez údržby; tohle je
+  česky a jako součást normálního diskového nástroje.
+  Hodnota každého bajtu se počítá z jeho pozice (SplitMix64), takže se nemusí
+  nic ukládat stranou a ověření si ji spočítá znovu. To je proti přeznačeným
+  diskům klíčové: ty adresy nad svou skutečnou kapacitou „zabalí" zpátky na
+  začátek, takže se na dané pozici čtou data patřící jinam. U konstantního vzoru
+  nebo samých nul by takový disk prošel jako zdravý.
+  Pracuje se soubory na svazku, ne se syrovým diskem: nepotřebuje práva
+  administrátora, nezničí oddíly ani data, která na disku už jsou, a po sobě
+  uklidí i po zrušení nebo chybě. Zápis se povinně vyprazdňuje na médium -
+  bez toho by se četlo z vyrovnávací paměti systému a přeznačený disk by prošel.
+  8 testů na vzor (včetně případů „data z jiné pozice" a „samé nuly").
+  Živě ověřeno na reálné 14,7GB USB flashce: celých 14,61 GB zapsáno i přečteno
+  beze změny za 11,5 minuty, disk je tedy pravý; testovací data se po sobě
+  smazala. Ověřeno i přes GUI okno včetně zrušení uprostřed (0,2 s) a úklidu.
+  Cesta „přeznačený disk" živě ověřená není - takový disk k dispozici nebyl,
+  pokrytá je jen testy nad vzorem.
+
+### Přidáno
 - Výstupy `chkdsk` a `defrag` se zobrazují česky (nahlásil uživatel): nový
   `Diskora.Core.Output.ToolOutputTranslator` překládá rozpoznané řádky, neznámé
   nechává beze změny (nová verze Windows tak nikdy nezpůsobí ztrátu informace)

@@ -720,7 +720,16 @@ závažnosti, ne podle pořadí nahlášení.
       má tvar `E:\`, ale `NormalizeDriveLetter` dává `E:`, takže porovnání
       nenašlo ŽÁDNÝ svazek - opraveno.
 - [x] Portable mód (single-exe bez instalace) - viz Fáze 9, `app/publish-portable.ps1`
-- [ ] **Test skutečné kapacity (falešné USB disky)**: zapsat po celém disku ověřitelný
+- [x] **Test skutečné kapacity (falešné USB disky)** - HOTOVO: `CapacityTestPattern`
+      (hodnota bajtu z jeho pozice přes SplitMix64) + `CapacityTestService`
+      (soubory na svazku, ne syrový disk - bez admin práv, nezničí existující data,
+      po sobě uklidí i po zrušení; zápis se vyprazdňuje na médium, jinak by se četlo
+      z cache a přeznačený disk by prošel). Okno „Test kapacity" u svazku v dashboardu
+      + CLI `diskora capacity`. 8 testů. Živě ověřeno na reálné 14,7GB USB flashce:
+      14,61 GB zapsáno i přečteno beze změny za 11,5 min, úklid funguje; GUI ověřeno
+      včetně zrušení uprostřed. Cesta „přeznačený disk" živě ověřená není - takový
+      disk nebyl k dispozici, pokrývají ji jen testy nad vzorem.
+      Původní zadání znělo: zapsat po celém disku ověřitelný
       vzor a přečíst zpátky - odhalí přeznačené flashky, které hlásí 1 TB a fyzicky mají
       32 GB (dnes to řeší H2testw/FakeFlashTest, tedy anglické jednoúčelové nástroje bez
       údržby). Diskora na to má skoro všechno hotové: `PhysicalDiskSurfaceScanner` už umí

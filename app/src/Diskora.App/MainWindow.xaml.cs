@@ -117,6 +117,19 @@ public partial class MainWindow : Window
         doctorWindow.Show();
     }
 
+    private void ShowCapacityTest_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: VolumeRowViewModel volume })
+        {
+            return;
+        }
+
+        new CapacityTestWindow(volume.Name, $"{volume.Name} ({volume.Label})")
+        {
+            Owner = this,
+        }.Show();
+    }
+
     private void ShowIntegrity_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: VolumeRowViewModel volume })

@@ -39,6 +39,7 @@ try
         "integrity" => await RunIntegrityAsync(rest, json, cts.Token),
         "usage" => await RunUsageAsync(rest, json, cts.Token),
         "duplicates" => await RunDuplicatesAsync(rest, json, cts.Token),
+        "capacity" => await RunCapacityAsync(rest, json, cts.Token),
         "doctor" => await RunDoctorAsync(rest, json, cts.Token),
         "healthcheck" => RunHealthCheck(json),
         "schedule" => await RunScheduleAsync(rest, json, cts.Token),
@@ -70,6 +71,10 @@ static int PrintUsage()
                                          (S.M.A.R.T. + stav souborového systému +
                                          doporučená údržba) s doporučeními. Jen čte,
                                          nic nespouští ani nemění.
+          capacity <písmeno>[:]        Ověří, že disk skutečně pojme a vrátí to, co
+                                         tvrdí - odhalí přeznačené flash disky.
+                                         Zaplní volné místo vzorem a přečte ho zpět;
+                                         data na disku nemaže, po sobě uklidí.
           usage <cesta> [--top N]       Analýza zaplněnosti složky (výchozí top 10).
           duplicates <cesta>            Hledání duplicitních souborů (SHA-256).
           healthcheck                   S.M.A.R.T. přes všechny fyzické disky najednou
@@ -265,6 +270,54 @@ static async Task<int> RunScheduleAsync(string[] rest, bool json, CancellationTo
     }
 
     return result.ExitCode == 0 ? 0 : 2;
+}
+
+static async Task<int> RunCapacityAsync(string[] rest, bool json, CancellationToken cancellationToken)
+{
+    if (rest.Length < 1)
+    {
+        Console.Error.WriteLine("Použití: diskora capacity <písmeno>[:] [--json]");
+        return 1;
+    }
+
+    var driveLetter = NormalizeDriveLetter(rest[0]);
+
+    var progress = json ? null : new Progress<CapacityTestProgress>(p =>
+    {
+        var phase = p.Phase switch
+        {
+            CapacityTestPhase.Writing => "zápis   ",
+            CapacityTestPhase.Verifying => "ověření ",
+            _ => "úklid   ",
+        };
+        Console.Write($"\r{phase} {p.Percent,5:F1} %  ({ByteSizeFormatter.Format(p.BytesProcessed)})      ");
+    });
+
+    var result = await new CapacityTestService().RunAsync(driveLetter, progress, cancellationToken);
+    if (!json)
+    {
+        Console.WriteLine();
+    }
+
+    if (json)
+    {
+        PrintJson(result);
+    }
+    else if (!result.Completed)
+    {
+        Console.WriteLine($"Test nedokončen: {result.FailureReason}");
+    }
+    else if (result.DataIsIntact)
+    {
+        Console.WriteLine($"V pořádku - zapsáno i přečteno {ByteSizeFormatter.Format(result.BytesWritten)} beze změny.");
+    }
+    else
+    {
+        Console.WriteLine($"POZOR: data se změnila po {ByteSizeFormatter.Format(result.FirstMismatchOffset ?? 0)}.");
+        Console.WriteLine("Disk hlásí víc kapacity, než skutečně má, nebo je vadný. Nespoléhejte se na něj.");
+    }
+
+    return result.Completed && result.DataIsIntact ? 0 : 2;
 }
 
 static async Task<int> RunDoctorAsync(string[] rest, bool json, CancellationToken cancellationToken)

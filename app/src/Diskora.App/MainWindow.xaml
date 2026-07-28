@@ -146,7 +146,7 @@
                             </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Volno" Binding="{Binding FreeSpaceDisplay}" Width="85" />
                             <DataGridTextColumn Header="Celkem" Binding="{Binding TotalSizeDisplay}" Width="85" />
-                            <DataGridTemplateColumn Header="" Width="390">
+                            <DataGridTemplateColumn Header="" Width="490">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -157,8 +157,11 @@
                                                     Click="ShowIntegrity_Click" Tag="{Binding}" />
                                             <Button Content="Analyzovat" Padding="8,3" FontSize="11" Margin="0,0,6,0"
                                                     Click="ShowDiskUsage_Click" Tag="{Binding}" />
-                                            <Button Content="Optimalizovat" Padding="8,3" FontSize="11"
+                                            <Button Content="Optimalizovat" Padding="8,3" FontSize="11" Margin="0,0,6,0"
                                                     Click="ShowOptimization_Click" Tag="{Binding}" />
+                                            <Button Content="Test kapacity" Padding="8,3" FontSize="11"
+                                                    ToolTip="Ověří, že disk skutečně pojme to, co tvrdí - odhalí přeznačené flash disky."
+                                                    Click="ShowCapacityTest_Click" Tag="{Binding}" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
