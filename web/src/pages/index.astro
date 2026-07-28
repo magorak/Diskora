@@ -70,8 +70,10 @@ const differentiators = [
 			</div>
 			<div class="flex items-center gap-6 text-sm text-neutral-400">
 				<a href="#funkce" class="hover:text-neutral-100">Funkce</a>
+				<a href="#stazeni" class="hover:text-neutral-100">Stažení</a>
 				<a href="#bezpecnost" class="hover:text-neutral-100">Bezpečnost</a>
 				<a href={`${base}docs/`} class="hover:text-neutral-100">Nápověda</a>
+				<a href="https://github.com/magorak/Diskora" class="hover:text-neutral-100" rel="noreferrer">GitHub</a>
 			</div>
 		</nav>
 	</header>
@@ -143,7 +145,46 @@ const differentiators = [
 			</div>
 		</section>
 
-		<section id="bezpecnost" class="mx-auto max-w-6xl px-6 py-20">
+		<section id="stazeni" class="border-t border-white/10 bg-white/[0.02]">
+		<div class="mx-auto max-w-6xl px-6 py-20">
+			<h2 class="text-3xl font-bold">Stažení</h2>
+			<p class="mt-4 max-w-2xl text-neutral-400">
+				Diskora je přenosná — jediný soubor, žádná instalace. Stačí ho stáhnout a spustit;
+				nepotřebuje ani nainstalovaný .NET, protože ho má v sobě. Proto je taky přes 160 MB.
+			</p>
+
+			<div class="mt-8 grid gap-6 sm:grid-cols-2">
+				<a
+					href="https://github.com/magorak/Diskora/releases/latest"
+					rel="noreferrer"
+					class="rounded-xl border border-blue-400/30 bg-blue-500/10 p-6 transition hover:border-blue-400/60"
+				>
+					<h3 class="font-semibold text-blue-200">Stáhnout aplikaci</h3>
+					<p class="mt-2 text-sm text-neutral-400">
+						Poslední vydaná verze na GitHubu. Přenosný <code class="rounded bg-white/10 px-1.5 py-0.5">Diskora.exe</code>
+						pro 64bitové Windows.
+					</p>
+				</a>
+				<a
+					href="https://github.com/magorak/Diskora"
+					rel="noreferrer"
+					class="rounded-xl border border-white/10 p-6 transition hover:border-blue-400/40 hover:bg-white/[0.03]"
+				>
+					<h3 class="font-semibold text-blue-300">Zdrojový kód</h3>
+					<p class="mt-2 text-sm text-neutral-400">
+						Celý projekt pod licencí GNU GPLv3. Můžete si ho prohlédnout, upravit i sestavit sami.
+					</p>
+				</a>
+			</div>
+
+			<p class="mt-6 text-sm text-neutral-500">
+				Diskora je vývojová verze. Funguje a je používaná, ale počítejte s tím, že se ještě mění.
+				Operace, které zapisují na disk, si vždy vyžádají potvrzení.
+			</p>
+		</div>
+	</section>
+
+	<section id="bezpecnost" class="mx-auto max-w-6xl px-6 py-20">
 			<h2 class="text-center text-3xl font-bold">Bezpečnost je návrhové rozhodnutí, ne dodatek</h2>
 			<div class="mx-auto mt-10 max-w-3xl space-y-4 text-neutral-400">
 				<p>

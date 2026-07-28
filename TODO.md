@@ -583,6 +583,9 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 - [ ] Migrace nápovědy na Starlight, pokud obsah naroste natolik, že se vyplatí
       full-text search a auto-generovaný sidebar
 - [ ] CI: build + deploy, kontrola bezpečnostních hlaviček/CSP
+      (POZN. 2026-07-29: repozitář je na GitHubu, takže Dependabot už běží -
+      sám otevřel 5 aktualizací závislostí. Zbývá ověřit, že projde build
+      pipeline a CodeQL, a doplnit deploy webu.)
 
 ## Fáze 11 — Průběžná dokumentace a verzování
 - [ ] Udržovat `docs/ARCHITECTURE.md`, `docs/CONTRIBUTING.md` aktuální
@@ -733,18 +736,18 @@ závažnosti, ne podle pořadí nahlášení.
       grafickou nadstavbou - viz úvaha níže v „Nápadech".
 
 ## Distribuce a zveřejnění (rozhodnutí na uživateli)
-- [ ] **Zpřístupnit aplikaci ke stažení.** Portable exe má ~168 MB, takže do gitu
+- [x] **Zpřístupnit aplikaci ke stažení** - web odkazuje na GitHub Releases; zbývá k tagu v0.3.0 nahrát exe. Portable exe má ~168 MB, takže do gitu
       nepatří. Cesta: GitHub Releases (limit 2 GB na soubor) navázané na už
       existující tagy `v0.2.0`/`v0.3.0`; web na magorak.cz pak jen odkazuje.
-- [ ] **Zpřístupnit zdrojový kód.** GPLv3 §6: kdo dostane binárku, má nárok na
+- [x] **Zpřístupnit zdrojový kód** - veřejný repozitář github.com/magorak/Diskora, odkaz na webu. GPLv3 §6: kdo dostane binárku, má nárok na
       odpovídající zdrojový kód. Když bude stahování veřejné, musí být veřejně
       dostupný i zdroj (nebo písemná nabídka platná 3 roky, což je horší cesta).
-- [ ] **Rozhodnout veřejný vs. soukromý repozitář.** Soukromý repozitář vyřeší
+- [x] **Rozhodnuto: veřejný repozitář** - zveřejněno 2026-07-29. Soukromý repozitář vyřeší
       CI, CodeQL i Dependabot (fungují i tam) a umožní Releases, ale NEVYŘEŠÍ
       povinnost podle GPL vůči lidem, kteří si binárku stáhnou z veřejného webu -
       ti se do soukromého repozitáře nedostanou. Veřejný repozitář navíc má
       neomezené minuty Actions a CodeQL zdarma. Doporučení: veřejný.
-- [ ] **Web ponechat na magorak.cz** (rozhodnutí uživatele), jen doplnit sekci
+- [x] **Web zůstává na magorak.cz** - doplněna sekce Stažení. (rozhodnutí uživatele), jen doplnit sekci
       Stažení s odkazy na Releases a na zdrojový kód. Zrcadlo webu na GitHub Pages
       není potřeba a znamenalo by udržovat dvě adresy.
 

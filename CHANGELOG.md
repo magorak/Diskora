@@ -6,6 +6,11 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Změněno
+- Sekce Stažení na webu: odkaz na poslední vydání na GitHubu (přenosný
+  `Diskora.exe`) a na zdrojový kód pod GPLv3, plus odkaz na GitHub v horní
+  navigaci. Binárky se distribuují přes GitHub Releases, ne z repozitáře -
+  168 MB soubor do gitu nepatří.
+
 - Tlačítko „Zpět nahoru" na webu (nahlásil uživatel): u delších stránek nebylo jak
   se rychle vrátit k navigaci. Základ je obyčejná kotva, takže funguje i bez
   JavaScriptu - ten jen tlačítko schová, dokud je návštěvník nahoře. Plynulé
