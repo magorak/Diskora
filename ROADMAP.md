@@ -17,15 +17,17 @@ Proto je tenhle soubor o tom, co chybí, a ne o tom, co se povedlo.
   hypotézy, ať se k nim nikdo nevrací: sken na UI vlákně (79 % vs. 80 % odezvy,
   tedy beze změny), zahlcení hlášením postupu (~940 hlášení/s drží odezvu na 80 %),
   zabíjení chkdsk na UI vlákně (62–78 ms včetně VSS snapshotu).
-- **Tři vady rozvržení hlavního okna**, viditelné až na skutečném snímku:
-  uříznutá záhlaví sloupců („Systém s“ místo „Systém souborů“), přetékající
-  sloupec s tlačítky překrývající posuvník a dole uříznutá tabulka svazků.
+- **Krajní řádek tabulek je přeříznutý v půlce.** Výška obou mřížek se odvíjí od
+  velikosti okna a nevychází na celé řádky. `VirtualizingPanel.ScrollUnit="Item"`
+  to neřeší (týká se rolování, ne prvotního oříznutí) - potřeba je buď nechat
+  mřížky růst podle obsahu, nebo výšku dopočítávat. Uříznutá záhlaví sloupců
+  a přetékající tlačítka opraveny 2026-07-29.
 
 ## Vzhled
 
-- Okna jsou funkční, ale strohá. Pořadí, které dává smysl: nejdřív opravit vady
-  rozvržení výše, pak ikony typů disků a stavů, zdraví jako grafický prvek místo
-  textového odznaku, kultivace odsazení a typografie. Animacím se vyhýbáme —
+- Ikony typů disků hotové (2026-07-29). Dál: **zdraví disku jako grafický prvek**
+  místo textového odznaku (kroužek s procentem - data už jsou k dispozici),
+  ikony i v ostatních oknech a kultivace odsazení a typografie. Animacím se vyhýbáme —
   u diskového nástroje působí nevážně a berou to, v čem je Diskora dobrá:
   okamžitou odezvu.
 - **Okno „Co je nového“ ukazovat zkráceně.** Teď vypisuje celý changelog včetně

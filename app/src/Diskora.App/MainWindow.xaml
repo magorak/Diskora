@@ -6,13 +6,14 @@
         xmlns:local="clr-namespace:Diskora.App"
         xmlns:conv="clr-namespace:Diskora.App.Converters"
         mc:Ignorable="d"
-        Title="Diskora" Height="720" Width="1100" MinWidth="820" MinHeight="500"
+        Title="Diskora" Height="760" Width="1280" MinWidth="1040" MinHeight="560"
         WindowStartupLocation="CenterScreen"
         Icon="Assets/AppIcon.ico">
 
     <Window.Resources>
         <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         <conv:DiskMediaTypeToBrushConverter x:Key="DiskMediaTypeToBrushConverter" />
+        <conv:DiskMediaTypeToIconConverter x:Key="DiskMediaTypeToIconConverter" />
     </Window.Resources>
 
     <Window.InputBindings>
@@ -77,7 +78,7 @@
             <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="Fyzické disky" Style="{StaticResource HeadingTextStyle}" />
-                    <DataGrid ItemsSource="{Binding PhysicalDisks}">
+                    <DataGrid ItemsSource="{Binding PhysicalDisks}" VirtualizingPanel.ScrollUnit="Item">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="40" />
                             <DataGridTextColumn Header="Název" Binding="{Binding FriendlyName}" Width="*" />
@@ -85,28 +86,28 @@
                             <DataGridTemplateColumn Header="Typ" Width="90">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border Background="{Binding MediaType, Converter={StaticResource DiskMediaTypeToBrushConverter}}"
-                                                CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding MediaTypeDisplay}" Foreground="White" FontSize="11" />
-                                        </Border>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{Binding MediaType, Converter={StaticResource DiskMediaTypeToIconConverter}}"
+                                                  Stroke="{Binding MediaType, Converter={StaticResource DiskMediaTypeToBrushConverter}}"
+                                                  StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                                                  StrokeEndLineCap="Round" Fill="Transparent"
+                                                  Width="18" Height="18" Stretch="Uniform" Margin="0,0,6,0" />
+                                            <TextBlock Text="{Binding MediaTypeDisplay}" VerticalAlignment="Center" FontSize="12" />
+                                        </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Rozhraní" Binding="{Binding BusTypeDisplay}" Width="120" />
                             <DataGridTextColumn Header="Sériové číslo" Binding="{Binding SerialNumberDisplay}" Width="170" />
-                            <DataGridTemplateColumn Header="" Width="110">
+                            <DataGridTemplateColumn Header="Akce" Width="250">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="S.M.A.R.T." Padding="8,3" FontSize="11"
-                                                Click="ShowSmart_Click" Tag="{Binding}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="" Width="130">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Content="Povrchový sken" Padding="8,3" FontSize="11"
-                                                Click="ShowSurfaceScan_Click" Tag="{Binding}" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="S.M.A.R.T." Padding="8,3" FontSize="11" Margin="0,0,6,0"
+                                                    Click="ShowSmart_Click" Tag="{Binding}" />
+                                            <Button Content="Povrchový sken" Padding="8,3" FontSize="11"
+                                                    Click="ShowSurfaceScan_Click" Tag="{Binding}" />
+                                        </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -118,19 +119,23 @@
             <Border Grid.Row="3" Style="{StaticResource CardBorderStyle}">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="Svazky" Style="{StaticResource HeadingTextStyle}" />
-                    <DataGrid ItemsSource="{Binding Volumes}">
+                    <DataGrid ItemsSource="{Binding Volumes}" VirtualizingPanel.ScrollUnit="Item">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Jednotka" Binding="{Binding Name}" Width="60" />
+                            <DataGridTextColumn Header="Jednotka" Binding="{Binding Name}" Width="72" />
                             <DataGridTextColumn Header="Název" Binding="{Binding Label}" Width="*" MinWidth="80" />
-                            <DataGridTextColumn Header="Systém souborů" Binding="{Binding FileSystem}" Width="90" />
+                            <DataGridTextColumn Header="Systém souborů" Binding="{Binding FileSystem}" Width="105" />
                             <DataGridTextColumn Header="Typ" Binding="{Binding DriveTypeDisplay}" Width="90" />
-                            <DataGridTemplateColumn Header="Typ disku" Width="85">
+                            <DataGridTemplateColumn Header="Typ disku" Width="92">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border Background="{Binding DiskMediaType, Converter={StaticResource DiskMediaTypeToBrushConverter}}"
-                                                CornerRadius="3" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding DiskMediaTypeDisplay}" Foreground="White" FontSize="11" />
-                                        </Border>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{Binding DiskMediaType, Converter={StaticResource DiskMediaTypeToIconConverter}}"
+                                                  Stroke="{Binding DiskMediaType, Converter={StaticResource DiskMediaTypeToBrushConverter}}"
+                                                  StrokeThickness="1.6" StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                                                  StrokeEndLineCap="Round" Fill="Transparent"
+                                                  Width="17" Height="17" Stretch="Uniform" Margin="0,0,6,0" />
+                                            <TextBlock Text="{Binding DiskMediaTypeDisplay}" VerticalAlignment="Center" FontSize="12" />
+                                        </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -146,7 +151,7 @@
                             </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Volno" Binding="{Binding FreeSpaceDisplay}" Width="85" />
                             <DataGridTextColumn Header="Celkem" Binding="{Binding TotalSizeDisplay}" Width="85" />
-                            <DataGridTemplateColumn Header="" Width="490">
+                            <DataGridTemplateColumn Header="Akce" Width="450">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">

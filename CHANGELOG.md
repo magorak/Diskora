@@ -6,6 +6,18 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Změněno
+- **Vady rozvržení hlavního okna** (nahlásil uživatel, potvrzeno na skutečném
+  snímku): okno bylo na svůj obsah příliš úzké, takže se uřezávala záhlaví sloupců
+  („Systém s" místo „Systém souborů", „Jed" místo „Jednotka") a sloupec s tlačítky
+  u fyzických disků přetékal přes svislý posuvník. Okno je nově širší (1280×760),
+  dotčené sloupce dostaly potřebnou šířku a dvě tlačítka u fyzických disků jsou
+  v jednom sloupci vedle sebe místo ve dvou.
+- Typ disku se v obou tabulkách zobrazuje **ikonou** místo barevného odznaku -
+  talířový disk ploténkou, SSD čipem, vyměnitelný konektorem, nezjištěný otazníkem.
+  Vektorové cesty, takže se škálují s DPI a nepřidávají do sestavení žádný soubor.
+  Tvar nese informaci sám o sobě, ne jen barvou - kvůli barvosleposti a
+  černobílému tisku zprávy.
+
 - Sekce Stažení na webu: odkaz na poslední vydání na GitHubu (přenosný
   `Diskora.exe`) a na zdrojový kód pod GPLv3, plus odkaz na GitHub v horní
   navigaci. Binárky se distribuují přes GitHub Releases, ne z repozitáře -
