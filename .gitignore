@@ -51,3 +51,6 @@ Desktop.ini
 # Secrets / local overrides
 *.local.json
 .env
+
+# Nastavení nástrojů vývojáře - do sdíleného repozitáře nepatří
+.claude/
