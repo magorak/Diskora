@@ -8,13 +8,15 @@ Proto je tenhle soubor o tom, co chybí, a ne o tom, co se povedlo.
 
 ## Známé chyby
 
-- **Zamrznutí po zrušení kontroly integrity** — nahlášeno uživatelem, ale
-  **nereprodukováno**. Měření nad skutečnou instancí okna ukazuje po zrušení
-  zámrz 15–16 ms na USB i systémovém svazku. Vyvrácené hypotézy (ať se k nim
-  nikdo nevrací): sken na UI vlákně (79 % vs. 80 % odezvy, tedy beze změny),
-  zahlcení hlášením postupu (~940 hlášení/s drží odezvu na 80 %), zabíjení
-  chkdsk na UI vlákně (62–78 ms včetně VSS snapshotu). Chybí informace, na kterém
-  svazku, s jakými právy a v jakém okamžiku k tomu došlo.
+- **Zamrznutí po zrušení kontroly integrity** — od 2026-07-29 se už neopakuje.
+  Nikdy se ho nepodařilo reprodukovat měřením (po zrušení zámrz 15–16 ms na USB
+  i systémovém svazku), takže **není jisté, co ho odstranilo**. Nejpravděpodobnější
+  příčinou je oprava souběhu v `ProcessOutputRunner`: výstup procesu se přidával
+  do sdíleného `List<string>` ze dvou vláken bez zámku, což umí ztrácet i duplikovat
+  položky a chovat se nepravidelně. Kdyby se to vrátilo, tady jsou vyvrácené
+  hypotézy, ať se k nim nikdo nevrací: sken na UI vlákně (79 % vs. 80 % odezvy,
+  tedy beze změny), zahlcení hlášením postupu (~940 hlášení/s drží odezvu na 80 %),
+  zabíjení chkdsk na UI vlákně (62–78 ms včetně VSS snapshotu).
 - **Tři vady rozvržení hlavního okna**, viditelné až na skutečném snímku:
   uříznutá záhlaví sloupců („Systém s“ místo „Systém souborů“), přetékající
   sloupec s tlačítky překrývající posuvník a dole uříznutá tabulka svazků.

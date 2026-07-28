@@ -7,9 +7,10 @@ prioritu od první commitnuté řádky, ne jako dodatečnou vrstvu.
 ## Hlášení zranitelnosti
 
 Pokud najdete bezpečnostní zranitelnost, **nevytvářejte prosím veřejný GitHub
-issue**. Místo toho kontaktujte správce projektu přímo (kontakt bude doplněn
-při zveřejnění repozitáře) s popisem zranitelnosti, kroky k reprodukci a
-očekávaným dopadem. Snažíme se reagovat co nejdříve.
+issue**. Použijte místo toho [soukromé hlášení zranitelností](https://github.com/magorak/Diskora/security/advisories/new)
+přímo na GitHubu — hlášení uvidí jen správce projektu a nikde se nezveřejní,
+dokud nebude oprava k dispozici. Uveďte popis zranitelnosti, kroky k reprodukci
+a očekávaný dopad. Snažíme se reagovat co nejdříve.
 
 ## Návrhové principy
 
@@ -34,9 +35,9 @@ očekávaným dopadem. Snažíme se reagovat co nejdříve.
   zatím neimplementováno, viz [`ROADMAP.md`](../ROADMAP.md).
 - **Statická analýza a dependency scanning v CI.** Roslyn analyzery běží už
   při každém buildu (`EnableNETAnalyzers` v `Directory.Build.props`). CodeQL
-  (`.github/workflows/codeql.yml`) a Dependabot (`.github/dependabot.yml`)
-  jsou nakonfigurované, ale repozitář zatím nemá GitHub remote, takže se
-  nemohly spustit naživo — YAML syntax ověřena lokálně.
+  (`.github/workflows/codeql.yml`) i Dependabot (`.github/dependabot.yml`)
+  běží od zveřejnění repozitáře (2026-07-29); Dependabot hned po nasazení sám
+  otevřel aktualizace zastaralých závislostí.
 
 ## Rozsah
 
