@@ -103,7 +103,9 @@
         </Grid>
 
         <Border Grid.Row="5" Style="{StaticResource CardBorderStyle}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          ScrollChanged="OutputScroll_ScrollChanged"
+                          AutomationProperties.Name="Výstup kontroly">
                 <ItemsControl ItemsSource="{Binding OutputLines}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>

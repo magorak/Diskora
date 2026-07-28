@@ -629,16 +629,26 @@ Architektura a zdůvodnění rozhodnutí: [docs/ARCHITECTURE.md](docs/ARCHITECTU
 Vzniklo z reálného vyzkoušení portable buildu `0.2.0+7f2d64b`. Řazeno podle
 závažnosti, ne podle pořadí nahlášení.
 
-- [ ] **Povrchový sken zamrzá UI** (chyba, ne kosmetika): `PhysicalDiskSurfaceScanner`
-      otevírá `new FileStream(handle, FileAccess.Read)` BEZ `isAsync: true`. U takového
-      streamu se `ReadAsync` provede synchronně na volajícím vlákně - a protože
-      `SurfaceScanViewModel.StartScanAsync` se volá rovnou z příkazu bez `Task.Run`,
-      běží celý sken na UI vlákně. Projeví se to nejvíc při zrušení, protože to musí
-      počkat na dočtení rozpracovaného 4MiB bloku, ale zamrzá to po celou dobu skenu.
-      Oprava: otevřít stream s `FileOptions.Asynchronous` (a ověřit, že zarovnávací
-      požadavky přímého I/O to nerozbijí - viz komentář v tom souboru o
-      `FILE_FLAG_NO_BUFFERING`), případně navíc obalit `Task.Run`.
-- [ ] **Diskora nenabídne nic u disku, se kterým Windows pracovat umí**: u USB disku
+- [ ] **Zamrznutí po zrušení kontroly** - NEREPRODUKOVÁNO, potřebuje od uživatele
+      upřesnit. Tlačítka „Spustit kontrolu"/„Zrušit" jsou v okně Kontrola integrity
+      (`chkdsk /scan`), ne v povrchovém skenu. Změřeno harnessem nad SKUTEČNOU instancí
+      `IntegrityWindow` (dispatcher timer po 50 ms, sleduje se nejdelší mezera mezi tiky):
+      po zrušení nejdelší zámrz 15-16 ms a `IsScanning=false` do 78 ms, a to jak na
+      USB svazku H:, tak na systémovém C:. Žádné zamrznutí.
+      Ověřením VYVRÁCENÉ hypotézy (ať se k nim nikdo nevrací):
+      1. „Povrchový sken běží na UI vlákně, protože `FileStream` nemá `isAsync: true`" -
+         změřeno před/po opravě: 79 % vs. 80 % odezvy UI, tedy beze změny. Důvod:
+         `Stream.ReadAsync` i nad synchronním `FileStreamem` odkládá práci na thread pool,
+         takže UI vlákno neblokuje. Změna byla zahozena jako zbytečná.
+      2. „Zahlcení hlášením postupu jako u `DiskUsageScanner` ve Fázi 4" - sken NVMe
+         rychlostí ~3,75 GB/s (≈940 hlášení/s) drží odezvu na 80 %.
+      3. „`TryKill(process)` běží na UI vlákně, protože `WaitForExitAsync` nemá
+         `ConfigureAwait(false)`" - zabití chkdsk trvalo 62-78 ms včetně VSS snapshotu.
+      Co se ještě neprověřilo: chování v reálné aplikaci s otevřeným hlavním oknem,
+      tray ikonou a `DiskHealthNotifier` na pozadí (harness má jen jedno okno). Potřeba
+      od uživatele: který disk/svazek, jestli běžela s admin právy, a jestli zamrzlo
+      hned po startu kontroly nebo až po kliknutí na Zrušit.
+- [x] **Diskora nenabídne nic u disku, se kterým Windows pracovat umí** - OPRAVENO: u USB disku
       (svazek H:) vrací `DeviceSeekPenaltyProperty` null, takže se podle pravidla „při
       nejistotě nenabízet nic" schová TRIM i defragmentace - a to i s admin právy.
       Jenže Windows ve svém „Optimalizovat jednotky" ten disk analyzovat i defragmentovat
@@ -649,10 +659,20 @@ závažnosti, ne podle pořadí nahlášení.
       `defrag /A` analýza) a teprve když ani to nepomůže, nabídnout obě akce
       s upozorněním, že typ se nepodařilo určit. Rozhodně nesmí zůstat stav
       „Diskora neumí nic, Windows umí".
-- [ ] **Okno kontroly integrity se má samo posouvat na poslední řádek** (uživatelský
-      komfort): výstup `chkdsk` přibývá, ale pohled zůstává nahoře. Auto-scroll na konec,
-      ideálně s tím, že se vypne, jakmile uživatel odroluje nahoru (aby si mohl v klidu
-      číst starší řádky), a zase zapne po odrolování zpět dolů.
+      OPRAVA: `DiskOptimizationService.GetCapabilities` si při mlčícím IOCTL vyžádá druhý
+      názor z WMI (`MSFT_PhysicalDisk.MediaType`, 3=HDD/4=SSD). Záměrně se NEKOUKÁ na
+      `SpindleSpeed` - u testovaného USB disku je 0, což by ho falešně prohlásilo za SSD.
+      Když ani WMI typ nezná (u USB disku hlásí `Unknown`), UI už neschová všechno:
+      nabídne obě akce plus upozornění, že typ není známý, TRIM na talířovém disku nic
+      nezkazí a defragmentaci má uživatel spouštět jen když ví, že jde o talířový disk.
+      5 testů. Živě ověřeno na třech reálných svazcích: H: (USB, neznámý typ) nabídne
+      TRIM i defragmentaci s upozorněním, F: (HDD) jen defragmentaci, C: (SSD) jen TRIM.
+- [x] **Okno kontroly integrity se samo posouvá na poslední řádek** - HOTOVO:
+      `IntegrityWindow.OutputScroll_ScrollChanged` drží pohled na konci výpisu. Rozlišuje
+      se podle `ExtentHeightChange`: nenulová = přibyl řádek (posunout, pokud sledujeme
+      konec), nulová = roloval uživatel (podle toho se sledování zapne/vypne). Takže
+      jakmile si uživatel odroluje nahoru číst starší řádek, výpis mu už neuteče, a po
+      návratu na konec se sledování samo obnoví.
 - [ ] **České výstupy z orchestrovaných nástrojů**: `chkdsk`/`defrag` píšou anglicky bez
       ohledu na jazyk Windows. `ChkdskOutputParser` už dnes mapuje fáze na české popisky
       pro progress bar; rozšířit stejný princip i na samotný výpis - překládat známé řádky

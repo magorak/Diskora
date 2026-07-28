@@ -97,6 +97,7 @@ public sealed class OptimizationViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(ShowTrimAction));
                 OnPropertyChanged(nameof(ShowDefragAction));
+                OnPropertyChanged(nameof(ShowUnknownTypeWarning));
                 OnPropertyChanged(nameof(CapabilitiesSummary));
             }
         }
@@ -114,9 +115,15 @@ public sealed class OptimizationViewModel : ViewModelBase
         }
     }
 
-    public bool ShowTrimAction => IsSolidState == true;
+    public bool ShowTrimAction => IsSolidState != false;
 
-    public bool ShowDefragAction => IsSolidState == false;
+    // Při nezjištěném typu se nabídnou obě akce. Dřív se neukázala ani jedna, takže
+    // u disků za USB mostem Diskora neuměla nic, i když Windows s nimi pracovat umí -
+    // slepá ulička je horší než nabídka s upozorněním (nahlásil uživatel).
+    public bool ShowDefragAction => IsSolidState != true;
+
+    /// <summary>Upozornění navíc, když se typ disku nepodařilo určit - pak je volba na uživateli.</summary>
+    public bool ShowUnknownTypeWarning => IsSolidState is null;
 
     public string CapabilitiesSummary => IsSolidState switch
     {
@@ -124,8 +131,14 @@ public sealed class OptimizationViewModel : ViewModelBase
             ? "SSD s podporou TRIM."
             : "SSD (podporu TRIM se nepodařilo ověřit).",
         false => "Rotační pevný disk (HDD) - vhodná tradiční defragmentace.",
-        null => "Typ disku se nepodařilo zjistit (obvykle chybí práva administrátora na systémovém svazku).",
+        null => "Typ disku se nepodařilo zjistit - typické u disků připojených přes USB.",
     };
+
+    public string UnknownTypeWarning =>
+        "Protože typ disku není známý, nabízíme obě akce a volbu necháváme na vás. " +
+        "TRIM na talířovém disku nic nezkazí, jen nic neudělá. Defragmentaci naopak " +
+        "spouštějte jen tehdy, když víte, že jde o talířový disk - na SSD nemá smysl " +
+        "a zbytečně ho opotřebuje.";
 
     public string? OperationSummary
     {

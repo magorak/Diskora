@@ -5,6 +5,22 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Změněno
+- Optimalizace disku u disků s nezjištěným typem (nahlásil uživatel): u disku za USB
+  mostem vrací `DeviceSeekPenaltyProperty` null, takže se podle pravidla „při nejistotě
+  nenabízet nic" schoval TRIM i defragmentace - a to i s právy administrátora, přestože
+  Windows s tím diskem ve svém „Optimalizovat jednotky" pracovat umí. Nově si
+  `DiskOptimizationService` při mlčícím IOCTL vyžádá druhý názor z WMI
+  (`MSFT_PhysicalDisk.MediaType`); záměrně nepoužívá `SpindleSpeed`, protože u testovaného
+  USB disku je 0, což by ho falešně prohlásilo za SSD. Když typ nezná ani WMI, UI už
+  neschová všechno: nabídne obě akce a přidá upozornění, že typ není známý - TRIM na
+  talířovém disku nic nezkazí, defragmentaci má uživatel spouštět jen když ví, že o
+  talířový disk jde. Slepá ulička „Diskora neumí nic, Windows umí" je horší než nabídka
+  s upozorněním. Živě ověřeno na třech reálných svazcích (USB s neznámým typem, HDD, SSD).
+- Výpis v okně Kontrola integrity se sám posouvá na poslední řádek (nahlásil uživatel).
+  Jakmile si uživatel odroluje nahoru číst starší řádek, sledování se vypne a výpis mu
+  neuteče; po návratu na konec se zase zapne.
+
 ### Ověřeno (živý test na uvolněném svazku H:)
 - Úspěšný běh opravy integrity (`Repair-Volume -SpotFix`) s právy administrátora -
   do teď byla ověřená jen cesta selhání bez elevace. Rovnou odhalil chybu popsanou

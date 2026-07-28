@@ -37,7 +37,11 @@
         <Border Grid.Row="1"
                 Background="{DynamicResource AccentBrush}"
                 CornerRadius="4" Padding="10" Margin="0,0,0,12">
-            <TextBlock Text="{Binding CapabilitiesSummary}" Foreground="White" TextWrapping="Wrap" />
+            <StackPanel>
+                <TextBlock Text="{Binding CapabilitiesSummary}" Foreground="White" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding UnknownTypeWarning}" Foreground="White" TextWrapping="Wrap" Margin="0,6,0,0"
+                           Visibility="{Binding ShowUnknownTypeWarning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>
         </Border>
 
         <Grid Grid.Row="2" Margin="0,0,0,12">
