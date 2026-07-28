@@ -60,7 +60,7 @@
                     Command="{Binding RunDefragmentCommand}"
                     Visibility="{Binding ShowDefragAction, Converter={StaticResource BooleanToVisibilityConverter}}" />
             <Button Grid.Column="1" Margin="0,0,8,0" Content="Analyzovat fragmentaci"
-                    Command="{Binding AnalyzeFragmentationCommand}"
+                    Command="{Binding AnalyzeFragmentationCommand}" Click="AnalyzeFragmentation_Click"
                     Visibility="{Binding ShowDefragAction, Converter={StaticResource BooleanToVisibilityConverter}}" />
             <Button Grid.Column="2" Margin="0,0,8,0" Content="Zrušit" Command="{Binding CancelCommand}"
                     Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -73,7 +73,7 @@
                    Text="TRIM (retrim) i defragmentace vyžadují práva administrátora. Když je typ disku známý, Diskora nabídne jen akci, která pro něj dává smysl." />
 
         <Border Grid.Row="4" Style="{StaticResource CardBorderStyle}">
-            <TabControl>
+            <TabControl x:Name="Tabs">
                 <TabItem Header="Výstup">
                   <DockPanel>
                     <CheckBox DockPanel.Dock="Top" Margin="8,8,8,4" HorizontalAlignment="Right"
@@ -91,7 +91,7 @@
                   </DockPanel>
                 </TabItem>
 
-                <TabItem Header="Fragmentace"
+                <TabItem x:Name="FragmentationTab" Header="Fragmentace"
                          Visibility="{Binding ShowDefragAction, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid Margin="4">
                         <Grid.RowDefinitions>

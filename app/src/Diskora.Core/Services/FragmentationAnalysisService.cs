@@ -19,6 +19,9 @@ public sealed class FragmentationAnalysisService : IFragmentationAnalysisService
     private static readonly TimeSpan ProgressReportInterval = TimeSpan.FromMilliseconds(100);
     private const int TopFilesCount = 20;
 
+    /// <summary>Kolik času se dá jednomu souboru, než se přeskočí - viz ReadExtentsWithTimeoutAsync.</summary>
+    private static readonly TimeSpan PerFileTimeout = TimeSpan.FromSeconds(5);
+
     public async Task<FragmentationAnalysisResult> AnalyzeAsync(
         string rootPath, IProgress<string>? onFileScanned = null, CancellationToken cancellationToken = default)
     {
@@ -89,17 +92,23 @@ public sealed class FragmentationAnalysisService : IFragmentationAnalysisService
         await Task.Run(() => WalkDirectory(rootPath), cancellationToken).ConfigureAwait(false);
 
         var fragmentedFiles = new ConcurrentBag<FragmentedFileEntry>();
+        var processed = 0;
 
         await Parallel.ForEachAsync(
             files,
             new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrency, CancellationToken = cancellationToken },
             async (file, ct) =>
             {
-                var result = await Task.Run(() => FileFragmentationReader.GetExtentCount(file.Path), ct).ConfigureAwait(false);
-                if (result.Success && result.ExtentCount > 1)
+                var result = await ReadExtentsWithTimeoutAsync(file.Path, ct).ConfigureAwait(false);
+                if (result is { Success: true, ExtentCount: > 1 } extents)
                 {
-                    fragmentedFiles.Add(new FragmentedFileEntry(file.Path, file.Size, result.ExtentCount, result.ExtentCountIsLowerBound));
+                    fragmentedFiles.Add(new FragmentedFileEntry(file.Path, file.Size, extents.ExtentCount, extents.ExtentCountIsLowerBound));
                 }
+
+                // Tahle fáze je ta dlouhá. Bez hlášení postupu vypadala aplikace
+                // zaseknutě, protože poslední zpráva zůstala z procházení složek
+                // (nahlásil uživatel).
+                ReportThrottled($"Čtu rozvržení souborů: {Interlocked.Increment(ref processed)} z {files.Count}");
             }).ConfigureAwait(false);
 
         var topFragmented = fragmentedFiles
@@ -109,6 +118,28 @@ public sealed class FragmentationAnalysisService : IFragmentationAnalysisService
             .ToList();
 
         return new FragmentationAnalysisResult(files.Count, fragmentedFiles.Count, topFragmented);
+    }
+
+    /// <summary>
+    /// Čtení rozvržení jednoho souboru s časovým limitem. Otevření souboru je
+    /// synchronní volání Win32, které nejde zrušit - a když do souboru zrovna
+    /// sahá antivirus, umí se zablokovat na dlouho. Bez limitu se pak zastavila
+    /// celá analýza VČETNĚ tlačítka Zrušit (nahlásil uživatel). Soubor, který se
+    /// nestihne, se přeskočí.
+    /// </summary>
+    private static async Task<FileFragmentationReadResult?> ReadExtentsWithTimeoutAsync(
+        string path, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await Task.Run(() => FileFragmentationReader.GetExtentCount(path), cancellationToken)
+                .WaitAsync(PerFileTimeout, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            return null;
+        }
     }
 
     private static bool IsReparsePoint(string directoryPath)

@@ -6,6 +6,19 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Opraveno
+- **Analýza fragmentace vypadala zaseknutě** (nahlásil uživatel): postup se hlásil
+  jen během procházení složek, ale ne během samotného čtení fragmentace, což je
+  ta dlouhá fáze. Poslední zpráva tak zůstala viset na názvu složky. Nově se hlásí
+  „Čtu rozvržení souborů: X z Y".
+- **Analýza fragmentace se zastavila, když do souboru sáhl antivirus** (nahlásil
+  uživatel): otevření souboru je synchronní volání Win32, které nejde zrušit, takže
+  zablokovaný soubor zastavil celou analýzu včetně tlačítka Zrušit. Nově má každý
+  soubor časový limit 5 s a pak se přeskočí.
+- **Analýza fragmentace se nepřepnula na svou záložku** (nahlásil uživatel): výsledky
+  se vypisovaly na jinou záložku, než na které uživatel stál, takže nebylo poznat,
+  jestli se vůbec něco děje.
+
+### Opraveno
 - **Rozsypaná čeština ve výstupu chkdsk** (nahlásil uživatel): kódování výstupu se
   nastavovalo společně pro všechny orchestrované nástroje, jenže každý píše jinak.
   Ověřeno na syrových bajtech přesměrovaného výstupu: `defrag` posílá pro „ý" bajt

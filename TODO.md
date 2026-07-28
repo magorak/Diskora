@@ -689,6 +689,28 @@ závažnosti, ne podle pořadí nahlášení.
       ale je použitelná i samostatně - appka je celá česky, takže anglický výpis uprostřed
       je nekonzistence, i když pochází z cizího nástroje.
 
+## Zpětná vazba z živého používání — 2. dávka (2026-07-28)
+- [x] Analýza fragmentace vypadala zaseknutě (nehlásil se postup dlouhé fáze),
+      zasekla se na souboru drženém antivirem a nepřepínala na svou záložku -
+      všechno opraveno, živě ověřeno (postup „X z Y", zrušení zabírá, časový
+      limit 5 s na soubor).
+- [ ] **Web a dokumentace jsou pozadu za aplikací** - ověřeno grepem: landing page
+      hlásí „Verze 0.1.0 — rané vývojové stádium", zatímco vydaná je 0.3.0, a ani
+      jedna z nových funkcí (Disk Doctor, test kapacity, odhad životnosti, zpráva
+      pro člověka, české výstupy) není zmíněná nikde v `web/src/pages/` ani
+      v `docs/`. `docs/ARCHITECTURE.md` nezná ani nové namespacy. Changelog na
+      webu se generuje sám, takže ten aktuální je - všechno ostatní ne.
+      Nejvíc pálí ta verze na landing page: říká návštěvníkovi něco jiného, než
+      co si stáhne.
+- [ ] **„Co je nového" ukazovat zkráceně** - okno teď sype celý changelog včetně
+      vývojářských detailů („opravena hlavička SENDCMDOUTPARAMS"). Uživatel chce
+      hlavní body. Návrh: v `CHANGELOG.md` označit vybrané položky jako hlavní
+      (např. `**tučným úvodem**`, což se už teď u důležitých používá) a v okně
+      i na webu je zobrazovat jako shrnutí s možností rozbalit celý výpis.
+- [ ] **Vzhled aplikace** - uživatel označil okna za strohá a postrádá ikony
+      a živější grafiku. Viz úvaha níže v „Nápadech"; není to malá práce a stojí
+      za samostatné rozhodnutí, kam až jít.
+
 ## Nápady na budoucí odlišení (backlog, needvidí se hned)
 - [x] "Disk Doctor" wizard (jedno tlačítko: SMART + chkdsk + TRIM/defrag rozhodnutí):
       tlačítko „Disk Doctor" u každého svazku v dashboardu + CLI `diskora doctor
