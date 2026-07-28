@@ -5,6 +5,33 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Přidáno
+- Výstupy `chkdsk` a `defrag` se zobrazují česky (nahlásil uživatel): nový
+  `Diskora.Core.Output.ToolOutputTranslator` překládá rozpoznané řádky, neznámé
+  nechává beze změny (nová verze Windows tak nikdy nezpůsobí ztrátu informace)
+  a nikdy nepřepisuje čísla, jednotky ani názvy svazků. Zachovává odsazení, aby
+  zůstala čitelná struktura reportů defragu. Obě okna mají nově přepínač
+  „Zobrazit původní anglický výstup nástroje" - překlad je výchozí zobrazení,
+  ne náhrada. 31 testů, jejichž vstupy jsou doslovné řádky ze skutečných běhů.
+  Živě ověřeno na reálném `chkdsk H: /scan`: ze 220 řádků výstupu zůstane
+  54 čitelných, zbytek je odfiltrovaná záplava průběžných hlášení.
+
+### Opraveno
+- Průběh kontroly integrity se hýbal jen po fázích: `ChkdskOutputParser` hledal
+  formát „N percent complete", jenže chkdsk na aktuálních Windows vypisuje
+  „Progress: X of Y done; Stage: N%; Total: M%". Procenta se tedy nikdy netrefila
+  a ukazatel skákal po 0/33/66 %. Nově se čte přímo hlášená celková hodnota
+  „Total" - živě ověřeno, ukazatel má přes 40 různých hodnot místo tří.
+- Diakritika ve výstupu `chkdsk`: na rozdíl od `defrag` se mu nepředávalo kódování
+  konzolových nástrojů, takže z názvu svazku „Nový svazek" zbylo „Nov? svazek".
+  Kódování je nově společné pro všechny orchestrované nástroje. Ověřeno
+  porovnáním kódů znaků, ne podle vzhledu v konzoli - ta si text sama překóduje
+  a při hledání příčiny dvakrát svedla na špatnou stopu (`ý` dorazí jako bajt
+  0xEC, což odpovídá právě OEM stránce; ANSI z toho dělá „ě" a UTF-8 náhradní znak).
+- Záplava průběžných hlášení ve výpisu: chkdsk vypíše stovky řádků „Progress: ..."
+  a řádků samých mezer, kterými maže předchozí řádek. Do výpisu se už nedostanou,
+  ale pořád se z nich čte postup.
+
 ### Změněno
 - Optimalizace disku u disků s nezjištěným typem (nahlásil uživatel): u disku za USB
   mostem vrací `DeviceSeekPenaltyProperty` null, takže se podle pravidla „při nejistotě

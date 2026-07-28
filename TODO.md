@@ -673,7 +673,14 @@ závažnosti, ne podle pořadí nahlášení.
       konec), nulová = roloval uživatel (podle toho se sledování zapne/vypne). Takže
       jakmile si uživatel odroluje nahoru číst starší řádek, výpis mu už neuteče, a po
       návratu na konec se sledování samo obnoví.
-- [ ] **České výstupy z orchestrovaných nástrojů**: `chkdsk`/`defrag` píšou anglicky bez
+- [x] **České výstupy z orchestrovaných nástrojů** - HOTOVO (`ToolOutputTranslator`
+      v `Diskora.Core.Output`, 31 testů nad doslovnými řádky ze skutečných běhů;
+      neznámé řádky zůstávají v originále, čísla a názvy svazků se nikdy nepřepisují,
+      obě okna mají přepínač na původní anglický výstup). Cestou opraveny tři věci,
+      které vylezly až při živém běhu: procenta postupu se nikdy netrefila (parser
+      hledal starý formát „N percent complete"), chkdsku se nepředávalo kódování,
+      takže mizela diakritika v názvu svazku, a výpis zaplavovaly stovky řádků
+      průběžných hlášení. Původní zadání znělo: `chkdsk`/`defrag` píšou anglicky bez
       ohledu na jazyk Windows. `ChkdskOutputParser` už dnes mapuje fáze na české popisky
       pro progress bar; rozšířit stejný princip i na samotný výpis - překládat známé řádky
       (souhrny, „The operation completed successfully", tabulky Pre/Post reportu defragu)

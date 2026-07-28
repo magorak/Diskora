@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Diskora.Repair;
@@ -13,6 +14,55 @@ internal sealed record ProcessRunOutcome(bool Started, string? FailureReason, in
 /// </summary>
 internal static class ProcessOutputRunner
 {
+    /// <summary>
+    /// Kódová stránka, ve které konzolové nástroje Windows píšou svůj
+    /// PŘESMĚROVANÝ výstup. Diskora vždy čte přes rouru, ne z reálné konzole.
+    ///
+    /// Pořadí ověřeno empiricky POROVNÁNÍM KÓDŮ ZNAKŮ, ne podle vzhledu v konzoli
+    /// (ta si text sama překóduje a snadno svede na špatnou stopu): „ý" z názvu
+    /// svazku „Nový svazek" dorazí z `defrag.exe` jako bajt 0xEC. To je „ý" právě
+    /// v OEM stránce (<c>GetOEMCP</c>, zde 852). Ostatní kandidáti jsou prokazatelně
+    /// špatně - ANSI (<c>GetACP</c>, zde 1250) z toho udělá „ě" (U+011B) a UTF-8
+    /// (<c>GetConsoleOutputCP</c>, zde 65001) náhradní znak U+FFFD, protože 0xEC
+    /// není platná UTF-8 sekvence. Zbylé dvě stránky zůstávají jen jako záloha,
+    /// kdyby OEM stránka nešla zjistit.
+    ///
+    /// Pozor: konzolová stránka se tu neuplatní, i když by to znělo logicky -
+    /// Diskora čte výstup vždy přes rouru, ne z reálné konzole.
+    /// </summary>
+    public static Encoding ConsoleOutputEncoding { get; } = ResolveConsoleOutputEncoding();
+
+    private static Encoding ResolveConsoleOutputEncoding()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        foreach (var codePage in new[] { GetOEMCP(), GetACP(), GetConsoleOutputCP() })
+        {
+            try
+            {
+                if (codePage != 0)
+                {
+                    return Encoding.GetEncoding((int)codePage);
+                }
+            }
+            catch (Exception ex) when (ex is ArgumentException or NotSupportedException)
+            {
+                // Nepodporovaná stránka - zkusí se další v pořadí.
+            }
+        }
+
+        return Encoding.UTF8;
+    }
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetOEMCP();
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetConsoleOutputCP();
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetACP();
+
     public static async Task<ProcessRunOutcome> RunAsync(
         string fileName,
         IEnumerable<string> arguments,

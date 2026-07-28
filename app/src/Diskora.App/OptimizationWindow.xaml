@@ -70,13 +70,17 @@
         </Grid>
 
         <TextBlock Grid.Row="3" Margin="0,0,0,12" TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}"
-                   Text="TRIM (retrim) i defragmentace vyžadují práva administrátora. Diskora nabízí jen akci vhodnou pro zjištěný typ disku." />
+                   Text="TRIM (retrim) i defragmentace vyžadují práva administrátora. Když je typ disku známý, Diskora nabídne jen akci, která pro něj dává smysl." />
 
         <Border Grid.Row="4" Style="{StaticResource CardBorderStyle}">
             <TabControl>
                 <TabItem Header="Výstup">
+                  <DockPanel>
+                    <CheckBox DockPanel.Dock="Top" Margin="8,8,8,4" HorizontalAlignment="Right"
+                              Content="Zobrazit původní anglický výstup nástroje"
+                              IsChecked="{Binding ShowRawOutput}" />
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding OutputLines}">
+                        <ItemsControl ItemsSource="{Binding DisplayedOutputLines}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" />
@@ -84,6 +88,7 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
+                  </DockPanel>
                 </TabItem>
 
                 <TabItem Header="Fragmentace"

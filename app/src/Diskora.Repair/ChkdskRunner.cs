@@ -21,7 +21,10 @@ public static class ChkdskRunner
         CancellationToken cancellationToken = default)
     {
         var target = driveLetter.TrimEnd('\\', ':') + ":";
-        var outcome = await ProcessOutputRunner.RunAsync("chkdsk.exe", [target, "/scan"], onOutputLine, cancellationToken);
+        // Stejné kódování jako u defragu - bez něj chkdsk vrací diakritiku v názvu
+        // svazku rozsypanou (živě pozorováno: „Nový svazek" → „Nov? svazek").
+        var outcome = await ProcessOutputRunner.RunAsync(
+            "chkdsk.exe", [target, "/scan"], onOutputLine, cancellationToken, ProcessOutputRunner.ConsoleOutputEncoding);
         return new ChkdskScanResult(outcome.Started, outcome.FailureReason, outcome.ExitCode, outcome.OutputLines);
     }
 

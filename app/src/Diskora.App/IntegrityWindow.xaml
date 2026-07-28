@@ -23,6 +23,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="2*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="1*" />
@@ -102,11 +103,15 @@
             <ProgressBar Grid.Row="1" Height="10" IsIndeterminate="True" AutomationProperties.Name="Probíhá oprava, průběh nelze určit" />
         </Grid>
 
-        <Border Grid.Row="5" Style="{StaticResource CardBorderStyle}">
+        <CheckBox Grid.Row="5" Content="Zobrazit původní anglický výstup nástroje"
+                  IsChecked="{Binding ShowRawOutput}" Margin="0,0,0,8" HorizontalAlignment="Right"
+                  ToolTip="Výpis je ve výchozím stavu přeložený a bez průběžných hlášení. Originál se hodí při dohledávání problémů." />
+
+        <Border Grid.Row="6" Style="{StaticResource CardBorderStyle}">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           ScrollChanged="OutputScroll_ScrollChanged"
                           AutomationProperties.Name="Výstup kontroly">
-                <ItemsControl ItemsSource="{Binding OutputLines}">
+                <ItemsControl ItemsSource="{Binding DisplayedOutputLines}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" />
@@ -116,9 +121,9 @@
             </ScrollViewer>
         </Border>
 
-        <TextBlock Grid.Row="6" Text="Historie" Style="{StaticResource HeadingTextStyle}" Margin="0,16,0,8" />
+        <TextBlock Grid.Row="7" Text="Historie" Style="{StaticResource HeadingTextStyle}" Margin="0,16,0,8" />
 
-        <Border Grid.Row="7" Style="{StaticResource CardBorderStyle}">
+        <Border Grid.Row="8" Style="{StaticResource CardBorderStyle}">
             <DataGrid ItemsSource="{Binding History}" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Kdy" Binding="{Binding TimestampDisplay}" Width="180" />

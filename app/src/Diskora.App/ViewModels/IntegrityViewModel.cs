@@ -4,6 +4,7 @@ using System.Windows.Input;
 using Diskora.App.Commands;
 using Diskora.App.Parsing;
 using Diskora.Core.Models;
+using Diskora.Core.Output;
 using Diskora.Core.Services;
 
 namespace Diskora.App.ViewModels;
@@ -23,6 +24,7 @@ public sealed class IntegrityViewModel : ViewModelBase
     private CancellationTokenSource? _repairCts;
     private VolumeDirtyState _dirtyState = VolumeDirtyState.Unknown;
     private bool _isScanning;
+    private bool _showRawOutput;
     private bool _isRepairing;
     private IntegrityScanOutcome? _lastOutcome;
     private IntegrityScanOutcome? _lastRepairOutcome;
@@ -48,7 +50,26 @@ public sealed class IntegrityViewModel : ViewModelBase
 
     public string VolumeName { get; }
 
+    /// <summary>Výpis přeložený do češtiny, bez záplavy průběžných hlášení.</summary>
     public ObservableCollection<string> OutputLines { get; } = [];
+
+    /// <summary>Syrový výstup nástroje tak, jak přišel - přepínatelný v okně.</summary>
+    public ObservableCollection<string> RawOutputLines { get; } = [];
+
+    /// <summary>Přepíná zobrazený výpis mezi překladem a originálem.</summary>
+    public bool ShowRawOutput
+    {
+        get => _showRawOutput;
+        set
+        {
+            if (SetField(ref _showRawOutput, value))
+            {
+                OnPropertyChanged(nameof(DisplayedOutputLines));
+            }
+        }
+    }
+
+    public ObservableCollection<string> DisplayedOutputLines => ShowRawOutput ? RawOutputLines : OutputLines;
 
     public ObservableCollection<IntegrityHistoryRowViewModel> History { get; } = [];
 
@@ -154,6 +175,7 @@ public sealed class IntegrityViewModel : ViewModelBase
     private async Task StartScanAsync()
     {
         OutputLines.Clear();
+        RawOutputLines.Clear();
         _lastOutcome = null;
         OnPropertyChanged(nameof(ScanSummary));
         IsScanning = true;
@@ -185,7 +207,16 @@ public sealed class IntegrityViewModel : ViewModelBase
 
     private void OnOutputLine(string line)
     {
-        OutputLines.Add(line);
+        // Syrový originál se schovává vždycky - překlad je výchozí zobrazení,
+        // ne náhrada. Uživatel si může kdykoli ověřit, co nástroj skutečně řekl.
+        RawOutputLines.Add(line);
+
+        // Řádků „Progress: ... done; ..." vypíše chkdsk stovky. Postup z nich
+        // čteme, ale do výpisu nepatří - jen by ho zaplavily.
+        if (!ToolOutputTranslator.IsProgressNoise(line))
+        {
+            OutputLines.Add(ToolOutputTranslator.Translate(line));
+        }
 
         var stage = ChkdskOutputParser.TryParseStage(line);
         if (stage is not null)
@@ -193,6 +224,14 @@ public sealed class IntegrityViewModel : ViewModelBase
             _currentStage = stage;
             CurrentStageDescription = ChkdskOutputParser.GetStageDescription(stage.Value);
             ProgressPercent = StageBaselinePercent(stage.Value);
+        }
+
+        // Celkový postup hlášený přímo chkdskem má přednost - ví o délce fází víc
+        // než náš odhad z pořadí fáze.
+        if (ChkdskOutputParser.TryParseOverallPercent(line) is { } overallPercent)
+        {
+            ProgressPercent = overallPercent;
+            return;
         }
 
         var percent = ChkdskOutputParser.TryParsePercent(line);
@@ -235,6 +274,7 @@ public sealed class IntegrityViewModel : ViewModelBase
         }
 
         OutputLines.Clear();
+        RawOutputLines.Clear();
         _lastRepairOutcome = null;
         OnPropertyChanged(nameof(RepairSummary));
         IsRepairing = true;

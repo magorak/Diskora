@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using Diskora.App.Commands;
+using Diskora.Core.Output;
 using Diskora.Core.Services;
 
 namespace Diskora.App.ViewModels;
@@ -14,6 +15,7 @@ public sealed class OptimizationViewModel : ViewModelBase
     private CancellationTokenSource? _runCts;
     private CancellationTokenSource? _fragmentationCts;
     private bool _isRunning;
+    private bool _showRawOutput;
     private bool? _isSolidState;
     private bool? _supportsTrim;
     private string? _operationSummary;
@@ -42,7 +44,25 @@ public sealed class OptimizationViewModel : ViewModelBase
 
     public string VolumeName { get; }
 
+    /// <summary>Výpis přeložený do češtiny (viz <see cref="ToolOutputTranslator"/>).</summary>
     public ObservableCollection<string> OutputLines { get; } = [];
+
+    /// <summary>Syrový výstup nástroje - překlad je výchozí zobrazení, ne náhrada.</summary>
+    public ObservableCollection<string> RawOutputLines { get; } = [];
+
+    public bool ShowRawOutput
+    {
+        get => _showRawOutput;
+        set
+        {
+            if (SetField(ref _showRawOutput, value))
+            {
+                OnPropertyChanged(nameof(DisplayedOutputLines));
+            }
+        }
+    }
+
+    public ObservableCollection<string> DisplayedOutputLines => ShowRawOutput ? RawOutputLines : OutputLines;
 
     public ICommand RefreshCapabilitiesCommand { get; }
 
@@ -156,11 +176,16 @@ public sealed class OptimizationViewModel : ViewModelBase
     private async Task RunAsync(bool trim)
     {
         OutputLines.Clear();
+        RawOutputLines.Clear();
         OperationSummary = null;
         IsRunning = true;
         _runCts = new CancellationTokenSource();
 
-        var progress = new Progress<string>(line => OutputLines.Add(line));
+        var progress = new Progress<string>(line =>
+        {
+            RawOutputLines.Add(line);
+            OutputLines.Add(ToolOutputTranslator.Translate(line));
+        });
 
         try
         {

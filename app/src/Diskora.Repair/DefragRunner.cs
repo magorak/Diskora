@@ -19,7 +19,7 @@ namespace Diskora.Repair;
 /// </summary>
 public static class DefragRunner
 {
-    private static readonly Encoding OutputEncoding = ResolveOemEncoding();
+    private static readonly Encoding OutputEncoding = ProcessOutputRunner.ConsoleOutputEncoding;
 
     public static Task<DefragRunResult> RunTrimAsync(
         string driveLetter, IProgress<string>? onOutputLine = null, CancellationToken cancellationToken = default) =>
@@ -38,12 +38,4 @@ public static class DefragRunner
         return new DefragRunResult(outcome.Started, outcome.FailureReason, outcome.ExitCode, outcome.OutputLines);
     }
 
-    private static Encoding ResolveOemEncoding()
-    {
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        return Encoding.GetEncoding((int)GetOEMCP());
-    }
-
-    [DllImport("kernel32.dll")]
-    private static extern uint GetOEMCP();
 }
