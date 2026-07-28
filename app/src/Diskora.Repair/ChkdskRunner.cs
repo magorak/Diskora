@@ -24,7 +24,7 @@ public static class ChkdskRunner
         // Stejné kódování jako u defragu - bez něj chkdsk vrací diakritiku v názvu
         // svazku rozsypanou (živě pozorováno: „Nový svazek" → „Nov? svazek").
         var outcome = await ProcessOutputRunner.RunAsync(
-            "chkdsk.exe", [target, "/scan"], onOutputLine, cancellationToken, ProcessOutputRunner.ConsoleOutputEncoding);
+            "chkdsk.exe", [target, "/scan"], onOutputLine, cancellationToken, ProcessOutputRunner.AnsiEncoding);
         return new ChkdskScanResult(outcome.Started, outcome.FailureReason, outcome.ExitCode, outcome.OutputLines);
     }
 
@@ -48,6 +48,11 @@ public static class ChkdskRunner
         // zůstane null; bez tohohle by se to tiše prohlásilo za úspěch. Explicitní kontrola
         // $result níže je obrana do hloubky pro stejný scénář.
         //
+        // Skript záměrně nepíše česky ani nepoužívá Write-Error: PowerShell u něj
+        // vysype do výstupu celý zdroj skriptu i s rámečkem chyby (viděl uživatel)
+        // a diakritiku navíc zakóduje jinak než ostatní nástroje. Píše se proto
+        // strojová značka a české věty skládá až Diskora - viz ToolOutputTranslator.
+        //
         // POZOR na tvar výsledku: Repair-Volume vrací PŘÍMO hodnotu typu RepairStatus
         // (např. "NoErrorsFound"), ne objekt s vlastností HealthStatus. Původní verze
         // kontrolovala $result.HealthStatus, což je vždycky prázdné - a protože je to
@@ -58,11 +63,11 @@ public static class ChkdskRunner
                 $ErrorActionPreference = 'Stop'
                 $result = Repair-Volume -DriveLetter $env:DISKORA_DRIVE_LETTER -SpotFix -ErrorAction Stop
                 if ($null -eq $result -or [string]::IsNullOrWhiteSpace([string]$result)) {
-                    throw "Repair-Volume nevrátil žádný výsledek (chybí oprávnění administrátora?)."
+                    throw 'NO_RESULT'
                 }
-                Write-Output "Stav opravy: $result"
+                Write-Output "DISKORA_STATUS: $result"
             } catch {
-                Write-Error $_.Exception.Message
+                [Console]::Error.WriteLine('DISKORA_ERROR: ' + $_.Exception.Message)
                 exit 1
             }
             """;

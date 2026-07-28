@@ -41,6 +41,11 @@ public static partial class ToolOutputTranslator
         ["Folders:"] = "Složky:",
         ["Free space:"] = "Volné místo:",
         ["Master File Table (MFT):"] = "Hlavní tabulka souborů (MFT):",
+        ["A snapshot error occured while scanning this drive. Run an offline scan and fix."] =
+            "Nepodařilo se vytvořit snímek svazku, takže kontrolu za běhu nelze dokončit. "
+            + "Svazek jde zkontrolovat jen odpojený - u vyměnitelných disků pomůže odpojit je od ostatních programů.",
+        ["Windows cannot run disk checking on this volume because it is write protected."] =
+            "Svazek je chráněný proti zápisu, takže na něm kontrola nemůže běžet.",
         ["Note: File fragments larger than 64MB are not included in the fragmentation statistics."] =
             "Poznámka: Fragmenty souborů větší než 64 MB se do statistik fragmentace nepočítají.",
     };
@@ -169,6 +174,25 @@ public static partial class ToolOutputTranslator
         if (Phrases.TryGetValue(trimmed, out var phrase))
         {
             return phrase;
+        }
+
+        // Strojové značky z PowerShell orchestrace opravy (viz ChkdskRunner):
+        // skript píše ASCII značku a českou větu skládá až tady, aby se do výstupu
+        // nedostal zdroj skriptu ani text v cizím kódování.
+        if (trimmed.StartsWith("DISKORA_STATUS:", StringComparison.Ordinal))
+        {
+            var status = trimmed["DISKORA_STATUS:".Length..].Trim();
+            return status.Equals("NoErrorsFound", StringComparison.OrdinalIgnoreCase)
+                ? "Oprava dokončena - žádné chyby k opravě nebyly nalezeny."
+                : $"Stav opravy: {status}";
+        }
+
+        if (trimmed.StartsWith("DISKORA_ERROR:", StringComparison.Ordinal))
+        {
+            var reason = trimmed["DISKORA_ERROR:".Length..].Trim();
+            return reason.Equals("NO_RESULT", StringComparison.Ordinal)
+                ? "Oprava neproběhla: Repair-Volume nevrátil žádný výsledek. Nejčastěji chybí práva administrátora."
+                : $"Oprava selhala: {reason}";
         }
 
         if (StageRegex().Match(trimmed) is { Success: true } stage)

@@ -174,4 +174,26 @@ public class ToolOutputTranslatorTests
         Assert.Equal("   ", ToolOutputTranslator.Translate("   "));
         Assert.Equal(string.Empty, ToolOutputTranslator.Translate(string.Empty));
     }
+
+    [Fact]
+    public void Translate_ZnackaUspesneOpravy()
+    {
+        Assert.Equal("Oprava dokončena - žádné chyby k opravě nebyly nalezeny.",
+            ToolOutputTranslator.Translate("DISKORA_STATUS: NoErrorsFound"));
+    }
+
+    [Fact]
+    public void Translate_ZnackaChybyOpravy()
+    {
+        Assert.Equal("Oprava selhala: The repair failed",
+            ToolOutputTranslator.Translate("DISKORA_ERROR: The repair failed"));
+    }
+
+    [Fact]
+    public void Translate_ZnackaChybejicihoVysledku_VysvetliPravdepodobnouPricinu()
+    {
+        var text = ToolOutputTranslator.Translate("DISKORA_ERROR: NO_RESULT");
+
+        Assert.Contains("práva administrátora", text, StringComparison.Ordinal);
+    }
 }

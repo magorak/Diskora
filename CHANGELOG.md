@@ -5,6 +5,25 @@ verzování dle [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Opraveno
+- **Rozsypaná čeština ve výstupu chkdsk** (nahlásil uživatel): kódování výstupu se
+  nastavovalo společně pro všechny orchestrované nástroje, jenže každý píše jinak.
+  Ověřeno na syrových bajtech přesměrovaného výstupu: `defrag` posílá pro „ý" bajt
+  0xEC (OEM, česky 852), zatímco `chkdsk` tutéž diakritiku píše v ANSI (1250).
+  Jedno společné nastavení proto vždycky rozbilo ten druhý nástroj. Kódování je
+  nově vlastnost konkrétního nástroje. Poznámka do budoucna: určovat kódování
+  podle toho, jak text vypadá v konzoli, nefunguje - ta si ho sama překóduje;
+  rozhodují bajty.
+- **Zprávu o stavu disku nešlo uložit** (nahlásil uživatel): z písmene svazku ve
+  tvaru `C:\` se odstraňovala jen dvojtečka, takže navržený název souboru
+  obsahoval dvojtečku i lomítko a byl neplatný.
+- **Výpis opravy integrity ukazoval zdrojový kód skriptu** (nahlásil uživatel):
+  PowerShell u `Write-Error` vysype do výstupu celý skript i s rámečkem chyby.
+  Skript nově píše strojovou značku a české věty skládá až Diskora, takže je
+  vidět jen srozumitelná hláška - a odpadá i problém s kódováním češtiny uvnitř
+  skriptu. Doplněn i překlad hlášky o nezdařeném snímku svazku, kterou chkdsk
+  píše anglicky, i když jiné své hlášky vypisuje česky.
+
 ## [0.3.0] - 2026-07-28
 
 ### Přidáno

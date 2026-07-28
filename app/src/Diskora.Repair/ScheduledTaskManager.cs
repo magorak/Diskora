@@ -21,7 +21,7 @@ public static class ScheduledTaskManager
     // Stejný problém jako u defrag.exe (viz DefragRunner) - schtasks.exe píše do
     // přesměrovaného streamu v OEM kódové stránce konzole, bez explicitního
     // nastavení se diakritika rozbíjí na mojibake. Živě ověřeno.
-    private static readonly Encoding OutputEncoding = ProcessOutputRunner.ConsoleOutputEncoding;
+    private static readonly Encoding OutputEncoding = ProcessOutputRunner.OemEncoding;
 
     public static Task<ScheduledTaskResult> InstallAsync(
         string executablePath, string time, CancellationToken cancellationToken = default) =>

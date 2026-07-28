@@ -14,51 +14,41 @@ internal sealed record ProcessRunOutcome(bool Started, string? FailureReason, in
 /// </summary>
 internal static class ProcessOutputRunner
 {
-    /// <summary>
-    /// Kódová stránka, ve které konzolové nástroje Windows píšou svůj
-    /// PŘESMĚROVANÝ výstup. Diskora vždy čte přes rouru, ne z reálné konzole.
-    ///
-    /// Pořadí ověřeno empiricky POROVNÁNÍM KÓDŮ ZNAKŮ, ne podle vzhledu v konzoli
-    /// (ta si text sama překóduje a snadno svede na špatnou stopu): „ý" z názvu
-    /// svazku „Nový svazek" dorazí z `defrag.exe` jako bajt 0xEC. To je „ý" právě
-    /// v OEM stránce (<c>GetOEMCP</c>, zde 852). Ostatní kandidáti jsou prokazatelně
-    /// špatně - ANSI (<c>GetACP</c>, zde 1250) z toho udělá „ě" (U+011B) a UTF-8
-    /// (<c>GetConsoleOutputCP</c>, zde 65001) náhradní znak U+FFFD, protože 0xEC
-    /// není platná UTF-8 sekvence. Zbylé dvě stránky zůstávají jen jako záloha,
-    /// kdyby OEM stránka nešla zjistit.
-    ///
-    /// Pozor: konzolová stránka se tu neuplatní, i když by to znělo logicky -
-    /// Diskora čte výstup vždy přes rouru, ne z reálné konzole.
-    /// </summary>
-    public static Encoding ConsoleOutputEncoding { get; } = ResolveConsoleOutputEncoding();
+    /// <summary>ANSI stranka (GetACP, cesky 1250). Takhle pise presmerovany vystup chkdsk.exe.</summary>
+    public static Encoding AnsiEncoding { get; } = Resolve(GetACP());
 
-    private static Encoding ResolveConsoleOutputEncoding()
+    /// <summary>OEM stranka (GetOEMCP, cesky 852). Takhle pise defrag.exe a schtasks.exe.</summary>
+    public static Encoding OemEncoding { get; } = Resolve(GetOEMCP());
+
+    /// <summary>
+    /// Kodovani je VLASTNOST KONKRETNIHO NASTROJE, ne systemu - proto dve
+    /// vlastnosti vyse a zadna spolecna. Overeno na syrovych bajtech
+    /// presmerovaneho vystupu: defrag posila pro pismeno y s carkou bajt 0xEC
+    /// (CP852), zatimco chkdsk tutez diakritiku pise v CP1250. Jedno spolecne
+    /// nastaveni proto vzdycky rozbilo ten druhy nastroj - vyslo najevo az pote,
+    /// co si uzivatel vsiml rozsypane cestiny ve vystupu chkdsk.
+    ///
+    /// Urcovat kodovani podle toho, jak text VYPADA v konzoli, nefunguje - ta si
+    /// ho sama prekoduje a svede na spatnou stopu. Rozhoduji bajty.
+    /// Konzolova stranka (GetConsoleOutputCP) se neuplatni vubec, protoze
+    /// Diskora cte vystup pres rouru, ne z realne konzole.
+    /// </summary>
+    private static Encoding Resolve(uint codePage)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        foreach (var codePage in new[] { GetOEMCP(), GetACP(), GetConsoleOutputCP() })
+        try
         {
-            try
-            {
-                if (codePage != 0)
-                {
-                    return Encoding.GetEncoding((int)codePage);
-                }
-            }
-            catch (Exception ex) when (ex is ArgumentException or NotSupportedException)
-            {
-                // Nepodporovaná stránka - zkusí se další v pořadí.
-            }
+            return codePage == 0 ? Encoding.UTF8 : Encoding.GetEncoding((int)codePage);
         }
-
-        return Encoding.UTF8;
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException)
+        {
+            return Encoding.UTF8;
+        }
     }
 
     [DllImport("kernel32.dll")]
     private static extern uint GetOEMCP();
-
-    [DllImport("kernel32.dll")]
-    private static extern uint GetConsoleOutputCP();
 
     [DllImport("kernel32.dll")]
     private static extern uint GetACP();

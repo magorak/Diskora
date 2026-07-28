@@ -60,7 +60,9 @@ public partial class DiskDoctorWindow : Window
         ExportHelper.SaveHtmlReport(
             this,
             HtmlReportBuilder.Build([report], DateTimeOffset.Now),
-            $"diskora-zprava-{_driveLetter.Trim(':')}.html");
+            // Písmeno chodí ve tvaru "C:\" - dvojtečka i lomítko musí pryč, jinak
+            // vznikne nepoužitelný název souboru a uložení selže (nahlásil uživatel).
+            $"diskora-zprava-{_driveLetter.Trim('\\', ':')}.html");
     }
 
     private void Action_Click(object sender, RoutedEventArgs e)
