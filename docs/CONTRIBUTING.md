@@ -2,7 +2,7 @@
 
 ## Než začnete
 
-Projekt sleduje živý checklist v [`TODO.md`](../TODO.md) rozdělený do fází.
+Otevřené věci a známá omezení sleduje [`ROADMAP.md`](../ROADMAP.md).
 Než začnete pracovat na nové funkci, zkontrolujte, jestli už není rozpracovaná,
 a odškrtněte položky, které dokončíte.
 
@@ -36,7 +36,7 @@ dotnet run --project app/src/Diskora.App
 
 - Malé, zaměřené commity/PR raději než jeden obří.
 - Popiš *proč* změna vznikla, ne jen *co* se změnilo (to je vidět z diffu).
-- Aktualizuj `CHANGELOG.md` (sekce `Unreleased`) a `TODO.md` u dokončených položek.
+- Aktualizuj `CHANGELOG.md` (sekce `Unreleased`) a u dokončených bodů i `ROADMAP.md`.
 
 ## Licence příspěvků
 

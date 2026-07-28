@@ -31,7 +31,7 @@ očekávaným dopadem. Snažíme se reagovat co nejdříve.
 - **Žádná telemetrie ani síťová komunikace bez explicitního souhlasu.** Menší
   útočná plocha, žádná sbíraná data k úniku.
 - **Podepsané release buildy** (Authenticode) a reprodukovatelné buildy v CI —
-  zatím neimplementováno, viz Fáze 9 v [`TODO.md`](../TODO.md).
+  zatím neimplementováno, viz [`ROADMAP.md`](../ROADMAP.md).
 - **Statická analýza a dependency scanning v CI.** Roslyn analyzery běží už
   při každém buildu (`EnableNETAnalyzers` v `Directory.Build.props`). CodeQL
   (`.github/workflows/codeql.yml`) a Dependabot (`.github/dependabot.yml`)
@@ -108,4 +108,4 @@ jeho útočnou plochu na standardní statická rizika (hlavičky, CSP, závislos
 - Zranitelné závislosti → Dependabot + SBOM (Fáze 9).
 - Nedůvěryhodný binární soubor u koncového uživatele → code signing
   (Authenticode) - **zatím neimplementováno**, jediná zbývající mezera v
-  téhle sekci; sledováno v `TODO.md` Fáze 9.
+  téhle sekci; sledováno v `ROADMAP.md`.

@@ -9,7 +9,7 @@ namespace Diskora.Native.Storage;
 /// blocích a hlásí bajtové rozsahy, které se nepodařilo přečíst (I/O chyba
 /// při čtení = pravděpodobně vadný sektor). Nic nezapisuje ani neopravuje -
 /// na rozdíl od `chkdsk /f`/`/spotfix`, které jsou v Diskoře záměrně
-/// samostatný, dosud nepropojený krok (viz TODO.md - potřebuje vlastní
+/// samostatný, dosud nepropojený krok (viz ROADMAP.md - potřebuje vlastní
 /// potvrzovací UI kvůli riziku restartu na systémovém svazku).
 ///
 /// Otevírá `\\.\PhysicalDriveN` napřímo (ne konkrétní svazek), proto

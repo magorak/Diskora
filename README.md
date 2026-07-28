@@ -17,7 +17,7 @@ Bez telemetrie, bez reklam, bez placené verze. Celý kód je otevřený pod
 
 ## Stav projektu
 
-Diskora je ve rané fázi vývoje. Aktuální rozsah a plán najdete v [TODO.md](TODO.md).
+Diskora je ve rané fázi vývoje. Aktuální rozsah a plán najdete v [ROADMAP.md](ROADMAP.md).
 
 ## Struktura repozitáře
 

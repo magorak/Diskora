@@ -5,7 +5,7 @@
     nainstalovaný v cíli.
 
 .DESCRIPTION
-    Skutečný instalátor (Inno Setup/MSIX) zůstává otevřený bod v TODO.md (Fáze 9) -
+    Skutečný instalátor (Inno Setup/MSIX) zůstává otevřený bod v ROADMAP.md -
     tenhle skript řeší jen portable variantu, kterou šlo v tomto prostředí ověřit
     beze zbytku potřebné infrastruktury (code signing certifikát, Inno Setup).
     Výsledek se necommituje (viz .gitignore, `/dist/`) - generuje se čerstvě podle

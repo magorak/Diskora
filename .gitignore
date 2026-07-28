@@ -54,3 +54,7 @@ Desktop.ini
 
 # Nastavení nástrojů vývojáře - do sdíleného repozitáře nepatří
 .claude/
+
+# Pracovní deník vývoje - veřejně je z něj podstatná část v ROADMAP.md
+# a hotové věci v CHANGELOG.md
+TODO.md

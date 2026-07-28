@@ -12,7 +12,7 @@ namespace Diskora.VirtualDisks;
 /// váže připojení na životnost handlu z volání AttachVirtualDisk a při zavření
 /// handlu (viz finally ve <see cref="WithOpenHandle"/>) svazek okamžitě zase
 /// tiše odpojí - API přitom vrátí úspěch, takže se to bez elevovaného živého
-/// testu (Fáze 6 v TODO.md) neprojevilo. Ověřeno elevovaně: bez tohoto flagu
+/// testu (viz ROADMAP.md) neprojevilo. Ověřeno elevovaně: bez tohoto flagu
 /// AttachVirtualDisk vrátí 0, ale `diskpart detail vdisk` hned poté ukáže
 /// "Associated disk#: Not found." - disk se nikdy fakticky nezpřístupní.
 /// </summary>

@@ -35,7 +35,7 @@ Diskora je monorepo se dvěma hlavními částmi:
 | `Diskora.Data` | SQLite historie (SMART trendy, výsledky scanů, nastavení) |
 | `Diskora.Cli` | Headless/scriptovatelný companion s JSON výstupem |
 
-Projekty vznikají postupně podle fáze v [`TODO.md`](../TODO.md) — nevytváří se
+Projekty vznikají postupně podle potřeby — nevytváří se
 prázdné/neúplné stub projekty předem.
 
 ## Bezpečnostní principy (viz i [SECURITY.md](SECURITY.md))
