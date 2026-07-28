@@ -732,6 +732,22 @@ závažnosti, ne podle pořadí nahlášení.
       Tohle jsou levné opravy s velkým dopadem a měly by jít před jakoukoli
       grafickou nadstavbou - viz úvaha níže v „Nápadech".
 
+## Distribuce a zveřejnění (rozhodnutí na uživateli)
+- [ ] **Zpřístupnit aplikaci ke stažení.** Portable exe má ~168 MB, takže do gitu
+      nepatří. Cesta: GitHub Releases (limit 2 GB na soubor) navázané na už
+      existující tagy `v0.2.0`/`v0.3.0`; web na magorak.cz pak jen odkazuje.
+- [ ] **Zpřístupnit zdrojový kód.** GPLv3 §6: kdo dostane binárku, má nárok na
+      odpovídající zdrojový kód. Když bude stahování veřejné, musí být veřejně
+      dostupný i zdroj (nebo písemná nabídka platná 3 roky, což je horší cesta).
+- [ ] **Rozhodnout veřejný vs. soukromý repozitář.** Soukromý repozitář vyřeší
+      CI, CodeQL i Dependabot (fungují i tam) a umožní Releases, ale NEVYŘEŠÍ
+      povinnost podle GPL vůči lidem, kteří si binárku stáhnou z veřejného webu -
+      ti se do soukromého repozitáře nedostanou. Veřejný repozitář navíc má
+      neomezené minuty Actions a CodeQL zdarma. Doporučení: veřejný.
+- [ ] **Web ponechat na magorak.cz** (rozhodnutí uživatele), jen doplnit sekci
+      Stažení s odkazy na Releases a na zdrojový kód. Zrcadlo webu na GitHub Pages
+      není potřeba a znamenalo by udržovat dvě adresy.
+
 ## Nápady na budoucí odlišení (backlog, needvidí se hned)
 - [x] "Disk Doctor" wizard (jedno tlačítko: SMART + chkdsk + TRIM/defrag rozhodnutí):
       tlačítko „Disk Doctor" u každého svazku v dashboardu + CLI `diskora doctor

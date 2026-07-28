@@ -1,1 +1,8 @@
 @import "tailwindcss";
+/* Plynulé rolování pro kotvy včetně tlačítka „Zpět nahoru". Respektuje
+   nastavení systému - kdo si vypne animace, dostane skok bez animace. */
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+}

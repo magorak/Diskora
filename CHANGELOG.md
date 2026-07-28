@@ -6,6 +6,11 @@ verzování dle [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Změněno
+- Tlačítko „Zpět nahoru" na webu (nahlásil uživatel): u delších stránek nebylo jak
+  se rychle vrátit k navigaci. Základ je obyčejná kotva, takže funguje i bez
+  JavaScriptu - ten jen tlačítko schová, dokud je návštěvník nahoře. Plynulé
+  rolování řeší CSS a respektuje systémové nastavení omezených animací.
+
 - **Web dohnal aplikaci** (nahlásil uživatel): landing page hlásila „Verze 0.1.0 —
   rané vývojové stádium", zatímco vydaná byla 0.3.0, a žádná z nových funkcí nebyla
   na webu ani v nápovědě zmíněná. Opraveno číslo verze i popis stavu, mezi odlišující
