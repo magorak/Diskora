@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Diagnostics.EventLog" Version="9.0.9" />
+    <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.10" />
   </ItemGroup>
 
 </Project>
