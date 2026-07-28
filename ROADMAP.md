@@ -52,9 +52,40 @@ Proto je tenhle soubor o tom, co chybí, a ne o tom, co se povedlo.
 
 ## Jazyk
 
-- **Lokalizace (cs-CZ, en-US)** — čeká na rozhodnutí, jestli má být dvojjazyčný
-  i web a dokumentace. Jde o zhruba 380 řetězců napříč sedmi projekty; anglické
-  UI u českého webu by dalo nekonzistentní produkt.
+**Rozhodnuto (2026-07-29): dvojjazyčně cs-CZ / en-US, včetně webu a nápovědy.**
+Rozsah je zhruba 380 řetězců napříč sedmi projekty plus celý web. Práce je
+rozdělená na etapy, z nichž každá je samostatně dokončitelná a vydatelná —
+nemá smysl mít polovinu aplikace přeloženou a druhou ne.
+
+Technická rozhodnutí, ať se k nim nemusí vracet:
+
+- **`.resx` + `ResourceManager`**, ne externí knihovna — konzistentní s filozofií
+  minima závislostí a `.resx` je pro WPF i konzoli nativní cesta.
+- **Jazyk jako volba v Nastavení** (`AppSettings.Language`), výchozí „podle
+  systému". Přepnutí za běhu nemusí být okamžité; restart aplikace je přijatelný,
+  pokud to ušetří přestavbu bindingů.
+- **Zdrojový jazyk resursů je čeština** (`NeutralLanguage` je už `cs`), angličtina
+  je `Strings.en.resx`. Opačné pořadí by znamenalo přepsat všechny existující texty.
+- **`ToolOutputTranslator` se v angličtině vypne.** Překládá anglický výstup
+  `chkdsk`/`defrag` do češtiny — pro anglické UI je správné chování nechat
+  původní text. Ušetří to překlad těch nejobjemnějších řetězců.
+- **Web: vestavěné i18n Astro** (`astro.config.mjs` → `i18n`), cesty `/cs/` a `/en/`,
+  výchozí čeština bez prefixu, aby zůstaly platné existující odkazy.
+
+Etapy v pořadí, v jakém dávají smysl:
+
+1. **Infrastruktura + `Diskora.Core`.** Nastavení jazyka, načtení kultury při
+   startu, `.resx` v Core a převedení jeho řetězců (katalogy S.M.A.R.T. atributů,
+   NVMe metriky, nálezy Disk Doctora, odhad životnosti). Core je nejobjemnější
+   a nemá závislost na UI, takže se dá celý pokrýt testy.
+2. **`Diskora.App`.** XAML popisky, hlášky ve viewmodelech, `DiskDisplayFormatting`.
+3. **`Diskora.Cli` a `Diskora.Native`.** Nápověda k příkazům, chybové hlášky.
+4. **Web a nápověda.** Anglická verze všech stránek; od té chvíle se každý nový
+   text píše dvakrát.
+
+Nevyřešené: kdo bude anglické texty korigovat. Strojový překlad odborných termínů
+(„přemapované sektory", „rezervní kapacita") je riskantní — v Diskoře jsou ta
+vysvětlení hlavní přidaná hodnota a špatný překlad by ji zničil.
 
 ## Vydávání a provoz
 
