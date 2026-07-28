@@ -94,6 +94,56 @@ public class DiskLifetimeEstimatorTests
     }
 
     [Fact]
+    public void Estimate_WearLevelingCount_JeTakyBranVUvahu()
+    {
+        // Verbatim Vi550 hlásí opotřebení atributem 177, ne 233.
+        var estimate = DiskLifetimeEstimator.Estimate(Ata(
+            new SmartAttributeReading(177, 70, 70, 50, 0),
+            new SmartAttributeReading(9, 100, 100, 0, 3000)));
+
+        Assert.True(estimate.IsAvailable);
+        Assert.Equal(30, estimate.WearPercent);
+    }
+
+    [Fact]
+    public void Estimate_NejednoznacnyAtribut_SeUznaAzKdyzSePotvrdiJakoProcenta()
+    {
+        // Crucial MX500: atribut 202, normalizovaná 99 + surová 1 = 100.
+        var estimate = DiskLifetimeEstimator.Estimate(Ata(
+            new SmartAttributeReading(202, 90, 90, 1, RawValue: 10),
+            new SmartAttributeReading(9, 100, 100, 0, 3000)));
+
+        Assert.True(estimate.IsAvailable);
+        Assert.Equal(10, estimate.WearPercent);
+    }
+
+    [Fact]
+    public void Estimate_NejednoznacnyAtributBezShody_SeIgnoruje()
+    {
+        // U jiného výrobce znamená 202 něco úplně jiného (chyby adresních značek).
+        // Bez shody normalizované a surové hodnoty se nesmí použít.
+        var estimate = DiskLifetimeEstimator.Estimate(Ata(
+            new SmartAttributeReading(202, 100, 100, 0, RawValue: 51234),
+            new SmartAttributeReading(9, 100, 100, 0, 3000)));
+
+        Assert.False(estimate.IsAvailable);
+    }
+
+    [Fact]
+    public void Describe_NesmyslneDlouhyOdhad_RadsiVysvetliNezUvadiRoky()
+    {
+        // Crucial MX500 z testovacího stroje: 1 % za 9727 h → přes sto let.
+        var estimate = DiskLifetimeEstimator.Estimate(Ata(
+            new SmartAttributeReading(202, 99, 99, 1, RawValue: 1),
+            new SmartAttributeReading(9, 100, 100, 0, 9727)));
+
+        var text = estimate.Describe();
+        Assert.True(estimate.IsAvailable);
+        Assert.DoesNotContain("let.", text, StringComparison.Ordinal);
+        Assert.Contains("doslouží stářím", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Describe_UvadiZeJdeOOdhad_NeZaruku()
     {
         var text = DiskLifetimeEstimator.Estimate(Nvme(10, 1000)).Describe();

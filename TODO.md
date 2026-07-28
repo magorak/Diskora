@@ -744,9 +744,13 @@ závažnosti, ne podle pořadí nahlášení.
       mlčet než hádat" - u disku bez ukazatele opotřebení, s neměřitelným
       opotřebením nebo s provozem pod 100 h vrací vysvětlení místo čísla.
       12 testů. Živě ověřeno na NVMe (6 % za 3948 h → 7 let), 4TB HDD i SATA SSD
-      (oba správně odmítnou). ZBÝVÁ: pokrýt SSD, které opotřebení hlásí atributy
-      177/202/231 místo 233 - vědomě neuděláno hned, protože špatně přečtený
-      vendor-specifický atribut by dal smyšlený počet let.
+      (oba správně odmítnou). Doplněno i pokrytí atributů 177/202/231: zavedeným
+      (233, 177) se věří rovnou, u nejednoznačných (202, 231) se vyžaduje, aby se
+      samy potvrdily jako procenta (normalizovaná + surová = 100), jinak se
+      ignorují. Odhad delší než 20 let se neuvádí číslem, ale větou - extrapolace
+      z jednoho procenta dá klidně sto let, což je nesmysl. Živě ověřeno na čtyřech
+      discích, každý s jiným chováním (NVMe, Crucial přes 202, Verbatim přes 177,
+      talířový disk bez ukazatele).
       Původní zadání znělo: z SQLite historie (už se plní) spočítat tempo
       zhoršování a přeložit ho do věty, které rozumí i laik - u NVMe je to přímočaré
       (`PercentageUsed` v čase → odhad, kdy dosáhne 100 %), u SSD přes atribut 233,

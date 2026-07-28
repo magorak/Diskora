@@ -34,10 +34,19 @@ verzování dle [Semantic Versioning](https://semver.org/).
   Živě ověřeno na třech typech disků: NVMe (6 % za 3948 h → 7 let), 4TB talířový
   disk (správně odmítne s vysvětlením, že se u něj životnost takhle neměří)
   a SATA SSD (odmítne - nehlásí atribut 233).
-  Známé omezení: pokrytý je NVMe a SATA SSD s atributem 233. Disky, které
-  opotřebení hlásí jinými atributy (177, 202, 231), zatím spadnou do „nelze
-  odhadnout" - vědomě, protože špatně přečtený vendor-specifický atribut by dal
-  smyšlené číslo, a to je u tvrzení „disk vydrží ještě X let" horší než mlčení.
+  Pokryté jsou i SSD, které opotřebení hlásí jinak než atributem 233. Zavedeným
+  ukazatelům (233, 177) se věří rovnou. U atributů, které jinde znamenají něco
+  úplně jiného (202 je u Crucialu „zbývající životnost", jinde chyby adresních
+  značek), se vyžaduje, aby se samy potvrdily jako procenta - normalizovaná
+  a surová hodnota musí dát dohromady 100. Bez té shody se atribut ignoruje,
+  protože smyšlený počet let je horší než mlčení.
+  Odhad delší než 20 let se neuvádí číslem: při opotřebení kolem procenta vyjde
+  extrapolací klidně sto let, což je aritmeticky správně, ale jako věta nesmysl -
+  disk dřív doslouží stářím. Místo čísla se řekne, co z toho plyne.
+  Živě ověřeno na čtyřech discích, každý s jiným chováním: NVMe (6 % za 3948 h →
+  7 let), Crucial MX500 přes atribut 202 (1 % za 9727 h → „opotřebení zápisy pro
+  vás není to, co disk omezí"), Verbatim s atributem 177 (zatím neměřitelné
+  opotřebení) a talířový disk (ukazatel nemá vůbec).
 
 ### Přidáno
 - **Test skutečné kapacity disku** - odhalí přeznačené flash disky, které hlásí

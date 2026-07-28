@@ -24,6 +24,19 @@ public sealed record DiskLifetimeEstimate(
             return UnavailableReason ?? "Zbývající životnost se nepodařilo odhadnout.";
         }
 
+        // Při nepatrném opotřebení vyjde extrapolací klidně sto let. Je to
+        // aritmeticky správně, ale jako věta je to nesmysl - disk dřív odejde
+        // stářím nebo řadičem. Radši se řekne, co z toho plyne.
+        if (remaining.TotalDays / 365.0 > Diagnostics.DiskLifetimeEstimator.ImplausiblyLongYears)
+        {
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                "Spotřebováno {0:F0} % životnosti za {1:F0} h provozu. Tímhle tempem se disk zápisy "
+                + "nevyčerpá dřív, než doslouží stářím - opotřebení zápisy pro vás není to, co ho omezí.",
+                wear,
+                PowerOnHours ?? 0);
+        }
+
         return string.Format(
             CultureInfo.CurrentCulture,
             "Spotřebováno {0:F0} % životnosti za {1:F0} h provozu. Při stejném způsobu používání "

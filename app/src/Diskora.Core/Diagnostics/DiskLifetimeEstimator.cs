@@ -25,8 +25,24 @@ public static class DiskLifetimeEstimator
     /// <summary>Pod tímhle počtem hodin provozu ještě není z čeho tempo počítat.</summary>
     private const double MinimumPowerOnHours = 100.0;
 
-    /// <summary>Normalizovaný ukazatel opotřebení SSD (100 = nový, 0 = konec životnosti).</summary>
-    private const byte MediaWearoutIndicator = 233;
+    /// <summary>
+    /// Zavedené ukazatele opotřebení SSD, kde normalizovaná hodnota klesá
+    /// od 100 k nule. 233 = Media Wearout Indicator, 177 = Wear Leveling Count.
+    /// Význam mají napříč výrobci shodný, takže se jim dá věřit rovnou.
+    /// </summary>
+    private static readonly byte[] WellKnownWearAttributes = [233, 177];
+
+    /// <summary>
+    /// Atributy, které opotřebení hlásí jen u NĚKTERÝCH výrobců a jinde znamenají
+    /// úplně něco jiného (202 je u Crucialu „zbývající životnost", jinde chyby
+    /// adresních značek). Věří se jim proto jen tehdy, když normalizovaná a surová
+    /// hodnota dávají dohromady 100 - tedy když se samy potvrdí jako procenta.
+    /// Živě ověřeno na Crucial MX500: normalizovaná 99, surová 1.
+    /// </summary>
+    private static readonly byte[] AmbiguousWearAttributes = [202, 231];
+
+    /// <summary>Kdy přestává mít smysl uvádět konkrétní počet let (viz Describe).</summary>
+    public const double ImplausiblyLongYears = 20;
 
     /// <summary>Doba provozu v hodinách.</summary>
     private const byte PowerOnHoursAttribute = 9;
@@ -73,19 +89,34 @@ public static class DiskLifetimeEstimator
     }
 
     /// <summary>
-    /// U ATA disků se opotřebení bere z atributu 233, kde normalizovaná hodnota
-    /// klesá od 100 k nule - spotřebováno je tedy 100 mínus aktuální hodnota.
+    /// Potvrdí, že se atribut chová jako procenta: normalizovaná hodnota klesá
+    /// od 100 a surová udává spotřebovaná procenta, takže dohromady dají 100.
+    /// Bez téhle kontroly by se u jiného výrobce vzal stejně číslovaný atribut
+    /// s úplně jiným významem a vyšel by smyšlený počet let.
+    /// </summary>
+    private static bool ConfirmsPercentSemantics(SmartAttributeReading attribute) =>
+        attribute.CurrentValue <= 100 && attribute.RawValue <= 100
+        && attribute.CurrentValue + attribute.RawValue == 100;
+
+    /// <summary>
+    /// U ATA disků se opotřebení bere z normalizované hodnoty, která klesá
+    /// od 100 k nule - spotřebováno je tedy 100 mínus aktuální hodnota.
     /// </summary>
     private static (double? WearPercent, double? PowerOnHours) ReadFromAtaAttributes(SmartReport report)
     {
-        var wearAttribute = report.Attributes.FirstOrDefault(a => a.Id == MediaWearoutIndicator);
         var hoursAttribute = report.Attributes.FirstOrDefault(a => a.Id == PowerOnHoursAttribute);
-
-        if (wearAttribute is null || hoursAttribute is null)
+        if (hoursAttribute is null)
         {
             return (null, null);
         }
 
-        return (100.0 - wearAttribute.CurrentValue, hoursAttribute.RawValue);
+        var wearAttribute =
+            report.Attributes.FirstOrDefault(a => WellKnownWearAttributes.Contains(a.Id))
+            ?? report.Attributes.FirstOrDefault(a =>
+                AmbiguousWearAttributes.Contains(a.Id) && ConfirmsPercentSemantics(a));
+
+        return wearAttribute is null
+            ? (null, null)
+            : (100.0 - wearAttribute.CurrentValue, hoursAttribute.RawValue);
     }
 }
